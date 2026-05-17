@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-ink font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ensure all links have visible focus states for accessibility */
+  a:focus-visible,
+  button:focus-visible {
+    @apply outline-2 outline-offset-2 outline-bonsai-pink rounded-sm;
+  }
+}
+
+@layer components {
+  /* Reusable section wrapper */
+  .section-wrap {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Primary button — large, accessible, strong contrast */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-forest text-white
+           rounded-full px-8 py-4
+           font-sans font-bold text-base tracking-wide
+           shadow-card
+           hover:bg-forest-light active:scale-95
+           transition-all duration-150
+           min-h-[56px];
+  }
+
+  /* Secondary / outline button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           border-2 border-forest text-forest bg-transparent
+           rounded-full px-8 py-4
+           font-sans font-bold text-base tracking-wide
+           hover:bg-forest hover:text-white active:scale-95
+           transition-all duration-150
+           min-h-[56px];
+  }
+
+  /* Ghost button for social — white background with border */
+  .btn-social {
+    @apply inline-flex items-center justify-center gap-2
+           bg-cream-light border-2 border-forest/20 text-forest
+           rounded-full px-6 py-3
+           font-sans font-semibold text-sm tracking-wide
+           hover:border-forest hover:bg-white active:scale-95
+           transition-all duration-150
+           min-h-[48px];
+  }
+
+  /* Standard card style */
+  .card {
+    @apply bg-cream-light border border-forest/15 rounded-3xl shadow-card;
+  }
+
+  /* Pink floral divider line */
+  .pink-divider {
+    @apply w-24 h-px bg-bonsai-pink-lt mx-auto;
+  }
+
+  /* Section heading style */
+  .section-label {
+    @apply font-sans text-xs font-semibold tracking-[0.2em] uppercase text-bonsai-pink;
+  }
+
+  .section-heading {
+    @apply font-serif text-4xl sm:text-5xl text-forest leading-tight;
+  }
+}
