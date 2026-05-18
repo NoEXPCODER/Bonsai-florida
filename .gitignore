@@ -11,6 +11,9 @@ build/
 tsconfig.tsbuildinfo
 *.tsbuildinfo
 
+# Claude Code local settings (never commit)
+.claude/settings.local.json
+
 # Misc
 .DS_Store
 *.pem
