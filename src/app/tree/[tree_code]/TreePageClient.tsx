@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
 import { getTreeImageUrls } from '@/lib/tree-images'
-import { findCareGuideForTree } from '@/data/care-guides'
 import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
@@ -147,7 +146,6 @@ export default function TreePageClient({ tree: initialTree, isStaff }: {
   const [editing, setEditing] = useState(false)
   const router = useRouter()
   const photos = getTreeImageUrls(tree)
-  const careGuide = findCareGuideForTree(tree)
 
   function handleSaved(updated: Partial<DbTree>) {
     setTree(p => ({ ...p, ...updated }))
@@ -194,7 +192,7 @@ export default function TreePageClient({ tree: initialTree, isStaff }: {
             </div>
           </div>
 
-          {/* Tree info card */}
+          {/* Tree info and database care card */}
           <div className="card p-6 mb-5">
             <div className="mb-4">
               <h1 className="font-serif text-3xl text-forest">{tree.name}</h1>
@@ -228,50 +226,10 @@ export default function TreePageClient({ tree: initialTree, isStaff }: {
             {tree.notes && (
               <>
                 <div className="w-full h-px bg-bonsai-pink-lt/50 my-4" />
+                <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Care guide</p>
                 <p className="font-sans text-sm italic text-ink-light leading-relaxed">{tree.notes}</p>
               </>
             )}
-          </div>
-
-          {/* Species care guide */}
-          <div className="card p-6 mb-5">
-            <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Care guide</p>
-            <h2 className="font-serif text-2xl text-forest mb-1">{careGuide.name}</h2>
-            <p className="font-sans text-sm italic text-ink-light mb-4">{careGuide.latin}</p>
-            <p className="font-sans text-sm text-ink-light leading-relaxed mb-5">{careGuide.summary}</p>
-
-            <div className="space-y-2 mb-5">
-              <p className="font-sans text-sm text-ink-light bg-sage-pale/60 rounded-xl px-3 py-2">
-                <strong className="text-forest">Best light:</strong> {careGuide.quick.light}
-              </p>
-              <p className="font-sans text-sm text-ink-light bg-sage-pale/60 rounded-xl px-3 py-2">
-                <strong className="text-forest">Water:</strong> {careGuide.quick.water}
-              </p>
-              <p className="font-sans text-sm text-ink-light bg-sage-pale/60 rounded-xl px-3 py-2">
-                <strong className="text-forest">Best spot:</strong> {careGuide.quick.placement}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-bonsai-pink-lt/50 bg-bonsai-pink-pale/40 px-4 py-3 mb-5">
-              <p className="font-sans text-sm font-semibold text-forest">Beginner tip</p>
-              <p className="font-sans text-sm text-ink-light leading-relaxed">{careGuide.quick.beginnerTip}</p>
-            </div>
-
-            <div className="space-y-5">
-              {careGuide.details.map(section => (
-                <div key={section.title}>
-                  <h3 className="font-serif text-xl text-forest mb-2">{section.title}</h3>
-                  <ul className="space-y-2">
-                    {section.body.map(line => (
-                      <li key={line} className="flex items-start gap-3">
-                        <span className="mt-2 w-1.5 h-1.5 rounded-full bg-bonsai-pink flex-shrink-0" />
-                        <span className="font-sans text-sm text-ink-light leading-relaxed">{line}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Contact CTA */}
