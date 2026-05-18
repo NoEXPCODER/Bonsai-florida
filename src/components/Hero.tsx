@@ -1,4 +1,7 @@
+'use client'
+
 import { CONTACT } from '@/config/contact'
+import { useMessages } from '@/lib/i18n'
 import {
   PhoneIcon,
   MessageIcon,
@@ -10,6 +13,9 @@ import {
 } from '@/components/Icons'
 
 export default function Hero() {
+  const m = useMessages()
+  const t = m.hero
+
   return (
     <section
       id="top"
@@ -19,23 +25,19 @@ export default function Hero() {
       {/* Top pink accent line */}
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink-lt to-transparent" />
 
-      {/* Background decorative blob */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        aria-hidden="true"
-      >
+      {/* Background decorative blobs */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-sage-pale/60 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-bonsai-pink-pale/30 blur-3xl -translate-x-1/2 translate-y-1/2" />
       </div>
 
       <div className="section-wrap relative py-16 sm:py-20 lg:py-24">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+
           {/* ── Left: text content ── */}
           <div>
-            {/* Eyebrow */}
-            <p className="section-label mb-4">Palm Beach, Florida</p>
+            <p className="section-label mb-4">{t.location}</p>
 
-            {/* Main heading */}
             <h1 className="font-serif text-forest leading-none mb-2">
               <span className="block text-[clamp(3.5rem,10vw,7rem)] font-bold tracking-tight">
                 Bonsai
@@ -45,18 +47,14 @@ export default function Hero() {
               </span>
             </h1>
 
-            {/* Thin pink rule */}
             <div className="w-16 h-0.5 bg-bonsai-pink mt-4 mb-6" />
 
-            {/* Tagline */}
             <p className="font-serif italic text-bonsai-pink text-xl sm:text-2xl mb-3">
-              Tropical Bonsai for South Florida Living
+              {t.tagline}
             </p>
 
-            {/* Description */}
             <p className="font-sans text-ink-light text-lg sm:text-xl leading-relaxed max-w-lg mb-10">
-              Beginner-friendly bonsai, local guidance, and peaceful garden
-              visits in Palm Beach, Florida.
+              {t.description}
             </p>
 
             {/* Primary CTA buttons */}
@@ -67,7 +65,7 @@ export default function Hero() {
                 aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
               >
                 <PhoneIcon className="w-5 h-5" />
-                Call Now
+                {t.callNow}
               </a>
               <a
                 href={CONTACT.phone.sms}
@@ -75,21 +73,21 @@ export default function Hero() {
                 aria-label="Send a text message to Bonsai Florida"
               >
                 <MessageIcon className="w-5 h-5" />
-                Text Us
+                {t.textUs}
               </a>
               <a
                 href="#collection"
                 className="btn-secondary"
                 aria-label="View available bonsai trees"
               >
-                View Available Trees
+                {t.viewTrees}
               </a>
             </div>
 
             {/* Social quick links */}
             <div>
               <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-3">
-                Also find us on
+                {t.alsoOn}
               </p>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -137,11 +135,10 @@ export default function Hero() {
 
           {/* ── Right: decorative display card ── */}
           <div className="relative flex justify-center lg:justify-end" aria-hidden="true">
-            {/* Outer frame — inspired by the poster border */}
             <div className="w-full max-w-sm sm:max-w-md relative">
               <div className="absolute inset-0 border-2 border-forest/20 rounded-4xl translate-x-3 translate-y-3" />
               <div className="relative card p-6 sm:p-8 shadow-card-lg overflow-hidden">
-                {/* Decorative corner marks */}
+                {/* Corner marks */}
                 <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-forest/40 rounded-tl-lg" />
                 <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-forest/40 rounded-tr-lg" />
                 <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-forest/40 rounded-bl-lg" />
@@ -149,32 +146,28 @@ export default function Hero() {
 
                 {/* Bonsai illustration placeholder */}
                 <div className="w-full aspect-[4/5] rounded-2xl bg-gradient-to-b from-forest to-forest-light flex flex-col items-center justify-end pb-10 mb-6 relative overflow-hidden">
-                  {/* Sky gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-sage-pale/20 via-transparent to-transparent" />
-                  {/* Ground */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-forest-dark/60 to-transparent" />
-                  {/* Pot silhouette */}
-                  <div className="relative z-10 w-20 h-8 bg-forest-dark/70 rounded-b-xl rounded-t-sm" />
-                  {/* Trunk */}
-                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-3 h-24 bg-forest-dark/60 rounded-full" />
-                  {/* Canopy layers */}
-                  <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-32 h-20 bg-forest-light/70 rounded-full blur-sm" />
-                  <div className="absolute bottom-36 left-1/2 -translate-x-[40%] w-24 h-16 bg-sage/50 rounded-full blur-sm" />
-                  <div className="absolute bottom-40 left-1/2 -translate-x-[60%] w-20 h-14 bg-sage-light/40 rounded-full blur-sm" />
-                  {/* Pink floral accents */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="relative">
+                      <div className="w-28 h-20 rounded-full bg-white/10 blur-md absolute -top-2 left-1/2 -translate-x-1/2" />
+                      <div className="w-20 h-14 rounded-full bg-white/15 relative" />
+                    </div>
+                    <div className="w-2.5 h-10 bg-white/20 rounded-full mx-auto" />
+                    <div className="w-14 h-5 bg-white/15 rounded-b-lg rounded-t-sm" />
+                  </div>
                   <div className="absolute top-8 left-8 text-2xl opacity-60">🌸</div>
                   <div className="absolute top-12 right-10 text-lg opacity-50">🌸</div>
                   <div className="absolute top-20 left-16 text-sm opacity-40">🌸</div>
                 </div>
 
-                {/* Card text */}
                 <div className="text-center">
                   <div className="pink-divider mb-4" />
                   <h2 className="font-serif text-2xl text-forest tracking-wide mb-1">
                     Bonsai Florida
                   </h2>
                   <p className="font-sans text-xs text-ink-light tracking-[0.18em] uppercase">
-                    Ficus · Willow · Tropical Forms
+                    {t.cardSpecies}
                   </p>
                   <div className="pink-divider mt-4" />
                 </div>
@@ -184,7 +177,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Bottom pink divider */}
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink-lt to-transparent" />
     </section>
   )

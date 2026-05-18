@@ -1,4 +1,7 @@
+'use client'
+
 import { CONTACT } from '@/config/contact'
+import { useMessages } from '@/lib/i18n'
 import {
   PhoneIcon,
   MessageIcon,
@@ -10,14 +13,16 @@ import {
 } from '@/components/Icons'
 
 export default function Footer() {
+  const m = useMessages()
+  const t = m.footer
+
   return (
     <footer className="bg-forest text-white" aria-label="Site footer">
-      {/* Top pink rule */}
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
 
       <div className="section-wrap py-14 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-16">
-          {/* Column 1: Brand */}
+          {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center text-xl">
@@ -33,78 +38,63 @@ export default function Footer() {
               </div>
             </div>
             <p className="font-sans text-white/70 text-sm leading-relaxed max-w-xs">
-              Beginner-friendly tropical bonsai in Palm Beach, Florida.
-              Handcrafted trees, local guidance, and peaceful garden visits.
+              {t.tagline}
             </p>
-
-            {/* Decorative pink divider */}
             <div className="w-12 h-px bg-bonsai-pink mt-6" />
           </div>
 
-          {/* Column 2: Direct contact */}
+          {/* Direct contact */}
           <div>
             <h3 className="font-sans text-xs font-bold tracking-[0.2em] uppercase text-bonsai-pink-lt mb-6">
-              Contact Us Directly
+              {t.contactHeading}
             </h3>
             <ul className="space-y-4">
-              <li>
-                <a
-                  href={CONTACT.phone.tel}
-                  className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group"
-                  aria-label={`Call us at ${CONTACT.phone.display}`}
-                >
-                  <span className="w-9 h-9 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                    <PhoneIcon className="w-4 h-4" />
-                  </span>
-                  <div>
-                    <span className="block font-sans font-semibold text-sm">Call Us</span>
-                    <span className="block font-sans text-xs text-white/60">
-                      {CONTACT.phone.display}
+              {[
+                {
+                  label: t.callLabel,
+                  sub: CONTACT.phone.display,
+                  href: CONTACT.phone.tel,
+                  icon: <PhoneIcon className="w-4 h-4" />,
+                  ariaLabel: `Call us at ${CONTACT.phone.display}`,
+                },
+                {
+                  label: t.textLabel,
+                  sub: CONTACT.phone.display,
+                  href: CONTACT.phone.sms,
+                  icon: <MessageIcon className="w-4 h-4" />,
+                  ariaLabel: `Text us at ${CONTACT.phone.display}`,
+                },
+                {
+                  label: t.emailLabel,
+                  sub: CONTACT.email.address,
+                  href: CONTACT.email.href,
+                  icon: <EmailIcon className="w-4 h-4" />,
+                  ariaLabel: `Email us at ${CONTACT.email.address}`,
+                },
+              ].map(({ label, sub, href, icon, ariaLabel }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group"
+                    aria-label={ariaLabel}
+                  >
+                    <span className="w-9 h-9 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
+                      {icon}
                     </span>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a
-                  href={CONTACT.phone.sms}
-                  className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group"
-                  aria-label={`Text us at ${CONTACT.phone.display}`}
-                >
-                  <span className="w-9 h-9 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                    <MessageIcon className="w-4 h-4" />
-                  </span>
-                  <div>
-                    <span className="block font-sans font-semibold text-sm">Text Us</span>
-                    <span className="block font-sans text-xs text-white/60">
-                      {CONTACT.phone.display}
-                    </span>
-                  </div>
-                </a>
-              </li>
-              <li>
-                <a
-                  href={CONTACT.email.href}
-                  className="flex items-center gap-3 text-white/80 hover:text-white transition-colors group"
-                  aria-label={`Email us at ${CONTACT.email.address}`}
-                >
-                  <span className="w-9 h-9 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                    <EmailIcon className="w-4 h-4" />
-                  </span>
-                  <div>
-                    <span className="block font-sans font-semibold text-sm">Email</span>
-                    <span className="block font-sans text-xs text-white/60 break-all">
-                      {CONTACT.email.address}
-                    </span>
-                  </div>
-                </a>
-              </li>
+                    <div>
+                      <span className="block font-sans font-semibold text-sm">{label}</span>
+                      <span className="block font-sans text-xs text-white/60 break-all">{sub}</span>
+                    </div>
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Column 3: Social */}
+          {/* Social */}
           <div>
             <h3 className="font-sans text-xs font-bold tracking-[0.2em] uppercase text-bonsai-pink-lt mb-6">
-              Follow Our Journey
+              {t.socialHeading}
             </h3>
             <ul className="space-y-4">
               {[
@@ -158,9 +148,8 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-sans text-white/50 text-sm text-center sm:text-left">
-            Bonsai Florida &copy; {CONTACT.year} &mdash; {CONTACT.location}
+            {t.copyright} &copy; {CONTACT.year} &mdash; {CONTACT.location}
           </p>
-          {/* Quick action buttons */}
           <div className="flex gap-3">
             <a
               href={CONTACT.phone.tel}
@@ -168,7 +157,7 @@ export default function Footer() {
               aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
             >
               <PhoneIcon className="w-3.5 h-3.5" />
-              Call Now
+              {t.callNow}
             </a>
             <a
               href={CONTACT.phone.sms}
@@ -176,13 +165,12 @@ export default function Footer() {
               aria-label="Send a text to Bonsai Florida"
             >
               <MessageIcon className="w-3.5 h-3.5" />
-              Text Us
+              {t.textUs}
             </a>
           </div>
         </div>
       </div>
 
-      {/* Bottom pink rule */}
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
     </footer>
   )
