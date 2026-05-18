@@ -31,7 +31,7 @@ export const CONTACT = {
     facebook: {
       label: 'Facebook',
       handle: 'Bonsai Florida',
-      url: 'https://www.facebook.com/bonsaiflorida',
+      url: 'https://facebook.com/thanh.van.161009',
       description: 'Best for events and updates',
     },
     youtube: {
