@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
@@ -319,9 +318,16 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
           const result = await optimizeTreeImage(file)
           const ext = result.file.name.split('.').pop() ?? 'jpg'
           const path = `${Date.now()}-${i}-${slug}.${ext}`
-          const { error } = await supabase.storage.from('bonsai-trees').upload(path, result.file, { contentType: result.file.type })
-          if (error) throw new Error(`Photo upload failed: ${error.message}`)
-          return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
+          const fd = new FormData()
+          fd.append('file', result.file)
+          fd.append('path', path)
+          const up = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+          if (!up.ok) {
+            const err = await up.json().catch(() => ({}))
+            throw new Error(`Photo upload failed: ${err.error ?? up.status}`)
+          }
+          const { url } = await up.json()
+          return url as string
         })
       )
 
@@ -748,9 +754,13 @@ function MarkSoldModal({ tree, t, onClose, onSold }: {
     const ext = file.name.split('.').pop() ?? 'jpg'
     const slug = tree.name.replace(/\s+/g, '-').toLowerCase()
     const path = `sold/${Date.now()}-${tree.id}-${slug}.${ext}`
-    const { error } = await supabase.storage.from('bonsai-trees').upload(path, file, { contentType: file.type })
-    if (error) throw error
-    return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('path', path)
+    const up = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+    if (!up.ok) throw new Error('Upload failed')
+    const { url } = await up.json()
+    return url as string
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -908,11 +918,9 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
 
   async function fetchTrees() {
     setLoadingTrees(true)
-    const { data } = await supabase
-      .from('bonsai_trees')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setTrees(data ?? [])
+    const res = await fetch('/api/admin/trees/list').catch(() => null)
+    const data = res?.ok ? await res.json() : []
+    setTrees(Array.isArray(data) ? data : [])
     setLoadingTrees(false)
   }
 

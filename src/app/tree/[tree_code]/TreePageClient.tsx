@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
-import { supabase } from '@/lib/supabase'
 import { getTreeImageUrls } from '@/lib/tree-images'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
@@ -183,9 +182,16 @@ function EditModal({ tree, onClose, onSaved }: {
     const result = await optimizeTreeImage(file)
     const ext = result.file.name.split('.').pop() ?? 'jpg'
     const path = `${prefix}${Date.now()}-${idx}-${slug}.${ext}`
-    const { error } = await supabase.storage.from('bonsai-trees').upload(path, result.file, { contentType: result.file.type })
-    if (error) throw error
-    return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
+    const fd = new FormData()
+    fd.append('file', result.file)
+    fd.append('path', path)
+    const up = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+    if (!up.ok) {
+      const err = await up.json().catch(() => ({}))
+      throw new Error(up.status === 401 ? 'Session expired — log out and log back in.' : `Upload failed: ${err.error ?? up.status}`)
+    }
+    const { url } = await up.json()
+    return url as string
   }
 
   async function handleSave(e: React.FormEvent) {
