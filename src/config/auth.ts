@@ -7,4 +7,5 @@
 export const AUTH = {
   username: 'thanhvan',
   password: 'bonsai2026',
+  adminPin: '1234',        // ← Change this PIN before going live
 } as const
