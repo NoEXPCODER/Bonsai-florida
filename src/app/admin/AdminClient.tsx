@@ -614,39 +614,35 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
 
       {/* Header */}
-      <header className="bg-forest text-white px-4 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🌸</span>
-          <div>
-            <p className="font-serif font-bold tracking-wide text-sm sm:text-base">Bonsai Florida</p>
-            <p className="font-sans text-xs text-white/60 tracking-widest uppercase">{t.pageTitle}</p>
+      <header className="bg-forest text-white">
+        {/* Top row: brand + lock */}
+        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🌸</span>
+            <div>
+              <p className="font-serif font-bold tracking-wide text-sm">Bonsai Florida</p>
+              <p className="font-sans text-[10px] text-white/50 tracking-widest uppercase">{t.pageTitle}</p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.push('/trees')}
-            className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            🌿 Collection
-          </button>
-          <button
-            onClick={() => router.push('/')}
-            className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            🏠 Site
-          </button>
-          <button
-            onClick={() => router.push('/admin/devices')}
-            className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            📱 {t.devicesLink}
-          </button>
           <button
             onClick={handleLogout}
-            className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
+            className="font-sans text-xs font-semibold bg-white/10 border border-white/20 text-white px-4 py-2 rounded-full hover:bg-white/20 transition-colors"
           >
             🔒 {t.logout}
           </button>
+        </div>
+        {/* Nav strip */}
+        <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
+          {[
+            { label: '🌿 Collection', path: '/trees' },
+            { label: '🏠 Site', path: '/' },
+            { label: `📱 ${t.devicesLink}`, path: '/admin/devices' },
+          ].map(({ label, path }) => (
+            <button key={path} onClick={() => router.push(path)}
+              className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors">
+              {label}
+            </button>
+          ))}
         </div>
       </header>
 
