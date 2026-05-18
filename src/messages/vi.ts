@@ -146,9 +146,22 @@ export const vi: Messages = {
   },
   care: {
     label: 'Hướng dẫn đơn giản',
-    heading: 'Hướng Dẫn Chăm Sóc Bonsai Cho Người Mới',
+    heading: 'Danh Sách Hướng Dẫn Chăm Sóc Cây',
     description:
-      'Chăm sóc bonsai không cần phức tạp. Đây là bốn điều quan trọng nhất cần biết khi mới bắt đầu ở Florida.',
+      'Chọn từng loại bonsai để xem hướng dẫn chăm sóc đơn giản cho nhà và sân ở Florida.',
+    levelLabel: 'Cấp độ',
+    sunLabel: 'Ánh sáng',
+    waterLabel: 'Tưới nước',
+    fallbackSpecies: 'Hướng dẫn bonsai cho người mới',
+    searchLabel: 'Tìm cây của bạn',
+    searchHeading: 'Tìm Cây Khác',
+    searchDescription: 'Tìm theo tên cây, giống cây hoặc mã cây để mở hướng dẫn chăm sóc riêng.',
+    searchPlaceholder: 'Tìm Tiger Ficus, Willow Leaf, BF-001...',
+    treeFallbackSpecies: 'Cây bonsai',
+    openGuide: 'Mở hướng dẫn chăm sóc cây này',
+    noGuide: 'Chưa có đường dẫn hướng dẫn',
+    viewGuide: 'Xem',
+    noSearchResults: 'Không tìm thấy cây phù hợp.',
     blocks: [
       {
         title: 'Tưới Nước Ở Florida',

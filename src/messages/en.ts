@@ -144,9 +144,22 @@ export const en = {
   },
   care: {
     label: 'Simple guidance',
-    heading: 'Beginner Bonsai Care',
+    heading: 'Tree Care Guides',
     description:
-      "Bonsai care doesn't have to be complicated. Here are the four most important things to know as a beginner in Florida.",
+      'Choose a bonsai species to see simple beginner care notes for Florida homes and patios.',
+    levelLabel: 'Level',
+    sunLabel: 'Sun',
+    waterLabel: 'Water',
+    fallbackSpecies: 'Beginner bonsai care',
+    searchLabel: 'Find your tree',
+    searchHeading: 'Search Other Trees',
+    searchDescription: 'Search by tree name, species, or code to open the full care guide for that tree.',
+    searchPlaceholder: 'Search Tiger Ficus, Willow Leaf, BF-001...',
+    treeFallbackSpecies: 'Bonsai tree',
+    openGuide: 'Open this tree care guide',
+    noGuide: 'Care guide link missing',
+    viewGuide: 'View',
+    noSearchResults: 'No matching trees found.',
     blocks: [
       {
         title: 'Watering in Florida',
