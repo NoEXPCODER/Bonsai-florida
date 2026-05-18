@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export default async function TreesPage() {
   const { data: trees } = await supabase
     .from('bonsai_trees')
-    .select('*')
+    .select('*, tree_species(*)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 

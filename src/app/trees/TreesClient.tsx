@@ -124,7 +124,13 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
 function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const guide = findCareGuideForTree(tree)
+  const species = tree.tree_species
   const image = getPrimaryTreeImageUrl(tree)
+
+  const displaySpecies = species?.name_en || tree.species || guide.name
+  const summary = species?.care_en || guide.summary
+  const lightText = species?.light_en || guide.quick.light
+  const waterText = species?.watering_en || guide.quick.water
 
   return (
     <article className="card overflow-hidden hover:shadow-card transition-all duration-200">
@@ -140,17 +146,17 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="font-serif text-xl text-forest leading-tight truncate">{tree.name}</h3>
-                <p className="font-sans text-xs italic text-ink-light truncate">{tree.species || guide.name}</p>
+                <p className="font-sans text-xs italic text-ink-light truncate">{displaySpecies}</p>
               </div>
               <p className="font-serif text-lg font-bold text-bonsai-pink flex-shrink-0">{tree.price}</p>
             </div>
-            <p className="font-sans text-xs text-ink-light mt-2 line-clamp-2">{guide.summary}</p>
+            <p className="font-sans text-xs text-ink-light mt-2 line-clamp-2">{summary}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-3">
               <p className="font-sans text-[11px] text-ink-light bg-sage-pale/60 rounded-lg px-2 py-1 truncate">
-                <strong className="text-forest">Light:</strong> {guide.quick.light}
+                <strong className="text-forest">Light:</strong> {lightText}
               </p>
               <p className="font-sans text-[11px] text-ink-light bg-sage-pale/60 rounded-lg px-2 py-1 truncate">
-                <strong className="text-forest">Water:</strong> {guide.quick.water}
+                <strong className="text-forest">Water:</strong> {waterText}
               </p>
             </div>
           </div>
@@ -198,6 +204,9 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
         return t.name.toLowerCase().includes(q) ||
           (t.species ?? '').toLowerCase().includes(q) ||
           (t.notes ?? '').toLowerCase().includes(q) ||
+          (t.tree_species?.name_en ?? '').toLowerCase().includes(q) ||
+          (t.tree_species?.name_vi ?? '').toLowerCase().includes(q) ||
+          (t.tree_species?.species_latin ?? '').toLowerCase().includes(q) ||
           guide.name.toLowerCase().includes(q) ||
           guide.latin.toLowerCase().includes(q) ||
           guide.aliases.some(alias => alias.toLowerCase().includes(q))
