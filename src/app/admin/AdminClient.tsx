@@ -187,7 +187,7 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
       <div className="w-10 h-px bg-bonsai-pink-lt" />
 
       {/* Photo picker */}
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
       {preview ? (
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
