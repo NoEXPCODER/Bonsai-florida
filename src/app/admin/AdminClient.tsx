@@ -312,7 +312,7 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
     e.preventDefault()
     setStatus('saving'); setErrorMsg('')
     try {
-      const slug = form.name.replace(/\s+/g, '-').toLowerCase()
+      const slug = form.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'bonsai'
       const uploaded: string[] = await Promise.all(
         files.map(async (file, i) => {
           const result = await optimizeTreeImage(file)
@@ -752,7 +752,7 @@ function MarkSoldModal({ tree, t, onClose, onSold }: {
   async function uploadSoldPhoto(): Promise<string | null> {
     if (!file) return null
     const ext = file.name.split('.').pop() ?? 'jpg'
-    const slug = tree.name.replace(/\s+/g, '-').toLowerCase()
+    const slug = tree.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'sold'
     const path = `sold/${Date.now()}-${tree.id}-${slug}.${ext}`
     const fd = new FormData()
     fd.append('file', file)

@@ -200,7 +200,7 @@ function EditModal({ tree, onClose, onSaved }: {
     setUploading(true)
     setError('')
     try {
-      const slug = form.name.replace(/\s+/g, '-').toLowerCase()
+      const slug = form.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'bonsai'
 
       let finalMainUrl = imageUrl
       if (newMainFile) {
