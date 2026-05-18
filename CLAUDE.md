@@ -70,7 +70,8 @@ This is the **Bonsai Florida** website — a tropical bonsai nursery in Palm Bea
 
 ### Key Files
 - `src/config/contact.ts` — all phone, email, social URLs (edit here to update site-wide)
-- `src/config/auth.ts` — owner login credentials + admin PIN (change before going live)
+- `src/config/auth.ts` — owner login credentials for Vietnamese mode only
+- `src/lib/admin-auth.ts` — server-only staff admin PIN helper
 - `src/messages/en.ts` / `src/messages/vi.ts` — all site text in English and Vietnamese
 - `src/lib/session.ts` — staff session helpers (httpOnly cookie, SHA-256 hashing)
 - `src/lib/supabase.ts` — public Supabase client (anon key)
@@ -84,10 +85,15 @@ This is the **Bonsai Florida** website — a tropical bonsai nursery in Palm Bea
 | `/admin/devices` | View & revoke remembered devices |
 | `/tree/[tree_code]` | Public tree page + staff edit if logged in |
 
-### Required Vercel Environment Variable
+### Required Vercel Environment Variables
 ```
+NEXT_PUBLIC_SUPABASE_URL = https://kezvvfocbpbyykgeohsw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY = <Supabase anon key>
 SUPABASE_SERVICE_ROLE_KEY = <from Supabase dashboard → Settings → API>
+ADMIN_PIN = <staff/admin PIN>
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` and `ADMIN_PIN` / `STAFF_ADMIN_PIN` are server-only secrets. Never prefix them with `NEXT_PUBLIC_`, never import them into client components, and never log their values.
 
 ### Branch
 All development on: `claude/bonsai-florida-website-XzS9G`
@@ -125,7 +131,7 @@ Format the summary exactly like this so any AI (Codex, Claude, Cursor, etc.) can
 - Branch: claude/bonsai-florida-website-XzS9G
 - Supabase project: kezvvfocbpbyykgeohsw
 - Vercel: bonsai-florida-git-claude-bon-9b4d8a-nathanvan10-1791s-projects.vercel.app
-- Admin PIN: 1234 (in src/config/auth.ts)
+- Admin PIN: set server-side as ADMIN_PIN or STAFF_ADMIN_PIN
 - Owner login: thanhvan / bonsai2026
 - SUPABASE_SERVICE_ROLE_KEY → must be set in Vercel env vars
 ```

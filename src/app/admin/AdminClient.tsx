@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
+import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { useMessages, useAuth } from '@/lib/i18n'
 
 // ─── PIN Screen ───────────────────────────────────────────────────────────────
@@ -488,7 +489,7 @@ function exportCSV(trees: DbTree[], baseUrl: string) {
 function TreeList({ trees, t, onDelete, onBulkDelete }: {
   trees: DbTree[]
   t: ReturnType<typeof useMessages>['admin']
-  onDelete: (id: string, imageUrl: string | null) => void
+  onDelete: (id: string) => void
   onBulkDelete: (ids: string[], trees: DbTree[]) => void
 }) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
@@ -618,6 +619,7 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
       <div className="space-y-3">
         {sorted.map(tree => {
           const isSelected = selected.has(tree.id)
+          const primaryImage = getPrimaryTreeImageUrl(tree)
           return (
             <div
               key={tree.id}
@@ -636,9 +638,9 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
 
                 {/* Thumbnail */}
                 <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-sage-pale border border-forest/10">
-                  {tree.image_url
+                  {primaryImage
                     // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={tree.image_url} alt={tree.name} className="w-full h-full object-cover" />
+                    ? <img src={primaryImage} alt={tree.name} className="w-full h-full object-cover" />
                     : <div className="w-full h-full flex items-center justify-center text-2xl">🌿</div>}
                 </div>
 
@@ -653,6 +655,9 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
                   </div>
                   <div className="flex flex-wrap gap-x-3 mt-0.5">
                     <p className="font-sans text-xs text-ink-light/50">Added {formatDate(tree.created_at)}</p>
+                    {!primaryImage && (
+                      <p className="font-sans text-xs font-semibold text-bonsai-pink">Needs image</p>
+                    )}
                     {(tree.location_row || tree.location_tree) && (
                       <p className="font-sans text-xs text-sage font-semibold">
                         📍 {[tree.location_row && `Row ${tree.location_row}`, tree.location_tree && `#${tree.location_tree}`].filter(Boolean).join(' · ')}
@@ -663,7 +668,7 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
 
                 {/* Single delete */}
                 <button
-                  onClick={() => onDelete(tree.id, tree.image_url)}
+                  onClick={() => onDelete(tree.id)}
                   className="flex-shrink-0 bg-bonsai-pink-pale border border-bonsai-pink/30 text-bonsai-pink font-sans text-xs font-bold px-3 py-2 rounded-xl hover:bg-bonsai-pink hover:text-white transition-colors"
                 >
                   {t.deleteButton}
@@ -718,23 +723,20 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
     setLoadingTrees(false)
   }
 
-  async function handleDelete(id: string, imageUrl: string | null) {
+  async function handleDelete(id: string) {
     if (!window.confirm(t.deleteConfirm)) return
-    await fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })
-    if (imageUrl) {
-      const path = imageUrl.split('/bonsai-trees/')[1]
-      if (path) await supabase.storage.from('bonsai-trees').remove([path])
-    }
+    const res = await fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })
+    const result = await res.json().catch(() => null)
+    if (result?.cleanupError) console.warn(result.cleanupError)
     setTrees(p => p.filter(t => t.id !== id))
   }
 
-  async function handleBulkDelete(ids: string[], selected: DbTree[]) {
-    await Promise.all(ids.map(id => fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })))
-    const imagePaths = selected.flatMap(t => {
-      const path = t.image_url?.split('/bonsai-trees/')[1]
-      return path ? [path] : []
-    })
-    if (imagePaths.length) await supabase.storage.from('bonsai-trees').remove(imagePaths)
+  async function handleBulkDelete(ids: string[]) {
+    const results = await Promise.all(ids.map(id => fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })))
+    const cleanupResults = await Promise.all(results.map(res => res.json().catch(() => null)))
+    if (cleanupResults.some(result => result?.cleanupError)) {
+      console.warn('Some uploaded images could not be deleted.')
+    }
     setTrees(p => p.filter(t => !ids.includes(t.id)))
   }
 

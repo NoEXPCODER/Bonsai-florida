@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import { supabase } from '@/lib/supabase'
 import type { DbTree } from '@/lib/supabase'
+import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import {
   PhoneIcon, MessageIcon,
@@ -62,7 +63,8 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
   const leaveRot = leaving ? (leaving === 'left' ? -15 : 15) : rotation
   const opacity = leaving ? 0 : 1
 
-  const photo = current.image_urls?.[0] ?? current.image_url
+  const photo = getPrimaryTreeImageUrl(current)
+  const nextPhoto = next ? getPrimaryTreeImageUrl(next) : null
 
   return (
     <div className="relative w-full max-w-sm mx-auto select-none" style={{ height: '480px' }}>
@@ -70,9 +72,9 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
       {next && (
         <div className="absolute inset-0 rounded-3xl overflow-hidden bg-forest shadow-card"
           style={{ transform: `scale(0.93) translateY(16px)`, zIndex: 1, transition: 'transform 0.3s' }}>
-          {(next.image_urls?.[0] ?? next.image_url)
+          {nextPhoto
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={next.image_urls?.[0] ?? next.image_url!} alt={next.name} className="w-full h-full object-cover" />
+            ? <img src={nextPhoto} alt={next.name} className="w-full h-full object-cover" />
             : <div className="w-full h-full bg-gradient-to-b from-forest to-forest-light" />}
           <div className="absolute inset-0 bg-black/20" />
         </div>

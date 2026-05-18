@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AUTH } from '@/config/auth'
+import { getAdminPin } from '@/lib/admin-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import {
   generateToken,
@@ -14,7 +14,15 @@ import {
 export async function POST(req: NextRequest) {
   const { pin, remember = true } = await req.json()
 
-  if (pin !== AUTH.adminPin) {
+  let adminPin: string
+  try {
+    adminPin = getAdminPin()
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : 'Admin PIN is not configured.')
+    return NextResponse.json({ error: 'Admin PIN is not configured' }, { status: 500 })
+  }
+
+  if (pin !== adminPin) {
     return NextResponse.json({ error: 'Invalid PIN' }, { status: 401 })
   }
 

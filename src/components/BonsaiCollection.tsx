@@ -6,6 +6,7 @@ import { CONTACT } from '@/config/contact'
 import { TREES } from '@/data/trees'
 import { supabase } from '@/lib/supabase'
 import type { DbTree } from '@/lib/supabase'
+import { getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import { SunIcon, WaterIcon, LeafIcon, MessageIcon } from '@/components/Icons'
 
@@ -74,7 +75,7 @@ function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
 
 function DbCard({ tree, t }: { tree: DbTree; t: ReturnType<typeof useMessages>['collection'] }) {
   const router = useRouter()
-  const photos = tree.image_urls?.length ? tree.image_urls : tree.image_url ? [tree.image_url] : []
+  const photos = getTreeImageUrls(tree)
 
   return (
     <article

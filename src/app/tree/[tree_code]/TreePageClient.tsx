@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
+import { getTreeImageUrls } from '@/lib/tree-images'
 import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
@@ -144,6 +145,7 @@ export default function TreePageClient({ tree: initialTree, isStaff }: {
   const [tree, setTree] = useState<DbTree>(initialTree)
   const [editing, setEditing] = useState(false)
   const router = useRouter()
+  const photos = getTreeImageUrls(tree)
 
   function handleSaved(updated: Partial<DbTree>) {
     setTree(p => ({ ...p, ...updated }))
@@ -178,7 +180,7 @@ export default function TreePageClient({ tree: initialTree, isStaff }: {
         <div className="max-w-lg mx-auto px-4 py-8">
           {/* Tree photo */}
           <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden mb-6 shadow-card-lg bg-forest">
-            <PhotoCarousel urls={tree.image_urls?.length ? tree.image_urls : tree.image_url ? [tree.image_url] : []} name={tree.name} />
+            <PhotoCarousel urls={photos} name={tree.name} />
             {/* Corner marks */}
             <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/40 pointer-events-none" />
             <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/40 pointer-events-none" />

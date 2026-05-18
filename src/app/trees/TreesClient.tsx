@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
+import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import { SunIcon, WaterIcon, MessageIcon, PhoneIcon } from '@/components/Icons'
 
 // ─── Photo thumbnail ──────────────────────────────────────────────────────────
 
 function TreePhoto({ tree, className }: { tree: DbTree; className?: string }) {
-  const src = tree.image_urls?.[0] ?? tree.image_url
-  const count = tree.image_urls?.length ?? (tree.image_url ? 1 : 0)
+  const urls = getTreeImageUrls(tree)
+  const src = getPrimaryTreeImageUrl(tree)
+  const count = urls.length
   return (
     <div className={`relative overflow-hidden bg-forest ${className}`}>
       {src
