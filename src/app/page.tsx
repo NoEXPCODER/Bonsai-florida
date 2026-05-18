@@ -5,6 +5,7 @@ import BonsaiCollection from '@/components/BonsaiCollection'
 import CareGuide from '@/components/CareGuide'
 import VisitSection from '@/components/VisitSection'
 import Footer from '@/components/Footer'
+import SoldTreePopup from '@/components/SoldTreePopup'
 
 export default function HomePage() {
   return (
@@ -26,6 +27,7 @@ export default function HomePage() {
         {/* 5. Visit — garden appointment CTA */}
         <VisitSection />
       </main>
+      <SoldTreePopup />
       <Footer />
     </>
   )

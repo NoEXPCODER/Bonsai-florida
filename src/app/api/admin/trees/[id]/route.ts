@@ -43,11 +43,17 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
+  const body = await req.json().catch(() => ({}))
   const db = createServerClient()
 
   const { error } = await db
     .from('bonsai_trees')
-    .update({ is_active: false })
+    .update({
+      is_active: false,
+      sold_image_url: body.sold_image_url || null,
+      sold_note: body.sold_note || null,
+      sold_at: new Date().toISOString(),
+    })
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: 'Server error' }, { status: 500 })

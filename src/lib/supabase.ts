@@ -32,6 +32,9 @@ export interface DbTree {
   notes: string | null
   image_url: string | null
   image_urls: string[] | null
+  sold_image_url: string | null
+  sold_note: string | null
+  sold_at: string | null
   tree_code: string | null
   location_row: string | null
   location_tree: string | null

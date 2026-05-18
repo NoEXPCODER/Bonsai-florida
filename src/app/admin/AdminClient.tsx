@@ -489,7 +489,7 @@ function exportCSV(trees: DbTree[], baseUrl: string) {
 function TreeList({ trees, t, onDelete, onBulkDelete }: {
   trees: DbTree[]
   t: ReturnType<typeof useMessages>['admin']
-  onDelete: (id: string) => void
+  onDelete: (tree: DbTree) => void
   onBulkDelete: (ids: string[], trees: DbTree[]) => void
 }) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
@@ -668,7 +668,7 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
 
                 {/* Single delete */}
                 <button
-                  onClick={() => onDelete(tree.id)}
+                  onClick={() => onDelete(tree)}
                   className="flex-shrink-0 bg-bonsai-pink-pale border border-bonsai-pink/30 text-bonsai-pink font-sans text-xs font-bold px-3 py-2 rounded-xl hover:bg-bonsai-pink hover:text-white transition-colors"
                 >
                   {t.deleteButton}
@@ -692,6 +692,106 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+function MarkSoldModal({ tree, t, onClose, onSold }: {
+  tree: DbTree
+  t: ReturnType<typeof useMessages>['admin']
+  onClose: () => void
+  onSold: (tree: DbTree, soldImageUrl: string | null, soldNote: string) => Promise<void>
+}) {
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState('')
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.[0] ?? null
+    setFile(picked)
+    setPreview(picked ? URL.createObjectURL(picked) : '')
+    e.target.value = ''
+  }
+
+  async function uploadSoldPhoto(): Promise<string | null> {
+    if (!file) return null
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const slug = tree.name.replace(/\s+/g, '-').toLowerCase()
+    const path = `sold/${Date.now()}-${tree.id}-${slug}.${ext}`
+    const { error } = await supabase.storage.from('bonsai-trees').upload(path, file, { contentType: file.type })
+    if (error) throw error
+    return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+
+    try {
+      const soldImageUrl = await uploadSoldPhoto()
+      await onSold(tree, soldImageUrl, note)
+      onClose()
+    } catch {
+      setError(t.soldSaveError)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-cream-light rounded-3xl shadow-card-lg overflow-hidden">
+        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="section-label mb-1">{t.soldModalLabel}</p>
+              <h2 className="font-serif text-2xl text-forest">{tree.name}</h2>
+            </div>
+            <button type="button" onClick={onClose} className="text-ink-light hover:text-ink text-xl">x</button>
+          </div>
+
+          <label className="block">
+            <span className="block font-sans text-sm font-semibold text-forest mb-2">{t.soldPhotoLabel}</span>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" id="sold-photo-input" />
+            <span
+              onClick={() => document.getElementById('sold-photo-input')?.click()}
+              className="block cursor-pointer rounded-2xl border-2 border-dashed border-forest/30 bg-sage-pale/50 overflow-hidden"
+            >
+              {preview
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={preview} alt="Sold customer preview" className="w-full aspect-[4/3] object-cover" />
+                : <span className="flex aspect-[4/3] items-center justify-center text-center font-sans text-sm font-semibold text-forest px-6">{t.soldPhotoHelp}</span>}
+            </span>
+          </label>
+
+          <label className="block">
+            <span className="block font-sans text-sm font-semibold text-forest mb-2">{t.soldNoteLabel}</span>
+            <textarea
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder={t.soldNotePlaceholder}
+              rows={3}
+              className={inputCls + ' resize-none'}
+            />
+          </label>
+
+          {error && <p className="font-sans text-sm text-bonsai-pink text-center">{error}</p>}
+
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1 justify-center text-sm py-3">
+              {t.soldCancel}
+            </button>
+            <button type="submit" disabled={saving} className="btn-primary flex-1 justify-center text-sm py-3 disabled:opacity-60">
+              {saving ? t.soldSaving : t.soldConfirm}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -770,6 +870,7 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
 
   const [isAuth, setIsAuth] = useState(initialAuth)
   const [trees, setTrees] = useState<DbTree[]>([])
+  const [soldTree, setSoldTree] = useState<DbTree | null>(null)
   const [loadingTrees, setLoadingTrees] = useState(false)
   const activeTrees = trees.filter(tree => tree.is_active)
   const soldTrees = trees.filter(tree => !tree.is_active)
@@ -788,11 +889,22 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
     setLoadingTrees(false)
   }
 
-  async function handleDelete(id: string) {
-    if (!window.confirm(t.deleteConfirm)) return
-    const res = await fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })
+  async function handleDelete(tree: DbTree) {
+    setSoldTree(tree)
+  }
+
+  async function markTreeSold(tree: DbTree, soldImageUrl: string | null, soldNote: string) {
+    const res = await fetch(`/api/admin/trees/${tree.id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sold_image_url: soldImageUrl, sold_note: soldNote }),
+    })
     if (!res.ok) return
-    setTrees(p => p.map(tree => tree.id === id ? { ...tree, is_active: false } : tree))
+    const soldAt = new Date().toISOString()
+    setTrees(p => p.map(item => item.id === tree.id
+      ? { ...item, is_active: false, sold_image_url: soldImageUrl, sold_note: soldNote || null, sold_at: soldAt }
+      : item
+    ))
   }
 
   async function handleBulkDelete(ids: string[]) {
@@ -860,6 +972,15 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
         <TreeList trees={activeTrees} t={t} onDelete={handleDelete} onBulkDelete={handleBulkDelete} />
         <SoldTreeList trees={soldTrees} t={t} />
       </main>
+
+      {soldTree && (
+        <MarkSoldModal
+          tree={soldTree}
+          t={t}
+          onClose={() => setSoldTree(null)}
+          onSold={markTreeSold}
+        />
+      )}
 
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-10" />
     </div>
