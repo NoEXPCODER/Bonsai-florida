@@ -112,10 +112,12 @@ function PinScreen({ onUnlock, t }: {
 interface FormData {
   name: string; species: string; price: string; level: string
   sun: string; water: string; notes: string
+  location_row: string; location_tree: string
 }
 const DEFAULT_FORM: FormData = {
   name: '', species: '', price: '', level: 'Beginner Friendly',
   sun: 'Bright indirect light', water: 'Every 2–3 days', notes: '',
+  location_row: '', location_tree: '',
 }
 const inputCls = 'w-full px-4 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
@@ -269,6 +271,22 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
       <Field label={t.fieldNotes}>
         <textarea placeholder={t.fieldNotesPlaceholder} value={form.notes} onChange={e => setField('notes', e.target.value)} rows={2} className={inputCls + ' resize-none'} />
       </Field>
+
+      {/* Location — optional */}
+      <div className="rounded-2xl border border-forest/10 bg-sage-pale/40 px-4 py-4 space-y-3">
+        <p className="font-sans text-sm font-semibold text-forest">📍 Garden Location <span className="text-ink-light font-normal">(optional)</span></p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block font-sans text-xs text-ink-light mb-1">Row</label>
+            <input type="text" placeholder="e.g. A or 3" value={form.location_row} onChange={e => setField('location_row', e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="block font-sans text-xs text-ink-light mb-1">Tree #</label>
+            <input type="text" placeholder="e.g. 7" value={form.location_tree} onChange={e => setField('location_tree', e.target.value)} className={inputCls} />
+          </div>
+        </div>
+        <p className="font-sans text-xs text-ink-light/70">Helps you find the tree in the garden. Not shown publicly.</p>
+      </div>
 
       {status === 'success' && <p className="font-sans text-sm font-semibold text-forest bg-sage-pale px-4 py-3 rounded-2xl text-center">✅ {t.submitSuccess}</p>}
       {status === 'error' && <p className="font-sans text-sm text-bonsai-pink bg-bonsai-pink-pale px-4 py-3 rounded-2xl text-center">{errorMsg}</p>}
@@ -495,7 +513,14 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
                     <span className="font-sans text-xs text-ink-light">{tree.level}</span>
                     {tree.tree_code && <span className="font-mono text-xs text-ink-light/60">{tree.tree_code}</span>}
                   </div>
-                  <p className="font-sans text-xs text-ink-light/50 mt-0.5">Added {formatDate(tree.created_at)}</p>
+                  <div className="flex flex-wrap gap-x-3 mt-0.5">
+                    <p className="font-sans text-xs text-ink-light/50">Added {formatDate(tree.created_at)}</p>
+                    {(tree.location_row || tree.location_tree) && (
+                      <p className="font-sans text-xs text-sage font-semibold">
+                        📍 {[tree.location_row && `Row ${tree.location_row}`, tree.location_tree && `#${tree.location_tree}`].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Single delete */}

@@ -203,6 +203,7 @@ export default function BonsaiCollection() {
   useEffect(() => {
     supabase.from('bonsai_trees').select('*').eq('is_active', true)
       .order('created_at', { ascending: false })
+      .limit(6)
       .then(({ data }) => setDbTrees(data ?? []))
   }, [])
 
@@ -247,8 +248,11 @@ export default function BonsaiCollection() {
           </div>
         )}
 
-        <div className="mt-14 text-center">
-          <p className="font-serif italic text-ink-light text-lg mb-5">{t.footerNote}</p>
+        <div className="mt-14 text-center space-y-4">
+          <a href="/trees" className="btn-primary inline-flex text-base px-8 py-4">
+            View Full Inventory →
+          </a>
+          <p className="font-sans text-xs text-ink-light">{t.footerNote}</p>
           <a href={CONTACT.phone.tel} className="btn-secondary inline-flex">{t.footerCta}</a>
         </div>
       </div>

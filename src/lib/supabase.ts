@@ -18,6 +18,8 @@ export interface DbTree {
   image_url: string | null
   image_urls: string[] | null
   tree_code: string | null
+  location_row: string | null
+  location_tree: string | null
   is_active: boolean
   created_at: string
 }

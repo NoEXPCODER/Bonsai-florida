@@ -26,6 +26,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
       ...(body.notes !== undefined && { notes: body.notes }),
       ...(body.image_url !== undefined && { image_url: body.image_url }),
       ...(body.image_urls !== undefined && { image_urls: body.image_urls }),
+      ...(body.location_row !== undefined && { location_row: body.location_row || null }),
+      ...(body.location_tree !== undefined && { location_tree: body.location_tree || null }),
     })
     .eq('id', id)
 

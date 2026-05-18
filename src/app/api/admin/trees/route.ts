@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
       notes: body.notes || null,
       image_url: body.image_url || null,
       image_urls: body.image_urls || [],
+      location_row: body.location_row || null,
+      location_tree: body.location_tree || null,
     })
     .select('id, tree_code')
     .single()
