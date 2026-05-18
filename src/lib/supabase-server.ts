@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = 'https://lqylqvpjxrwbsguicruu.supabase.co'
+const SUPABASE_URL = 'https://kezvvfocbpbyykgeohsw.supabase.co'
 
 /** Server-only client using the service role key — bypasses RLS. Never import this in client components. */
 export function createServerClient() {
