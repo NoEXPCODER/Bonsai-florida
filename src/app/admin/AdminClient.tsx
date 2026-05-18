@@ -33,8 +33,12 @@ function PinScreen({ onUnlock, t }: {
 
     if (res.ok) {
       onUnlock()
-    } else {
+    } else if (res.status === 401) {
       setError(t.pinError)
+      setPin('')
+      inputRef.current?.focus()
+    } else {
+      setError('Server error — check Vercel env vars (SUPABASE_SERVICE_ROLE_KEY).')
       setPin('')
       inputRef.current?.focus()
     }
