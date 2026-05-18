@@ -279,7 +279,7 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
       const water = locale === 'vi' ? s.water_vi || s.water_en : s.water_en
       return {
         ...p,
-        name: p.name || autoName,             // fill only if empty
+        name: p.name || s.name_en,             // always English, fill only if empty
         species: p.species || s.species_latin, // fill only if empty
         level: s.level,                        // always match species
         sun: isDefaultSun ? sun : p.sun,       // fill only if unchanged from default
