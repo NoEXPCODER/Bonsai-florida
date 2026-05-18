@@ -244,15 +244,50 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
 
 // ─── Tree List ────────────────────────────────────────────────────────────────
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 function TreeList({ trees, t, onDelete }: {
   trees: DbTree[]; t: ReturnType<typeof useMessages>['admin']
   onDelete: (id: string, imageUrl: string | null) => void
 }) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
+  function handleExportCSV() {
+    const rows = [
+      ['Code', 'Name', 'Species', 'Price', 'Level', 'Date Added', 'URL'],
+      ...trees.map(tree => [
+        tree.tree_code ?? '',
+        tree.name,
+        tree.species ?? '',
+        tree.price,
+        tree.level,
+        formatDate(tree.created_at),
+        tree.tree_code ? `${baseUrl}/tree/${tree.tree_code}` : '',
+      ]),
+    ]
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+    a.download = `bonsai-inventory-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+  }
+
   return (
     <div>
-      <h2 className="font-serif text-2xl text-forest mb-5">{t.listTitle}</h2>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-serif text-2xl text-forest">{t.listTitle}</h2>
+        {trees.length > 0 && (
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="font-sans text-xs font-bold text-forest border border-forest/20 px-3 py-2 rounded-xl hover:bg-sage-pale transition-colors"
+          >
+            Export CSV
+          </button>
+        )}
+      </div>
       {trees.length === 0
         ? <p className="font-sans text-ink-light text-center py-10">{t.listEmpty}</p>
         : (
@@ -273,6 +308,7 @@ function TreeList({ trees, t, onDelete }: {
                     {tree.species && <p className="font-sans text-xs italic text-ink-light">{tree.species}</p>}
                     <p className="font-sans font-bold text-bonsai-pink mt-1">{tree.price}</p>
                     <p className="font-sans text-xs text-ink-light">{tree.level}</p>
+                    <p className="font-sans text-xs text-ink-light/60 mt-0.5">Added {formatDate(tree.created_at)}</p>
                   </div>
                   {/* Delete */}
                   <button
