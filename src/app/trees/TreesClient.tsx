@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
+import { findCareGuideForTree } from '@/data/care-guides'
 import { useMessages } from '@/lib/i18n'
 import { SunIcon, WaterIcon, MessageIcon, PhoneIcon } from '@/components/Icons'
 
@@ -121,9 +122,58 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   )
 }
 
+function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
+  const guide = findCareGuideForTree(tree)
+  const image = getPrimaryTreeImageUrl(tree)
+
+  return (
+    <article className="card overflow-hidden hover:shadow-card transition-all duration-200">
+      <button type="button" onClick={onClick} className="w-full text-left">
+        <div className="flex gap-4 p-4">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-sage-pale flex-shrink-0">
+            {image
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={image} alt={tree.name} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center text-4xl opacity-40">🌿</div>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="font-serif text-xl text-forest leading-tight truncate">{tree.name}</h3>
+                <p className="font-sans text-xs italic text-ink-light truncate">{tree.species || guide.name}</p>
+              </div>
+              <p className="font-serif text-lg font-bold text-bonsai-pink flex-shrink-0">{tree.price}</p>
+            </div>
+            <p className="font-sans text-xs text-ink-light mt-2 line-clamp-2">{guide.summary}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-3">
+              <p className="font-sans text-[11px] text-ink-light bg-sage-pale/60 rounded-lg px-2 py-1 truncate">
+                <strong className="text-forest">Light:</strong> {guide.quick.light}
+              </p>
+              <p className="font-sans text-[11px] text-ink-light bg-sage-pale/60 rounded-lg px-2 py-1 truncate">
+                <strong className="text-forest">Water:</strong> {guide.quick.water}
+              </p>
+            </div>
+          </div>
+        </div>
+      </button>
+      <div className="flex gap-2 px-4 pb-4">
+        <button type="button" onClick={onClick} className="btn-primary flex-1 justify-center text-xs py-3">
+          View Care Guide
+        </button>
+        <a
+          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+          className="btn-secondary flex-1 justify-center text-xs py-3"
+        >
+          Ask
+        </a>
+      </div>
+    </article>
+  )
+}
+
 // ─── Main client ──────────────────────────────────────────────────────────────
 
-type View = 'grid' | 'list'
+type View = 'list' | 'grid' | 'care'
 type Filter = 'all' | 'beginner' | 'intermediate'
 type Sort = 'newest' | 'oldest' | 'price_asc' | 'price_desc' | 'name'
 
@@ -132,7 +182,7 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
   const m = useMessages()
   const t = m.collection
 
-  const [view, setView] = useState<View>('grid')
+  const [view, setView] = useState<View>('list')
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<Sort>('newest')
   const [search, setSearch] = useState('')
@@ -143,11 +193,15 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
     // Search
     if (search.trim()) {
       const q = search.toLowerCase()
-      list = list.filter(t =>
-        t.name.toLowerCase().includes(q) ||
-        (t.species ?? '').toLowerCase().includes(q) ||
-        (t.notes ?? '').toLowerCase().includes(q)
-      )
+      list = list.filter(t => {
+        const guide = findCareGuideForTree(t)
+        return t.name.toLowerCase().includes(q) ||
+          (t.species ?? '').toLowerCase().includes(q) ||
+          (t.notes ?? '').toLowerCase().includes(q) ||
+          guide.name.toLowerCase().includes(q) ||
+          guide.latin.toLowerCase().includes(q) ||
+          guide.aliases.some(alias => alias.toLowerCase().includes(q))
+      })
     }
 
     // Filter by level
@@ -199,7 +253,7 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
           {/* Search */}
           <input
             type="search"
-            placeholder="Search trees…"
+            placeholder="Search trees, species, care notes..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="flex-1 min-w-40 px-4 py-2.5 rounded-2xl border border-forest/20 bg-white font-sans text-sm text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
@@ -229,24 +283,24 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
 
           {/* View toggle */}
           <div className="flex border border-forest/20 rounded-2xl overflow-hidden bg-white">
-            <button onClick={() => setView('grid')}
-              className={`px-3 py-2.5 transition-colors ${view === 'grid' ? 'bg-forest text-white' : 'text-ink-light hover:bg-sage-pale'}`}
-              title="Grid view">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
-                <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
-              </svg>
-            </button>
-            <button onClick={() => setView('list')}
-              className={`px-3 py-2.5 transition-colors ${view === 'list' ? 'bg-forest text-white' : 'text-ink-light hover:bg-sage-pale'}`}
-              title="List view">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                <rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/>
-                <rect x="1" y="12" width="14" height="2" rx="1"/>
-              </svg>
-            </button>
+            {(['list', 'grid', 'care'] as View[]).map(option => (
+              <button
+                key={option}
+                onClick={() => setView(option)}
+                className={`font-sans text-xs font-bold capitalize px-3 py-2.5 transition-colors ${
+                  view === option ? 'bg-forest text-white' : 'text-ink-light hover:bg-sage-pale'
+                }`}
+                title={`${option} view`}
+              >
+                {option}
+              </button>
+            ))}
           </div>
         </div>
+
+        <p className="font-sans text-xs text-forest bg-sage-pale/60 rounded-2xl px-4 py-3 mb-5">
+          Suggested phone view: <strong>List</strong> for quick photo, name, and price. Use <strong>Care</strong> when customers want care details before asking.
+        </p>
 
         {/* Results count */}
         <p className="font-sans text-xs text-ink-light mb-4">
@@ -275,6 +329,13 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
         {view === 'list' && displayed.length > 0 && (
           <div className="space-y-3">
             {displayed.map(tree => <ListRow key={tree.id} tree={tree} onClick={() => goToTree(tree)} />)}
+          </div>
+        )}
+
+        {/* Care view */}
+        {view === 'care' && displayed.length > 0 && (
+          <div className="space-y-4">
+            {displayed.map(tree => <CareRow key={tree.id} tree={tree} onClick={() => goToTree(tree)} />)}
           </div>
         )}
 

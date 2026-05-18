@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMessages } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
-import type { DbSpecies, DbTree } from '@/lib/supabase'
+import type { DbTree } from '@/lib/supabase'
+import { CARE_GUIDES, type CareGuideEntry } from '@/data/care-guides'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { WaterIcon, SunIcon, LeafIcon, QuestionIcon } from '@/components/Icons'
 
@@ -22,22 +23,88 @@ const BLOCK_ACCENTS = [
   'bg-bonsai-pink-pale',
 ]
 
+function CareGuideCard({ guide, expanded, onToggle, index }: {
+  guide: CareGuideEntry
+  expanded: boolean
+  onToggle: () => void
+  index: number
+}) {
+  return (
+    <article className="card p-6 sm:p-7 flex flex-col hover:shadow-card-lg transition-shadow duration-200">
+      <div
+        className={`${BLOCK_ACCENTS[index % BLOCK_ACCENTS.length]} w-14 h-14 rounded-2xl flex items-center justify-center text-forest mb-5 shadow-soft`}
+        aria-hidden="true"
+      >
+        {BLOCK_ICONS[index % BLOCK_ICONS.length]}
+      </div>
+
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="font-serif text-2xl sm:text-3xl text-forest leading-snug">{guide.name}</h3>
+          <p className="font-sans text-sm italic text-ink-light">{guide.latin}</p>
+        </div>
+        <span className="font-sans text-[10px] font-bold tracking-widest uppercase bg-sage-pale text-forest px-2.5 py-1 rounded-full flex-shrink-0">
+          {guide.difficulty}
+        </span>
+      </div>
+
+      <p className="font-sans text-sm text-ink-light leading-relaxed mb-4">{guide.summary}</p>
+
+      <div className="grid grid-cols-1 gap-2 mb-5">
+        {[
+          ['Light', guide.quick.light],
+          ['Water', guide.quick.water],
+          ['Best spot', guide.quick.placement],
+        ].map(([label, value]) => (
+          <p key={label} className="font-sans text-xs text-ink-light bg-sage-pale/50 rounded-xl px-3 py-2">
+            <strong className="text-forest">{label}:</strong> {value}
+          </p>
+        ))}
+      </div>
+
+      {expanded && (
+        <div className="space-y-4 mb-5">
+          <div className="rounded-2xl border border-bonsai-pink-lt/50 bg-bonsai-pink-pale/40 px-4 py-3">
+            <p className="font-sans text-sm font-semibold text-forest">Beginner tip</p>
+            <p className="font-sans text-sm text-ink-light leading-relaxed">{guide.quick.beginnerTip}</p>
+          </div>
+          {guide.details.map(section => (
+            <div key={section.title}>
+              <h4 className="font-serif text-xl text-forest mb-2">{section.title}</h4>
+              <ul className="space-y-2">
+                {section.body.map(line => (
+                  <li key={line} className="flex items-start gap-3">
+                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-bonsai-pink flex-shrink-0" />
+                    <span className="font-sans text-sm text-ink-light leading-relaxed">{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onToggle}
+        className="mt-auto btn-secondary justify-center text-sm py-3"
+      >
+        {expanded ? 'Hide Details' : 'View Detailed Care'}
+      </button>
+    </article>
+  )
+}
+
 export default function CareGuide() {
   const m = useMessages()
   const t = m.care
   const router = useRouter()
-  const [species, setSpecies] = useState<DbSpecies[]>([])
   const [trees, setTrees] = useState<DbTree[]>([])
   const [search, setSearch] = useState('')
+  const [guideSearch, setGuideSearch] = useState('')
+  const [expanded, setExpanded] = useState(CARE_GUIDES[0].slug)
 
   useEffect(() => {
-    fetch('/api/admin/species')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        if (Array.isArray(data)) setSpecies(data)
-      })
-      .catch(() => setSpecies([]))
-
     supabase
       .from('bonsai_trees')
       .select('*')
@@ -46,23 +113,16 @@ export default function CareGuide() {
       .then(({ data }) => setTrees(data ?? []))
   }, [])
 
-  const speciesGuides = species.length > 0
-    ? species.slice(0, 6).map(item => ({
-        title: item.name_en,
-        subtitle: item.species_latin || item.name_vi,
-        level: item.level,
-        sun: item.sun_en,
-        water: item.water_en,
-        care: item.care_en,
-      }))
-    : t.blocks.map(block => ({
-        title: block.title,
-        subtitle: t.fallbackSpecies,
-        level: '',
-        sun: block.body[1] ?? '',
-        water: block.body[0] ?? '',
-        care: block.body.slice(2).join(' '),
-      }))
+  const filteredGuides = useMemo(() => {
+    const q = guideSearch.trim().toLowerCase()
+    if (!q) return CARE_GUIDES
+    return CARE_GUIDES.filter(guide =>
+      guide.name.toLowerCase().includes(q) ||
+      guide.latin.toLowerCase().includes(q) ||
+      guide.aliases.some(alias => alias.toLowerCase().includes(q)) ||
+      guide.summary.toLowerCase().includes(q)
+    )
+  }, [guideSearch])
 
   const matchingTrees = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -99,49 +159,25 @@ export default function CareGuide() {
           </p>
         </div>
 
+        <div className="max-w-xl mx-auto mb-8">
+          <input
+            type="search"
+            value={guideSearch}
+            onChange={e => setGuideSearch(e.target.value)}
+            placeholder="Search species care: ficus, juniper, jade..."
+            className="w-full px-5 py-4 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
+          />
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {speciesGuides.map((guide, i) => (
-            <article
-              key={`${guide.title}-${i}`}
-              className="card p-7 sm:p-8 flex flex-col hover:shadow-card-lg transition-shadow duration-200"
-            >
-              <div
-                className={`${BLOCK_ACCENTS[i]} w-16 h-16 rounded-2xl flex items-center justify-center text-forest mb-6 shadow-soft`}
-                aria-hidden="true"
-              >
-                {BLOCK_ICONS[i]}
-              </div>
-
-              <h3 className="font-serif text-2xl sm:text-3xl text-forest mb-4 leading-snug">
-                {guide.title}
-              </h3>
-              {guide.subtitle && (
-                <p className="font-sans text-sm italic text-ink-light -mt-2 mb-4">
-                  {guide.subtitle}
-                </p>
-              )}
-
-              <div className="w-10 h-px bg-bonsai-pink-lt mb-5" />
-
-              <ul className="space-y-3 flex-1">
-                {[
-                  guide.level && `${t.levelLabel}: ${guide.level}`,
-                  guide.sun && `${t.sunLabel}: ${guide.sun}`,
-                  guide.water && `${t.waterLabel}: ${guide.water}`,
-                  guide.care,
-                ].filter(Boolean).map((line, j) => (
-                  <li key={j} className="flex items-start gap-3">
-                    <span
-                      className="mt-2 w-1.5 h-1.5 rounded-full bg-bonsai-pink flex-shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span className="font-sans text-base sm:text-lg text-ink-light leading-relaxed">
-                      {line}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </article>
+          {filteredGuides.map((guide, i) => (
+            <CareGuideCard
+              key={guide.slug}
+              guide={guide}
+              index={i}
+              expanded={expanded === guide.slug}
+              onToggle={() => setExpanded(current => current === guide.slug ? '' : guide.slug)}
+            />
           ))}
         </div>
 
