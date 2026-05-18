@@ -697,6 +697,70 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
   )
 }
 
+function SoldTreeList({ trees, t }: {
+  trees: DbTree[]
+  t: ReturnType<typeof useMessages>['admin']
+}) {
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  const sorted = sortTrees(trees, 'created_at', 'desc')
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-serif text-2xl text-forest">{t.soldListTitle}</h2>
+        <span className="font-sans text-xs font-bold text-ink-light bg-sage-pale px-3 py-1.5 rounded-full">
+          {trees.length} {trees.length === 1 ? 'tree' : 'trees'}
+        </span>
+      </div>
+
+      {trees.length === 0 ? (
+        <p className="font-sans text-ink-light text-center py-8">{t.soldListEmpty}</p>
+      ) : (
+        <div className="space-y-3">
+          {sorted.map(tree => {
+            const primaryImage = getPrimaryTreeImageUrl(tree)
+            return (
+              <div key={tree.id} className="card p-4 opacity-90 border-sage/30">
+                <div className="flex gap-3 items-start">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-sage-pale border border-forest/10 grayscale">
+                    {primaryImage
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={primaryImage} alt={tree.name} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-2xl">🌿</div>}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-serif text-base text-forest leading-tight">{tree.name}</p>
+                      <span className="font-sans text-[10px] font-bold tracking-widest uppercase bg-bonsai-pink-pale text-bonsai-pink px-2 py-0.5 rounded-full">
+                        {t.soldBadge}
+                      </span>
+                    </div>
+                    {tree.species && <p className="font-sans text-xs italic text-ink-light">{tree.species}</p>}
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                      <span className="font-sans text-sm font-bold text-bonsai-pink">{tree.price}</span>
+                      <span className="font-sans text-xs text-ink-light">{tree.level}</span>
+                      {tree.tree_code && <span className="font-mono text-xs text-ink-light/60">{tree.tree_code}</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 mt-0.5">
+                      <p className="font-sans text-xs text-ink-light/50">Added {formatDate(tree.created_at)}</p>
+                      {tree.tree_code && (
+                        <p className="font-sans text-xs font-mono text-ink-light/60 truncate">
+                          {baseUrl}/tree/{tree.tree_code}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Admin Client ────────────────────────────────────────────────────────
 
 export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
@@ -707,6 +771,8 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
   const [isAuth, setIsAuth] = useState(initialAuth)
   const [trees, setTrees] = useState<DbTree[]>([])
   const [loadingTrees, setLoadingTrees] = useState(false)
+  const activeTrees = trees.filter(tree => tree.is_active)
+  const soldTrees = trees.filter(tree => !tree.is_active)
 
   useEffect(() => {
     if (isAuth) fetchTrees()
@@ -717,7 +783,6 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
     const { data } = await supabase
       .from('bonsai_trees')
       .select('*')
-      .eq('is_active', true)
       .order('created_at', { ascending: false })
     setTrees(data ?? [])
     setLoadingTrees(false)
@@ -726,18 +791,14 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
   async function handleDelete(id: string) {
     if (!window.confirm(t.deleteConfirm)) return
     const res = await fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })
-    const result = await res.json().catch(() => null)
-    if (result?.cleanupError) console.warn(result.cleanupError)
-    setTrees(p => p.filter(t => t.id !== id))
+    if (!res.ok) return
+    setTrees(p => p.map(tree => tree.id === id ? { ...tree, is_active: false } : tree))
   }
 
   async function handleBulkDelete(ids: string[]) {
     const results = await Promise.all(ids.map(id => fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })))
-    const cleanupResults = await Promise.all(results.map(res => res.json().catch(() => null)))
-    if (cleanupResults.some(result => result?.cleanupError)) {
-      console.warn('Some uploaded images could not be deleted.')
-    }
-    setTrees(p => p.filter(t => !ids.includes(t.id)))
+    const soldIds = new Set(ids.filter((_, i) => results[i]?.ok))
+    setTrees(p => p.map(tree => soldIds.has(tree.id) ? { ...tree, is_active: false } : tree))
   }
 
   async function handleLogout() {
@@ -792,11 +853,12 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px bg-forest/10" />
           <span className="font-sans text-xs text-ink-light tracking-widest uppercase">
-            {loadingTrees ? '…' : `${trees.length} trees`}
+            {loadingTrees ? '…' : `${activeTrees.length} active · ${soldTrees.length} sold`}
           </span>
           <div className="flex-1 h-px bg-forest/10" />
         </div>
-        <TreeList trees={trees} t={t} onDelete={handleDelete} onBulkDelete={handleBulkDelete} />
+        <TreeList trees={activeTrees} t={t} onDelete={handleDelete} onBulkDelete={handleBulkDelete} />
+        <SoldTreeList trees={soldTrees} t={t} />
       </main>
 
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-10" />

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { validateSession, COOKIE_NAME } from '@/lib/session'
-import { getTreeStoragePaths, TREE_IMAGE_BUCKET } from '@/lib/tree-images'
 
 type Params = Promise<{ id: string }>
 
@@ -37,7 +36,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   return NextResponse.json({ ok: true })
 }
 
-/** DELETE /api/admin/trees/[id] — soft-delete (mark inactive) */
+/** DELETE /api/admin/trees/[id] — mark sold by moving it out of active inventory */
 export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   const rawToken = req.cookies.get(COOKIE_NAME)?.value
   const session = await validateSession(rawToken)
@@ -46,34 +45,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params
   const db = createServerClient()
 
-  const { data: tree, error: fetchError } = await db
-    .from('bonsai_trees')
-    .select('image_url, image_urls')
-    .eq('id', id)
-    .maybeSingle()
-
-  if (fetchError) return NextResponse.json({ error: 'Server error' }, { status: 500 })
-
   const { error } = await db
     .from('bonsai_trees')
     .update({ is_active: false })
     .eq('id', id)
 
   if (error) return NextResponse.json({ error: 'Server error' }, { status: 500 })
-
-  const imagePaths = tree ? getTreeStoragePaths(tree) : []
-  let cleanupError: string | null = null
-
-  if (imagePaths.length > 0) {
-    const { error: removeError } = await db.storage
-      .from(TREE_IMAGE_BUCKET)
-      .remove(imagePaths)
-
-    if (removeError) {
-      cleanupError = 'Some uploaded images could not be deleted.'
-      console.error(`Tree ${id} image cleanup failed: ${removeError.message}`)
-    }
-  }
-
-  return NextResponse.json({ ok: true, cleanupError })
+  return NextResponse.json({ ok: true })
 }
