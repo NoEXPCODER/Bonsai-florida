@@ -8,6 +8,49 @@ import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/componen
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
+function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
+  const [idx, setIdx] = useState(0)
+  const [startX, setStartX] = useState<number | null>(null)
+
+  if (urls.length === 0) {
+    return <div className="w-full h-full flex items-center justify-center text-7xl opacity-50">🌿</div>
+  }
+
+  function onTouchStart(e: React.TouchEvent) { setStartX(e.touches[0].clientX) }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (startX === null) return
+    const dx = startX - e.changedTouches[0].clientX
+    if (Math.abs(dx) > 40) setIdx(i => dx > 0 ? Math.min(i + 1, urls.length - 1) : Math.max(i - 1, 0))
+    setStartX(null)
+  }
+
+  return (
+    <div className="relative w-full h-full" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={urls[idx]} alt={`${name} ${idx + 1}`} className="w-full h-full object-cover" />
+      {urls.length > 1 && idx > 0 && (
+        <button onClick={() => setIdx(i => i - 1)}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center text-lg">‹</button>
+      )}
+      {urls.length > 1 && idx < urls.length - 1 && (
+        <button onClick={() => setIdx(i => i + 1)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center text-lg">›</button>
+      )}
+      {urls.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {urls.map((_, i) => (
+            <button key={i} onClick={() => setIdx(i)}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? 'bg-white w-5' : 'bg-white/50 w-1.5'}`} />
+          ))}
+        </div>
+      )}
+      {urls.length > 1 && (
+        <div className="absolute top-4 right-16 bg-black/50 text-white text-xs font-bold px-2 py-0.5 rounded-full">{idx + 1}/{urls.length}</div>
+      )}
+    </div>
+  )
+}
+
 function EditModal({ tree, onClose, onSaved }: {
   tree: DbTree
   onClose: () => void
@@ -135,19 +178,14 @@ export default function TreePageClient({ tree: initialTree, isStaff }: {
         <div className="max-w-lg mx-auto px-4 py-8">
           {/* Tree photo */}
           <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden mb-6 shadow-card-lg bg-forest">
-            {tree.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={tree.image_url} alt={tree.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-7xl opacity-50">🌿</div>
-            )}
+            <PhotoCarousel urls={tree.image_urls?.length ? tree.image_urls : tree.image_url ? [tree.image_url] : []} name={tree.name} />
             {/* Corner marks */}
-            <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/40" />
-            <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/40" />
-            <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-white/40" />
-            <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-white/40" />
+            <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/40 pointer-events-none" />
+            <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/40 pointer-events-none" />
+            <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-white/40 pointer-events-none" />
+            <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-white/40 pointer-events-none" />
             {/* Price badge */}
-            <div className="absolute top-4 right-4 bg-forest/80 backdrop-blur text-white font-serif text-xl font-bold px-4 py-1.5 rounded-full">
+            <div className="absolute top-4 right-4 bg-forest/80 backdrop-blur text-white font-serif text-xl font-bold px-4 py-1.5 rounded-full pointer-events-none">
               {tree.price}
             </div>
           </div>

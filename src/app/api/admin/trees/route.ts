@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       water: body.water || 'Every 2–3 days',
       notes: body.notes || null,
       image_url: body.image_url || null,
+      image_urls: body.image_urls || [],
     })
     .select('id, tree_code')
     .single()

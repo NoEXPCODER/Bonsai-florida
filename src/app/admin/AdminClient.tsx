@@ -132,49 +132,59 @@ function Field({ label, required, children }: { label: string; required?: boolea
 
 function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']; onSaved: (tree: DbTree) => void }) {
   const [form, setForm] = useState<FormData>(DEFAULT_FORM)
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [files, setFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   function setField(k: keyof FormData, v: string) { setForm(p => ({ ...p, [k]: v })) }
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setFile(f)
-    setPreview(URL.createObjectURL(f))
+  function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(e.target.files ?? [])
+    if (!picked.length) return
+    setFiles(prev => [...prev, ...picked])
+    setPreviews(prev => [...prev, ...picked.map(f => URL.createObjectURL(f))])
+    e.target.value = ''
+  }
+
+  function removePhoto(i: number) {
+    setFiles(prev => prev.filter((_, idx) => idx !== i))
+    setPreviews(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  function setPrimary(i: number) {
+    setFiles(prev => { const a = [...prev]; const [f] = a.splice(i, 1); return [f, ...a] })
+    setPreviews(prev => { const a = [...prev]; const [p] = a.splice(i, 1); return [p, ...a] })
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setStatus('saving'); setErrorMsg('')
     try {
-      let image_url: string | null = null
-      if (file) {
-        const ext = file.name.split('.').pop() ?? 'jpg'
-        const path = `${Date.now()}-${form.name.replace(/\s+/g, '-').toLowerCase()}.${ext}`
-        const { error: upErr } = await supabase.storage.from('bonsai-trees').upload(path, file, { contentType: file.type })
-        if (upErr) throw upErr
-        const { data: urlData } = supabase.storage.from('bonsai-trees').getPublicUrl(path)
-        image_url = urlData.publicUrl
-      }
+      const slug = form.name.replace(/\s+/g, '-').toLowerCase()
+      const uploaded: string[] = await Promise.all(
+        files.map(async (file, i) => {
+          const ext = file.name.split('.').pop() ?? 'jpg'
+          const path = `${Date.now()}-${i}-${slug}.${ext}`
+          const { error } = await supabase.storage.from('bonsai-trees').upload(path, file, { contentType: file.type })
+          if (error) throw error
+          return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
+        })
+      )
 
-      // Server-side creation (validates cookie)
       const res = await fetch('/api/admin/trees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, image_url }),
+        body: JSON.stringify({ ...form, image_url: uploaded[0] ?? null, image_urls: uploaded }),
       })
       if (!res.ok) throw new Error('Server error')
 
       const saved = await res.json()
-      // Fetch the full row to add to list
       const { data: row } = await supabase.from('bonsai_trees').select('*').eq('id', saved.id).single()
       if (row) onSaved(row)
 
-      setStatus('success'); setForm(DEFAULT_FORM); setFile(null); setPreview(null)
+      setStatus('success'); setForm(DEFAULT_FORM); setFiles([]); setPreviews([])
       setTimeout(() => setStatus('idle'), 3000)
     } catch {
       setErrorMsg(t.submitError); setStatus('error')
@@ -186,22 +196,50 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
       <h2 className="font-serif text-2xl text-forest">{t.addTitle}</h2>
       <div className="w-10 h-px bg-bonsai-pink-lt" />
 
-      {/* Photo picker */}
-      <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
-      {preview ? (
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={preview} alt="Preview" className="w-full aspect-[4/3] object-cover rounded-2xl border-2 border-forest/20" />
-          <button type="button" onClick={() => fileRef.current?.click()}
-            className="absolute bottom-3 right-3 bg-forest text-white text-sm font-bold px-4 py-2 rounded-full shadow">
-            {t.photoChange}
-          </button>
+      {/* Multi-photo picker */}
+      <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
+
+      {previews.length > 0 ? (
+        <div className="space-y-3">
+          {/* Hero photo */}
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previews[0]} alt="Primary" className="w-full aspect-[4/3] object-cover rounded-2xl border-2 border-forest/30" />
+            <div className="absolute top-3 left-3 bg-forest text-white font-sans text-xs font-bold px-2.5 py-1 rounded-full">Cover</div>
+            <button type="button" onClick={() => removePhoto(0)}
+              className="absolute top-3 right-3 bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm hover:bg-black/80">✕</button>
+          </div>
+          {/* Additional photos grid */}
+          {previews.length > 1 && (
+            <div className="grid grid-cols-4 gap-2">
+              {previews.slice(1).map((src, i) => (
+                <div key={i} className="relative aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`Photo ${i + 2}`} className="w-full h-full object-cover rounded-xl border border-forest/20" />
+                  <button type="button" onClick={() => setPrimary(i + 1)}
+                    className="absolute bottom-1 left-1 bg-forest/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-tight">Cover</button>
+                  <button type="button" onClick={() => removePhoto(i + 1)}
+                    className="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] hover:bg-black/80">✕</button>
+                </div>
+              ))}
+              {/* Add more */}
+              <button type="button" onClick={() => fileRef.current?.click()}
+                className="aspect-square rounded-xl border-2 border-dashed border-forest/30 bg-sage-pale/50 flex items-center justify-center text-2xl hover:border-forest transition-colors">+</button>
+            </div>
+          )}
+          {previews.length === 1 && (
+            <button type="button" onClick={() => fileRef.current?.click()}
+              className="w-full py-3 rounded-2xl border-2 border-dashed border-forest/30 bg-sage-pale/50 font-sans text-sm font-semibold text-forest hover:border-forest transition-colors">
+              + Add More Photos
+            </button>
+          )}
         </div>
       ) : (
         <button type="button" onClick={() => fileRef.current?.click()}
           className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-forest/30 bg-sage-pale/50 flex flex-col items-center justify-center gap-3 hover:border-forest transition-colors">
           <span className="text-5xl">📷</span>
           <span className="font-sans font-semibold text-forest">{t.photoButton}</span>
+          <span className="font-sans text-xs text-ink-light">Tap to pick one or more photos</span>
         </button>
       )}
 

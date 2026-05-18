@@ -16,6 +16,7 @@ export interface DbTree {
   water: string
   notes: string | null
   image_url: string | null
+  image_urls: string[] | null
   tree_code: string | null
   is_active: boolean
   created_at: string
