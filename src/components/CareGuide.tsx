@@ -9,6 +9,8 @@ import { CARE_GUIDES, type CareGuideEntry } from '@/data/care-guides'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { WaterIcon, SunIcon, LeafIcon, QuestionIcon } from '@/components/Icons'
 
+const HOMEPAGE_CARE_GUIDE_LIMIT = 4
+
 const BLOCK_ICONS = [
   <WaterIcon key="water" className="w-8 h-8" />,
   <SunIcon key="sun" className="w-8 h-8" />,
@@ -115,13 +117,13 @@ export default function CareGuide() {
 
   const filteredGuides = useMemo(() => {
     const q = guideSearch.trim().toLowerCase()
-    if (!q) return CARE_GUIDES
+    if (!q) return CARE_GUIDES.slice(0, HOMEPAGE_CARE_GUIDE_LIMIT)
     return CARE_GUIDES.filter(guide =>
       guide.name.toLowerCase().includes(q) ||
       guide.latin.toLowerCase().includes(q) ||
       guide.aliases.some(alias => alias.toLowerCase().includes(q)) ||
       guide.summary.toLowerCase().includes(q)
-    )
+    ).slice(0, HOMEPAGE_CARE_GUIDE_LIMIT)
   }, [guideSearch])
 
   const matchingTrees = useMemo(() => {
@@ -167,6 +169,9 @@ export default function CareGuide() {
             placeholder="Search species care: ficus, juniper, jade..."
             className="w-full px-5 py-4 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
           />
+          <p className="mt-3 text-center font-sans text-xs text-ink-light">
+            Showing up to {HOMEPAGE_CARE_GUIDE_LIMIT} care guides to keep the homepage short and easy to read.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
