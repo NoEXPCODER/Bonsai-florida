@@ -23,10 +23,15 @@ export default async function TreePage({
 
   if (!tree) notFound()
 
+  // Fetch linked species for care guide (if any)
+  const { data: species } = tree.species_id
+    ? await anonClient.from('tree_species').select('*').eq('id', tree.species_id).maybeSingle()
+    : { data: null }
+
   // Check staff session
   const store = await cookies()
   const rawToken = store.get('bf_staff')?.value
   const session = await validateSession(rawToken)
 
-  return <TreePageClient tree={tree} isStaff={session !== null} />
+  return <TreePageClient tree={tree} isStaff={session !== null} species={species} />
 }

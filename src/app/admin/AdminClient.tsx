@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
+import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { useMessages, useAuth } from '@/lib/i18n'
 
 // ─── PIN Screen ───────────────────────────────────────────────────────────────
@@ -36,6 +37,10 @@ function PinScreen({ onUnlock, t }: {
       onUnlock()
     } else if (res.status === 401) {
       setError(t.pinError)
+      setPin('')
+      inputRef.current?.focus()
+    } else if (res.status === 429) {
+      setError('Too many attempts. Try again in 15 minutes.')
       setPin('')
       inputRef.current?.focus()
     } else {
@@ -251,28 +256,39 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [allSpecies, setAllSpecies] = useState<DbSpecies[]>([])
+  const [speciesLoading, setSpeciesLoading] = useState(true)
+  // Force combobox remount on form reset so its internal query/selection is cleared
+  const [comboboxKey, setComboboxKey] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    fetch('/api/admin/species').then(r => r.json()).then(data => {
-      if (Array.isArray(data)) setAllSpecies(data)
-    })
+    fetch('/api/admin/species')
+      .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
+      .then(data => { if (Array.isArray(data)) setAllSpecies(data) })
+      .catch(() => { /* species search still works, just empty */ })
+      .finally(() => setSpeciesLoading(false))
   }, [])
 
   function setField(k: keyof FormData, v: string) { setForm(p => ({ ...p, [k]: v })) }
 
   function handleSpeciesSelect(s: DbSpecies | null, autoName: string) {
     if (!s) return
-    setForm(p => ({
-      ...p,
-      name: autoName,
-      species: s.species_latin,
-      level: s.level,
-      sun: locale === 'vi' ? s.sun_vi || s.sun_en : s.sun_en,
-      water: locale === 'vi' ? s.water_vi || s.water_en : s.water_en,
-      notes: locale === 'vi' ? s.care_vi || s.care_en : s.care_en,
-      species_id: s.id,
-    }))
+    setForm(p => {
+      const isDefaultSun = p.sun === DEFAULT_FORM.sun || p.sun === ''
+      const isDefaultWater = p.water === DEFAULT_FORM.water || p.water === ''
+      const sun = locale === 'vi' ? s.sun_vi || s.sun_en : s.sun_en
+      const water = locale === 'vi' ? s.water_vi || s.water_en : s.water_en
+      return {
+        ...p,
+        name: p.name || autoName,             // fill only if empty
+        species: p.species || s.species_latin, // fill only if empty
+        level: s.level,                        // always match species
+        sun: isDefaultSun ? sun : p.sun,       // fill only if unchanged from default
+        water: isDefaultWater ? water : p.water,
+        // tree.notes is for custom admin notes; species care guide is shown separately on tree page
+        species_id: s.id,
+      }
+    })
   }
 
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
@@ -300,9 +316,10 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
       const slug = form.name.replace(/\s+/g, '-').toLowerCase()
       const uploaded: string[] = await Promise.all(
         files.map(async (file, i) => {
-          const ext = file.name.split('.').pop() ?? 'jpg'
+          const result = await optimizeTreeImage(file)
+          const ext = result.file.name.split('.').pop() ?? 'jpg'
           const path = `${Date.now()}-${i}-${slug}.${ext}`
-          const { error } = await supabase.storage.from('bonsai-trees').upload(path, file, { contentType: file.type })
+          const { error } = await supabase.storage.from('bonsai-trees').upload(path, result.file, { contentType: result.file.type })
           if (error) throw error
           return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
         })
@@ -320,6 +337,7 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
       if (row) onSaved(row)
 
       setStatus('success'); setForm(DEFAULT_FORM); setFiles([]); setPreviews([])
+      setComboboxKey(k => k + 1)
       setTimeout(() => setStatus('idle'), 3000)
     } catch {
       setErrorMsg(t.submitError); setStatus('error')
@@ -380,8 +398,11 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
 
       {/* Species picker — auto-fills name + care */}
       <div>
-        <label className="block font-sans text-sm font-semibold text-forest mb-1.5">Species <span className="font-normal text-ink-light">(auto-fills care details)</span></label>
-        <SpeciesCombobox allSpecies={allSpecies} locale={locale} onSelect={handleSpeciesSelect} />
+        <label className="block font-sans text-sm font-semibold text-forest mb-1.5">
+          Species <span className="font-normal text-ink-light">(auto-fills care details)</span>
+          {speciesLoading && <span className="font-normal text-ink-light/60 ml-2 text-xs">Loading…</span>}
+        </label>
+        <SpeciesCombobox key={comboboxKey} allSpecies={allSpecies} locale={locale} onSelect={handleSpeciesSelect} />
       </div>
 
       <Field label={t.fieldName} required>
