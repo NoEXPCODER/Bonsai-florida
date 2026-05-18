@@ -320,7 +320,7 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
           const ext = result.file.name.split('.').pop() ?? 'jpg'
           const path = `${Date.now()}-${i}-${slug}.${ext}`
           const { error } = await supabase.storage.from('bonsai-trees').upload(path, result.file, { contentType: result.file.type })
-          if (error) throw error
+          if (error) throw new Error(`Photo upload failed: ${error.message}`)
           return supabase.storage.from('bonsai-trees').getPublicUrl(path).data.publicUrl
         })
       )
@@ -330,17 +330,23 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, image_url: uploaded[0] ?? null, image_urls: uploaded }),
       })
-      if (!res.ok) throw new Error('Server error')
+      if (res.status === 401) throw new Error('Session expired — please log out and log in again.')
+      if (!res.ok) throw new Error(`Save failed (${res.status}) — check Vercel env vars (SUPABASE_SERVICE_ROLE_KEY).`)
 
       const saved = await res.json()
-      const { data: row } = await supabase.from('bonsai_trees').select('*').eq('id', saved.id).single()
-      if (row) onSaved(row)
+      // Fetch the full row via API to avoid relying on the anon client
+      const treeRes = await fetch(`/api/admin/trees?id=${saved.id}`)
+      if (treeRes.ok) {
+        const row = await treeRes.json()
+        if (row) onSaved(row)
+      }
 
       setStatus('success'); setForm(DEFAULT_FORM); setFiles([]); setPreviews([])
       setComboboxKey(k => k + 1)
       setTimeout(() => setStatus('idle'), 3000)
-    } catch {
-      setErrorMsg(t.submitError); setStatus('error')
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : t.submitError)
+      setStatus('error')
     }
   }
 
