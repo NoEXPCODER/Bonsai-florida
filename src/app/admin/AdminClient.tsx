@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import type { DbTree } from '@/lib/supabase'
-import { useMessages } from '@/lib/i18n'
+import type { DbTree, DbSpecies } from '@/lib/supabase'
+import { useMessages, useAuth } from '@/lib/i18n'
 
 // ─── PIN Screen ───────────────────────────────────────────────────────────────
 
@@ -113,11 +113,121 @@ interface FormData {
   name: string; species: string; price: string; level: string
   sun: string; water: string; notes: string
   location_row: string; location_tree: string
+  species_id: string
 }
 const DEFAULT_FORM: FormData = {
   name: '', species: '', price: '', level: 'Beginner Friendly',
   sun: 'Bright indirect light', water: 'Every 2–3 days', notes: '',
-  location_row: '', location_tree: '',
+  location_row: '', location_tree: '', species_id: '',
+}
+
+// ─── Species combobox ─────────────────────────────────────────────────────────
+
+function SpeciesCombobox({ allSpecies, locale, onSelect }: {
+  allSpecies: DbSpecies[]
+  locale: string
+  onSelect: (s: DbSpecies | null, customName: string) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [selected, setSelected] = useState<DbSpecies | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const filtered = query.trim()
+    ? allSpecies.filter(s =>
+        s.name_en.toLowerCase().includes(query.toLowerCase()) ||
+        s.name_vi.toLowerCase().includes(query.toLowerCase()) ||
+        s.species_latin.toLowerCase().includes(query.toLowerCase())
+      )
+    : allSpecies
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  function pick(s: DbSpecies) {
+    setSelected(s)
+    setQuery(locale === 'vi' ? s.name_vi || s.name_en : s.name_en)
+    setOpen(false)
+    onSelect(s, locale === 'vi' ? s.name_vi || s.name_en : s.name_en)
+  }
+
+  function clear() {
+    setSelected(null)
+    setQuery('')
+    onSelect(null, '')
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search species (EN or Vietnamese)…"
+          value={query}
+          onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) { setSelected(null); onSelect(null, '') } }}
+          onFocus={() => setOpen(true)}
+          className="w-full px-4 py-3.5 pr-10 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
+        />
+        {selected && (
+          <button type="button" onClick={clear} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light hover:text-ink text-lg">✕</button>
+        )}
+      </div>
+
+      {/* Selected species card */}
+      {selected && (
+        <div className="mt-2 px-4 py-3 bg-sage-pale rounded-2xl border border-forest/10">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="font-sans text-sm font-bold text-forest">{selected.name_en}</p>
+              <p className="font-sans text-sm text-ink-light">{selected.name_vi}</p>
+              <p className="font-sans text-xs italic text-ink-light/60">{selected.species_latin}</p>
+            </div>
+            <span className={`font-sans text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${
+              selected.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage text-white'
+            }`}>{selected.level}</span>
+          </div>
+          <p className="font-sans text-xs text-ink-light mt-2 italic">✓ Care details auto-filled from species database</p>
+        </div>
+      )}
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-50 w-full mt-1 bg-white rounded-2xl border border-forest/10 shadow-card-lg max-h-64 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-3 text-center">
+              <p className="font-sans text-sm text-ink-light mb-2">No species found for &quot;{query}&quot;</p>
+              <p className="font-sans text-xs text-ink-light/60">Save tree first, then add species from the species manager.</p>
+            </div>
+          ) : (
+            filtered.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onMouseDown={() => pick(s)}
+                className="w-full text-left px-4 py-3 hover:bg-sage-pale transition-colors border-b border-forest/5 last:border-0"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <span className="font-sans text-sm font-semibold text-forest">{s.name_en}</span>
+                    <span className="font-sans text-sm text-ink-light ml-2">· {s.name_vi}</span>
+                    <p className="font-sans text-xs italic text-ink-light/50">{s.species_latin}</p>
+                  </div>
+                  <span className={`font-sans text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                    s.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage-pale text-forest'
+                  }`}>{s.level === 'Beginner Friendly' ? 'Beginner' : 'Inter.'}</span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 const inputCls = 'w-full px-4 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
@@ -133,14 +243,36 @@ function Field({ label, required, children }: { label: string; required?: boolea
 }
 
 function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']; onSaved: (tree: DbTree) => void }) {
+  const { locale } = useAuth()
   const [form, setForm] = useState<FormData>(DEFAULT_FORM)
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [allSpecies, setAllSpecies] = useState<DbSpecies[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    fetch('/api/admin/species').then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setAllSpecies(data)
+    })
+  }, [])
+
   function setField(k: keyof FormData, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  function handleSpeciesSelect(s: DbSpecies | null, autoName: string) {
+    if (!s) return
+    setForm(p => ({
+      ...p,
+      name: autoName,
+      species: s.species_latin,
+      level: s.level,
+      sun: locale === 'vi' ? s.sun_vi || s.sun_en : s.sun_en,
+      water: locale === 'vi' ? s.water_vi || s.water_en : s.water_en,
+      notes: locale === 'vi' ? s.care_vi || s.care_en : s.care_en,
+      species_id: s.id,
+    }))
+  }
 
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = Array.from(e.target.files ?? [])
@@ -244,6 +376,12 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
           <span className="font-sans text-xs text-ink-light">Tap to pick one or more photos</span>
         </button>
       )}
+
+      {/* Species picker — auto-fills name + care */}
+      <div>
+        <label className="block font-sans text-sm font-semibold text-forest mb-1.5">Species <span className="font-normal text-ink-light">(auto-fills care details)</span></label>
+        <SpeciesCombobox allSpecies={allSpecies} locale={locale} onSelect={handleSpeciesSelect} />
+      </div>
 
       <Field label={t.fieldName} required>
         <input type="text" placeholder={t.fieldNamePlaceholder} value={form.name} onChange={e => setField('name', e.target.value)} className={inputCls} />
@@ -374,7 +512,7 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
   function toggleOne(id: string) {
     setSelected(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
       return next
     })
   }

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
 import { useMessages } from '@/lib/i18n'
-import { SunIcon, WaterIcon, LeafIcon, MessageIcon, PhoneIcon } from '@/components/Icons'
+import { SunIcon, WaterIcon, MessageIcon, PhoneIcon } from '@/components/Icons'
 
 // ─── Photo thumbnail ──────────────────────────────────────────────────────────
 
@@ -85,7 +85,6 @@ function GridCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 // ─── List row ─────────────────────────────────────────────────────────────────
 
 function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const t = useMessages().collection
   return (
     <article
       className="card p-0 overflow-hidden hover:shadow-card transition-all duration-200 cursor-pointer group flex"

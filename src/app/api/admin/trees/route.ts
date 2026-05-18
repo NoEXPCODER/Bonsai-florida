@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       image_urls: body.image_urls || [],
       location_row: body.location_row || null,
       location_tree: body.location_tree || null,
+      species_id: body.species_id || null,
     })
     .select('id, tree_code')
     .single()

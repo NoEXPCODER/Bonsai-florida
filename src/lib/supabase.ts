@@ -6,6 +6,21 @@ const SUPABASE_ANON_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+export interface DbSpecies {
+  id: string
+  name_en: string
+  name_vi: string
+  species_latin: string
+  level: string
+  sun_en: string
+  sun_vi: string
+  water_en: string
+  water_vi: string
+  care_en: string
+  care_vi: string
+  created_at: string
+}
+
 export interface DbTree {
   id: string
   name: string
@@ -20,6 +35,7 @@ export interface DbTree {
   tree_code: string | null
   location_row: string | null
   location_tree: string | null
+  species_id: string | null
   is_active: boolean
   created_at: string
 }

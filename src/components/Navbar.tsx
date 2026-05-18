@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import { useAuth, useMessages } from '@/lib/i18n'
 import { PhoneIcon } from '@/components/Icons'
@@ -71,6 +72,16 @@ export default function Navbar() {
                 </span>
               )}
 
+              {/* Admin link when logged in */}
+              {isLoggedIn && (
+                <Link
+                  href="/admin"
+                  className="font-sans text-xs font-semibold tracking-wider uppercase px-4 py-2 rounded-full bg-forest text-white hover:bg-forest-light transition-colors"
+                >
+                  🌿 Admin
+                </Link>
+              )}
+
               {/* Login / Logout toggle */}
               <button
                 onClick={() => setLoginOpen(true)}
@@ -127,6 +138,15 @@ export default function Navbar() {
                 </a>
               ))}
               <div className="pt-3 flex flex-col gap-3">
+                {isLoggedIn && (
+                  <Link
+                    href="/admin"
+                    className="btn-primary justify-center text-sm"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    🌿 Admin Dashboard
+                  </Link>
+                )}
                 <a
                   href={CONTACT.phone.tel}
                   className="btn-primary justify-center text-sm"
