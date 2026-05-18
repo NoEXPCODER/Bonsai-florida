@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
-import { supabase } from '@/lib/supabase'
 import { validateSession, COOKIE_NAME } from '@/lib/session'
 
 /** GET /api/admin/species — public, returns all species */
 export async function GET() {
-  const { data, error } = await supabase
+  const db = createServerClient()
+  const { data, error } = await db
     .from('tree_species')
     .select('*')
     .order('name_en')
