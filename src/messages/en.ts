@@ -34,6 +34,27 @@ export const en = {
     deleteButton: 'Mark as Sold',
     deleteConfirm: 'Remove this tree from the collection?',
     logout: 'Lock Admin',
+    // PIN screen
+    pinLoading: 'Checking…',
+    rememberDevice: 'Remember this device for 30 days',
+    rememberHint: 'Skip PIN next time you open this page',
+    // QR codes
+    qrLabel: 'QR link for this tree',
+    qrCopy: 'Copy Link',
+    // Devices page
+    devicesLink: 'Devices',
+    devicesPageTitle: 'Remembered Devices',
+    backToAdmin: 'Back',
+    activeDevices: 'Active Devices',
+    noActiveDevices: 'No active devices.',
+    thisDevice: 'This device',
+    lastUsed: 'Last used',
+    expires: 'Expires',
+    revokeButton: 'Revoke',
+    revokeConfirm: 'Remove this device? It will need to log in with PIN again.',
+    inactiveDevices: 'Revoked / Expired',
+    revoked: 'Revoked',
+    expired: 'Expired',
   },
   nav: {
     collection: 'Collection',

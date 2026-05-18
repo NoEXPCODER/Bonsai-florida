@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase-server'
+import { validateSession, COOKIE_NAME } from '@/lib/session'
+
+type Params = Promise<{ id: string }>
+
+/** PATCH /api/admin/trees/[id] — update tree fields */
+export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+  const rawToken = req.cookies.get(COOKIE_NAME)?.value
+  const session = await validateSession(rawToken)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id } = await params
+  const body = await req.json()
+  const db = createServerClient()
+
+  const { error } = await db
+    .from('bonsai_trees')
+    .update({
+      ...(body.name !== undefined && { name: body.name }),
+      ...(body.species !== undefined && { species: body.species }),
+      ...(body.price !== undefined && { price: body.price }),
+      ...(body.level !== undefined && { level: body.level }),
+      ...(body.sun !== undefined && { sun: body.sun }),
+      ...(body.water !== undefined && { water: body.water }),
+      ...(body.notes !== undefined && { notes: body.notes }),
+      ...(body.image_url !== undefined && { image_url: body.image_url }),
+    })
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+
+/** DELETE /api/admin/trees/[id] — soft-delete (mark inactive) */
+export async function DELETE(req: NextRequest, { params }: { params: Params }) {
+  const rawToken = req.cookies.get(COOKIE_NAME)?.value
+  const session = await validateSession(rawToken)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { id } = await params
+  const db = createServerClient()
+
+  const { error } = await db
+    .from('bonsai_trees')
+    .update({ is_active: false })
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}

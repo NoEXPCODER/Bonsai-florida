@@ -36,6 +36,27 @@ export const vi: Messages = {
     deleteButton: 'Đánh Dấu Đã Bán',
     deleteConfirm: 'Xóa cây này khỏi bộ sưu tập?',
     logout: 'Khóa Trang Admin',
+    // Màn hình PIN
+    pinLoading: 'Đang kiểm tra…',
+    rememberDevice: 'Nhớ thiết bị này trong 30 ngày',
+    rememberHint: 'Lần sau mở trang không cần nhập PIN lại',
+    // Mã QR
+    qrLabel: 'Đường dẫn QR cho cây này',
+    qrCopy: 'Sao Chép Link',
+    // Trang thiết bị
+    devicesLink: 'Thiết Bị',
+    devicesPageTitle: 'Thiết Bị Đã Lưu',
+    backToAdmin: 'Quay Lại',
+    activeDevices: 'Thiết Bị Đang Hoạt Động',
+    noActiveDevices: 'Không có thiết bị nào đang hoạt động.',
+    thisDevice: 'Thiết bị này',
+    lastUsed: 'Lần cuối dùng',
+    expires: 'Hết hạn',
+    revokeButton: 'Thu Hồi',
+    revokeConfirm: 'Xóa thiết bị này? Lần sau sẽ cần nhập PIN lại.',
+    inactiveDevices: 'Đã Thu Hồi / Hết Hạn',
+    revoked: 'Đã thu hồi',
+    expired: 'Đã hết hạn',
   },
   nav: {
     collection: 'Bộ Sưu Tập',
