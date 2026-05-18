@@ -624,6 +624,18 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => router.push('/trees')}
+            className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            🌿 Collection
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            🏠 Site
+          </button>
+          <button
             onClick={() => router.push('/admin/devices')}
             className="font-sans text-xs border border-white/30 text-white/80 px-3 py-2 rounded-full hover:bg-white/10 transition-colors"
           >
