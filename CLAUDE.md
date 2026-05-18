@@ -91,3 +91,43 @@ SUPABASE_SERVICE_ROLE_KEY = <from Supabase dashboard → Settings → API>
 
 ### Branch
 All development on: `claude/bonsai-florida-website-XzS9G`
+
+### Supabase Project
+- Project ref: `kezvvfocbpbyykgeohsw`
+- URL: `https://kezvvfocbpbyykgeohsw.supabase.co`
+- Tables: `bonsai_trees`, `staff_sessions`
+- Storage bucket: `bonsai-trees` (public)
+
+---
+
+## Context Limit Handoff Rule
+
+**RULE: When context is getting long (>80% full) or you are near credit limit, immediately output a handoff summary before stopping.**
+
+Format the summary exactly like this so any AI (Codex, Claude, Cursor, etc.) can pick up seamlessly:
+
+```
+## BONSAI FLORIDA — HANDOFF SUMMARY
+
+### What's built
+[bullet list of completed features]
+
+### Current task
+[what was being worked on right now, step by step]
+
+### Files changed (not yet committed)
+[list any uncommitted changes]
+
+### Blocked on / next step
+[exactly what needs to happen next]
+
+### Key credentials & config
+- Branch: claude/bonsai-florida-website-XzS9G
+- Supabase project: kezvvfocbpbyykgeohsw
+- Vercel: bonsai-florida-git-claude-bon-9b4d8a-nathanvan10-1791s-projects.vercel.app
+- Admin PIN: 1234 (in src/config/auth.ts)
+- Owner login: thanhvan / bonsai2026
+- SUPABASE_SERVICE_ROLE_KEY → must be set in Vercel env vars
+```
+
+Always commit and push all changes before the summary so the next session starts from a clean state.
