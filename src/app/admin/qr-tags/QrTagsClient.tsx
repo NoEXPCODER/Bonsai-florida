@@ -278,8 +278,9 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
 const PRINT_STYLES = `
   @media print {
     @page { size: letter portrait; margin: 0.25in; }
-    body * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body, body * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .no-print { display: none !important; }
+    .preview-bg { background: white !important; padding: 0 !important; min-height: 0 !important; }
     .tag-page {
       width: 100% !important;
       height: 10.5in !important;
@@ -362,7 +363,7 @@ export default function QrTagsClient({ trees }: { trees: TagTree[] }) {
       </div>
 
       {/* Preview wrapper */}
-      <div style={{ backgroundColor: '#DDD9D2', minHeight: '100vh', padding: '40px 20px' }}>
+      <div className="preview-bg" style={{ backgroundColor: '#DDD9D2', minHeight: '100vh', padding: '40px 20px' }}>
 
         <p className="no-print" style={{ fontFamily: 'system-ui,sans-serif', fontSize: '10px', letterSpacing: '0.16em', color: '#888', textAlign: 'center', marginBottom: '16px' }}>
           FRONTS — PAGES 1–{totalSheets}
