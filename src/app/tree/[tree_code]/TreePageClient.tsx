@@ -92,10 +92,10 @@ function PhotoCarousel({ urls, name, onTap }: { urls: string[]; name: string; on
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={urls[idx]} alt="" aria-hidden
         className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-60 pointer-events-none" />
-      {/* Main image — object-contain so full tree is always visible */}
+      {/* Main image — object-cover fills the frame, blurred bg softens any edges */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={urls[idx]} alt={`${name} ${idx + 1}`}
-        className={`relative w-full h-full object-contain ${onTap ? 'cursor-zoom-in' : ''}`}
+        className={`relative w-full h-full object-cover ${onTap ? 'cursor-zoom-in' : ''}`}
         onClick={() => onTap?.(idx)} />
       {urls.length > 1 && idx > 0 && (
         <button onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}
