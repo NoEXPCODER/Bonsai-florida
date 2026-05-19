@@ -9,7 +9,6 @@ import CareGuidePreview from '@/components/CareGuidePreview'
 import FinalCTA from '@/components/FinalCTA'
 import ConnectSimple from '@/components/ConnectSimple'
 import Footer from '@/components/Footer'
-import StickyMobileCTA from '@/components/StickyMobileCTA'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,7 +56,6 @@ export default async function HomePage() {
         <ConnectSimple />
       </main>
       <Footer />
-      <StickyMobileCTA />
     </>
   )
 }

@@ -10,16 +10,27 @@ import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
 import { MessageIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 import BookAppointment from '@/components/BookAppointment'
+import { useVisitList } from '@/hooks/useVisitList'
+import { MAX_VISIT_LIST } from '@/lib/visit-list'
 
 // ─── Photo card (grid view — default) ────────────────────────────────────────
 
 function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const t = useMessages().collection
+  const { list, toggle } = useVisitList()
   const primary = getPrimaryTreeImageUrl(tree)
   const count = getTreeImageUrls(tree).length
   const species = tree.tree_species
   const difficulty = species ? getSpeciesDifficulty(species) : tree.level
   const isBeginner = difficulty === 'Beginner Friendly'
+  const isSaved = list.some(i => i.id === tree.id)
+  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
+
+  function handleSave(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (listFull) return
+    toggle({ id: tree.id, name: tree.name, price: parseFloat(tree.price), imageUrl: primary ?? undefined, treeCode: tree.tree_code ?? undefined })
+  }
 
   return (
     <article className="cursor-pointer group select-none" onClick={onClick}>
@@ -41,6 +52,17 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         }`}>
           {isBeginner ? 'Easy' : 'Inter.'}
         </span>
+        {/* Save heart button */}
+        <button
+          onClick={handleSave}
+          disabled={listFull}
+          aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
+          className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all ${
+            isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-white/60 text-ink-light/40' : 'bg-white/80 text-forest hover:bg-white'
+          }`}
+        >
+          <span className="text-sm leading-none">{isSaved ? '♥' : '♡'}</span>
+        </button>
         {/* Extra photos */}
         {count > 1 && (
           <span className="absolute bottom-2.5 right-2.5 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
@@ -91,11 +113,20 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
 function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const t = useMessages().collection
+  const { list, toggle } = useVisitList()
   const primary = getPrimaryTreeImageUrl(tree)
   const species = tree.tree_species
   const difficulty = species ? getSpeciesDifficulty(species) : tree.level
   const isBeginner = difficulty === 'Beginner Friendly'
   const lightText = species?.light_en || species?.sun_en || tree.sun
+  const isSaved = list.some(i => i.id === tree.id)
+  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
+
+  function handleSave(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (listFull) return
+    toggle({ id: tree.id, name: tree.name, price: parseFloat(tree.price), imageUrl: primary ?? undefined, treeCode: tree.tree_code ?? undefined })
+  }
 
   return (
     <article
@@ -127,17 +158,29 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         </div>
       </div>
 
-      {/* Price + Ask */}
+      {/* Price + Ask + Save */}
       <div className="flex-shrink-0 flex flex-col items-end gap-2 pr-4 py-3">
         <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
-        <a
-          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-          onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
-          aria-label={`Ask about ${tree.name}`}
-        >
-          <MessageIcon className="w-3 h-3" /> {t.askButton}
-        </a>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleSave}
+            disabled={listFull}
+            aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
+            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+              isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-forest/10 text-ink-light/30' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
+            }`}
+          >
+            <span className="text-xs leading-none">{isSaved ? '♥' : '♡'}</span>
+          </button>
+          <a
+            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
+            aria-label={`Ask about ${tree.name}`}
+          >
+            <MessageIcon className="w-3 h-3" /> {t.askButton}
+          </a>
+        </div>
       </div>
     </article>
   )
@@ -147,8 +190,17 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
 function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const t = useMessages().collection
+  const { list, toggle } = useVisitList()
   const species = tree.tree_species
   const image = getPrimaryTreeImageUrl(tree)
+  const isSaved = list.some(i => i.id === tree.id)
+  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
+
+  function handleSave(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (listFull) return
+    toggle({ id: tree.id, name: tree.name, price: parseFloat(tree.price), imageUrl: image ?? undefined, treeCode: tree.tree_code ?? undefined })
+  }
 
   const displaySpecies = species?.name_en || tree.species || 'Care guide not linked'
   const lightText = species?.light_en || species?.sun_en || 'Ask Bonsai Florida'
@@ -206,10 +258,21 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         </button>
         <a
           href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+          onClick={e => e.stopPropagation()}
           className="btn-secondary flex-1 justify-center text-xs py-2.5"
         >
           <MessageIcon className="w-3 h-3" /> {t.askButton}
         </a>
+        <button
+          onClick={handleSave}
+          disabled={listFull}
+          aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
+          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+            isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-forest/10 text-ink-light/30' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
+          }`}
+        >
+          <span className="text-sm leading-none">{isSaved ? '♥' : '♡'}</span>
+        </button>
       </div>
     </article>
   )
@@ -399,6 +462,8 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
       </div>
 
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-10" />
+      {/* bottom padding so sticky bar doesn't overlap footer on mobile */}
+      <div className="h-20 md:hidden" />
     </div>
   )
 }
