@@ -59,7 +59,7 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
           <p className="font-sans text-[11px] text-ink-light/70 italic mt-0.5 line-clamp-1">{tree.species}</p>
         )}
         <div className="flex items-center justify-between gap-2 mt-2">
-          <span className="font-serif font-bold text-bonsai-pink text-base">{tree.price}</span>
+          <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
           <a
             href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
             onClick={e => e.stopPropagation()}
@@ -113,7 +113,7 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
       {/* Price + Ask */}
       <div className="flex-shrink-0 flex flex-col items-end gap-2 pr-4 py-3">
-        <span className="font-serif font-bold text-bonsai-pink text-base">{tree.price}</span>
+        <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
         <a
           href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
           onClick={e => e.stopPropagation()}
@@ -157,7 +157,7 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
             <p className="font-sans text-xs text-white/70 italic mt-0.5">{displaySpecies}</p>
           </div>
           <div className="absolute top-3 right-3 bg-forest/80 backdrop-blur-sm text-white font-serif text-lg font-bold px-3 py-1 rounded-full">
-            {tree.price}
+            ${tree.price}
           </div>
         </div>
 
