@@ -82,17 +82,18 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
     }}>
       <PunchHole />
 
-      {/* Left: brand logo panel — fills full height */}
+      {/* Left: brand logo panel — width controlled by logoSize slider */}
       <div style={{
-        flexShrink: 0, width: '42%',
+        flexShrink: 0, width: `${logoSize}%`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         borderRight: `0.75px solid ${G}18`,
-        padding: '24px 10px 12px',
+        padding: '12px 8px',
+        overflow: 'hidden',
       }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
-          style={{ height: `calc((2.625in - 36px) * ${logoSize / 100})`, width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
+          style={{ width: '100%', height: 'auto', maxHeight: 'calc(2.625in - 24px)', objectFit: 'contain', display: 'block' }} />
       </div>
 
       {/* Right: tree info */}
@@ -271,7 +272,7 @@ const PRINT_STYLES = `
 export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; logoUrl: string | null }) {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
-  const [logoSize, setLogoSize] = useState(80)
+  const [logoSize, setLogoSize] = useState(42)
   useEffect(() => { setOrigin(window.location.origin) }, [])
 
   function paginate(items: TagTree[]): (TagTree | null)[][] {
@@ -314,7 +315,7 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Logo</span>
             <input
-              type="range" min={30} max={100} value={logoSize}
+              type="range" min={20} max={65} value={logoSize}
               onChange={e => setLogoSize(Number(e.target.value))}
               style={{ width: '90px', accentColor: P, cursor: 'pointer' }}
             />
