@@ -52,7 +52,7 @@ export default function CareGuidePreview() {
               </div>
 
               <a
-                href="/trees"
+                href={`/care#${guide.slug}`}
                 className="btn-secondary w-full justify-center text-xs py-2.5 mt-auto"
               >
                 {t.viewGuide}
@@ -62,7 +62,7 @@ export default function CareGuidePreview() {
         </div>
 
         <div className="text-center mt-12">
-          <a href="/trees" className="btn-secondary inline-flex text-base px-10 py-4">
+          <a href="/care" className="btn-secondary inline-flex text-base px-10 py-4">
             {t.viewAll}
           </a>
         </div>

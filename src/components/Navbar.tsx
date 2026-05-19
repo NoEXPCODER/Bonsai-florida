@@ -6,45 +6,52 @@ import { CONTACT } from '@/config/contact'
 import { useAuth, useMessages } from '@/lib/i18n'
 import { PhoneIcon } from '@/components/Icons'
 
-export default function Navbar() {
+export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const { locale, toggleLocale } = useAuth()
   const m = useMessages()
+  const logoSrc = logoUrl ?? '/logo.png'
 
   const navLinks = [
     { href: '/#connect', label: m.nav.connect },
     { href: '/trees', label: m.nav.collection },
-    { href: '/#care', label: m.nav.care },
+    { href: '/care', label: m.nav.care },
     { href: '/#visit', label: m.nav.visit },
   ]
 
   return (
     <header className="sticky top-0 z-40 bg-cream/92 backdrop-blur-md border-b border-forest/12">
-      <div className="section-wrap">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <nav
-          className="flex items-center justify-between h-16 sm:h-20"
+          className="flex items-center justify-between h-16 sm:h-[72px]"
           aria-label="Main navigation"
         >
           {/* Brand mark */}
           <Link
             href="/"
-            className="flex items-center gap-3 group"
+            className="flex items-center gap-3.5 group"
             aria-label="Bonsai Florida — home"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" aria-hidden className="w-9 h-9 sm:w-10 sm:h-10" />
+            <img
+              src={logoSrc}
+              alt=""
+              aria-hidden
+              className="h-12 w-14 object-contain sm:h-14 sm:w-20"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png' }}
+            />
             <div>
-              <span className="block font-serif font-bold text-forest tracking-[0.15em] text-sm sm:text-base uppercase leading-tight">
+              <span className="block font-serif font-bold text-forest tracking-[0.1em] text-base sm:text-lg uppercase leading-tight">
                 Bonsai Florida
               </span>
-              <span className="block font-sans text-[10px] sm:text-xs text-ink-light tracking-[0.18em] uppercase">
+              <span className="block font-sans text-[10px] sm:text-[11px] text-ink-light tracking-[0.18em] uppercase">
                 Palm Beach
               </span>
             </div>
           </Link>
 
           {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-7 font-sans text-xs font-semibold tracking-[0.14em] text-forest uppercase">
+          <div className="hidden lg:flex items-center gap-7 font-sans text-xs font-semibold tracking-[0.14em] text-forest uppercase">
             {navLinks.map(({ href, label }) => (
               <a
                 key={href}
@@ -57,11 +64,18 @@ export default function Navbar() {
           </div>
 
           {/* Desktop right actions */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2.5">
+            <Link
+              href="/admin"
+              className="font-sans text-xs font-semibold tracking-wider uppercase px-3.5 py-2 rounded-full border border-forest/20 text-ink-light hover:border-forest hover:text-forest transition-colors"
+            >
+              {m.nav.adminLogin}
+            </Link>
+
             {/* EN / VI language toggle */}
             <button
               onClick={toggleLocale}
-              className="font-sans text-xs font-semibold tracking-wider uppercase px-4 py-2 rounded-full border border-forest/20 text-ink-light hover:border-forest hover:text-forest transition-colors"
+              className="font-sans text-[11px] font-bold tracking-wider uppercase px-3 py-2 rounded-full border border-forest/20 text-ink-light hover:border-forest hover:text-forest transition-colors"
               aria-label={locale === 'en' ? 'Switch to Vietnamese' : 'Switch to English'}
             >
               {locale === 'en' ? '🇻🇳 VI' : '🇺🇸 EN'}
@@ -70,7 +84,7 @@ export default function Navbar() {
             {/* Call CTA */}
             <a
               href={CONTACT.phone.tel}
-              className="btn-primary text-sm px-6 py-3"
+              className="btn-primary text-sm px-6 py-3 min-h-[48px]"
               aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
             >
               <PhoneIcon className="w-4 h-4" />
@@ -112,6 +126,13 @@ export default function Navbar() {
               </a>
             ))}
             <div className="pt-3 flex flex-col gap-3">
+              <Link
+                href="/admin"
+                className="btn-secondary justify-center text-sm"
+                onClick={() => setMenuOpen(false)}
+              >
+                {m.nav.adminLogin}
+              </Link>
               <a
                 href={CONTACT.phone.tel}
                 className="btn-primary justify-center text-sm"
