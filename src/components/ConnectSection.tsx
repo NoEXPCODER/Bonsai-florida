@@ -128,12 +128,16 @@ export default function ConnectSection() {
               key={card.id}
               className="card p-7 flex flex-col hover:shadow-card-lg transition-shadow duration-200"
             >
-              <div
-                className={`${card.iconBg} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-5 shadow-soft`}
-                aria-hidden="true"
+              <a
+                href={card.href}
+                target={card.external ? '_blank' : undefined}
+                rel={card.external ? 'noopener noreferrer' : undefined}
+                className={`${card.iconBg} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-5 shadow-soft hover:opacity-90 transition-opacity`}
+                aria-label={card.ariaLabel}
+                tabIndex={-1}
               >
                 {card.icon}
-              </div>
+              </a>
 
               <h3 className="font-serif text-2xl text-forest mb-1">{card.title}</h3>
               <p className="font-sans text-xs text-bonsai-pink font-semibold tracking-wider uppercase mb-3">
