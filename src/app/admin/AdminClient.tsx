@@ -624,6 +624,7 @@ function EditTreeModal({ tree, onClose, onSaved }: {
     species: tree.species ?? '',
     price: tree.price,
     level: tree.level,
+    status: tree.status ?? 'active',
     sun: tree.sun,
     water: tree.water,
     notes: tree.notes ?? '',
@@ -710,6 +711,7 @@ function EditTreeModal({ tree, onClose, onSaved }: {
         species: form.species || null,
         price: form.price,
         level: form.level,
+        status: form.status,
         sun: form.sun,
         water: form.water,
         notes: form.notes || null,
@@ -818,6 +820,16 @@ function EditTreeModal({ tree, onClose, onSaved }: {
             <select value={form.level} onChange={e => setF('level', e.target.value)} className={inputCls}>
               <option value="Beginner Friendly">Beginner Friendly</option>
               <option value="Intermediate">Intermediate</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-sans text-sm font-semibold text-forest mb-1">Status</label>
+            <select value={form.status} onChange={e => setF('status', e.target.value)} className={inputCls}>
+              <option value="active">Active — available for sale</option>
+              <option value="reserved">Reserved</option>
+              <option value="in_training">In Training</option>
+              <option value="in_work">In Work</option>
             </select>
           </div>
 

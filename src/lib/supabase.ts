@@ -59,5 +59,6 @@ export interface DbTree {
   species_id: string | null
   tree_species?: DbSpecies | null
   is_active: boolean
+  status: string
   created_at: string
 }

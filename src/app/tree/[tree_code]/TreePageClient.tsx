@@ -55,7 +55,44 @@ function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
   )
 }
 
-// ─── Species care guide ───────────────────────────────────────────────────────
+// ─── Species care guide (accordion) ─────────────────────────────────────────
+
+const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
+  reserved:    { label: 'Reserved',    bg: '#FEF3C7', color: '#92400E' },
+  in_training: { label: 'In Training', bg: '#EFF6FF', color: '#1D4ED8' },
+  in_work:     { label: 'In Work',     bg: '#F5F3FF', color: '#6D28D9' },
+}
+
+function firstSentence(text: string): string {
+  const m = text.match(/^[^.!?]+[.!?]/)
+  return m ? m[0] : text.slice(0, 90)
+}
+
+function AccordionSection({ icon, title, summary, highlighted, children }: {
+  icon: React.ReactNode; title: string; summary?: string | null; highlighted?: boolean; children: React.ReactNode
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  return (
+    <div className={`rounded-2xl border overflow-hidden ${highlighted ? 'border-forest/20 bg-sage-pale/30' : 'bg-white border-forest/10'}`}>
+      <button type="button" onClick={() => setIsOpen(p => !p)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left">
+        <span className="text-forest flex-shrink-0">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <p className="font-sans text-xs font-bold text-forest tracking-widest uppercase">{title}</p>
+          {summary && !isOpen && (
+            <p className="font-sans text-sm text-ink-light mt-0.5 truncate">{summary}</p>
+          )}
+        </div>
+        <span className={`text-ink-light flex-shrink-0 text-sm transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {isOpen && (
+        <div className="px-5 pb-5 border-t border-forest/5 pt-4">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function ScissorsIcon({ className }: { className?: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
@@ -83,27 +120,13 @@ function parseChecklist(text: string): string[] {
     .map(s => s.endsWith('.') ? s.slice(0, -1) : s)
 }
 
-function CareSectionCard({ icon, title, children, highlighted }: {
-  icon: React.ReactNode; title: string; children: React.ReactNode; highlighted?: boolean
-}) {
-  return (
-    <div className={`rounded-3xl border p-5 mb-3 ${highlighted ? 'border-forest/20 bg-sage-pale/50' : 'bg-white border-forest/10'}`}>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-forest flex-shrink-0">{icon}</span>
-        <p className="font-sans text-xs font-bold text-forest tracking-widest uppercase">{title}</p>
-      </div>
-      {children}
-    </div>
-  )
-}
-
 function SpeciesCareGuide({ species }: { species: DbSpecies }) {
   const hasDetail = !!(species.quick_facts_en || species.light_en || species.watering_en ||
     species.fertilizer_en || species.pruning_en || species.repotting_en ||
     species.watch_for_en || species.florida_tips_en || species.weekly_checklist_en)
 
   const header = (
-    <div className="card p-6 mb-3">
+    <div className="card p-5 mb-2">
       <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Care Guide</p>
       <h2 className="font-serif text-2xl text-forest">{species.name_en}</h2>
       {species.species_latin && <p className="font-sans text-sm italic text-ink-light mt-0.5">{species.species_latin}</p>}
@@ -121,7 +144,7 @@ function SpeciesCareGuide({ species }: { species: DbSpecies }) {
       <div className="mb-5">
         {header}
         {fallback.map(({ label, value }) => (
-          <div key={label} className="card p-5 mb-3">
+          <div key={label} className="bg-white rounded-2xl border border-forest/10 p-5 mb-2">
             <p className="font-sans text-xs font-bold text-forest tracking-widest uppercase mb-2">{label}</p>
             <p className="font-sans text-base text-ink leading-relaxed">{value}</p>
           </div>
@@ -131,65 +154,76 @@ function SpeciesCareGuide({ species }: { species: DbSpecies }) {
   }
 
   const checklistItems = species.weekly_checklist_en ? parseChecklist(species.weekly_checklist_en) : []
+  const wateringParas = species.watering_en ? species.watering_en.split('\n\n').map(p => p.trim()).filter(Boolean) : []
+  const wateringSummary = wateringParas[0] ?? null
 
   return (
-    <div className="mb-5">
+    <div className="mb-5 space-y-2">
       {header}
 
       {species.quick_facts_en && (
-        <CareSectionCard icon={<StarIcon className="w-4 h-4" />} title="Quick Facts">
+        <AccordionSection icon={<StarIcon className="w-4 h-4" />} title="Quick Facts"
+          summary={firstSentence(species.quick_facts_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.quick_facts_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {species.light_en && (
-        <CareSectionCard icon={<SunIcon className="w-4 h-4" />} title="Light">
+        <AccordionSection icon={<SunIcon className="w-4 h-4" />} title="Light"
+          summary={firstSentence(species.light_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.light_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
-      {species.watering_en && (
-        <CareSectionCard icon={<WaterIcon className="w-4 h-4" />} title="Detailed Watering Guide" highlighted>
+      {wateringParas.length > 0 && (
+        <AccordionSection icon={<WaterIcon className="w-4 h-4" />} title="Watering"
+          summary={wateringSummary} highlighted>
           <div className="space-y-3">
-            {species.watering_en.split('\n\n').map((para, i) => (
-              <p key={i} className="font-sans text-base text-ink leading-relaxed">{para.trim()}</p>
+            {wateringParas.map((para, i) => (
+              <p key={i} className="font-sans text-base text-ink leading-relaxed">{para}</p>
             ))}
           </div>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {species.fertilizer_en && (
-        <CareSectionCard icon={<LeafIcon className="w-4 h-4" />} title="Fertilizer">
+        <AccordionSection icon={<LeafIcon className="w-4 h-4" />} title="Fertilizer"
+          summary={firstSentence(species.fertilizer_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.fertilizer_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {species.pruning_en && (
-        <CareSectionCard icon={<ScissorsIcon className="w-4 h-4" />} title="Pruning">
+        <AccordionSection icon={<ScissorsIcon className="w-4 h-4" />} title="Pruning"
+          summary={firstSentence(species.pruning_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.pruning_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {species.repotting_en && (
-        <CareSectionCard icon={<PlantPotIcon className="w-4 h-4" />} title="Repotting">
+        <AccordionSection icon={<PlantPotIcon className="w-4 h-4" />} title="Repotting"
+          summary={firstSentence(species.repotting_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.repotting_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {species.watch_for_en && (
-        <CareSectionCard icon={<AlertIcon className="w-4 h-4" />} title="Watch For">
+        <AccordionSection icon={<AlertIcon className="w-4 h-4" />} title="Watch For"
+          summary={firstSentence(species.watch_for_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.watch_for_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {species.florida_tips_en && (
-        <CareSectionCard icon={<PalmIcon className="w-4 h-4" />} title="Florida Tips">
+        <AccordionSection icon={<PalmIcon className="w-4 h-4" />} title="Florida Tips"
+          summary={firstSentence(species.florida_tips_en)}>
           <p className="font-sans text-base text-ink leading-relaxed">{species.florida_tips_en}</p>
-        </CareSectionCard>
+        </AccordionSection>
       )}
 
       {checklistItems.length > 0 && (
-        <CareSectionCard icon={<CheckboxIcon className="w-4 h-4" />} title="Weekly Checklist">
+        <AccordionSection icon={<CheckboxIcon className="w-4 h-4" />} title="Weekly Checklist"
+          summary={checklistItems[0] ?? null}>
           <ul className="space-y-3">
             {checklistItems.map((item, i) => (
               <li key={i} className="flex items-start gap-3">
@@ -198,7 +232,7 @@ function SpeciesCareGuide({ species }: { species: DbSpecies }) {
               </li>
             ))}
           </ul>
-        </CareSectionCard>
+        </AccordionSection>
       )}
     </div>
   )
@@ -215,6 +249,7 @@ function EditModal({ tree, onClose, onSaved }: {
     name: tree.name,
     price: tree.price,
     level: tree.level,
+    status: (tree as DbTree).status ?? 'active',
     sun: tree.sun,
     water: tree.water,
     notes: tree.notes ?? '',
@@ -446,6 +481,16 @@ function EditModal({ tree, onClose, onSaved }: {
           </div>
 
           <div>
+            <label className="block font-sans text-sm font-semibold text-forest mb-1">Status</label>
+            <select value={form.status} onChange={e => setF('status', e.target.value)} className={inputCls}>
+              <option value="active">Active — available for sale</option>
+              <option value="reserved">Reserved</option>
+              <option value="in_training">In Training</option>
+              <option value="in_work">In Work</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block font-sans text-sm font-semibold text-forest mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={2} className={inputCls + ' resize-none'} />
           </div>
@@ -508,38 +553,45 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
           </div>
         )}
 
-        <div className="max-w-lg mx-auto px-4 py-8">
-          {/* Tree photo */}
-          <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden mb-6 shadow-card-lg bg-forest">
-            <PhotoCarousel urls={photos} name={tree.name} />
-            {/* Corner marks */}
-            <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/40 pointer-events-none" />
-            <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/40 pointer-events-none" />
-            <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-white/40 pointer-events-none" />
-            <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-white/40 pointer-events-none" />
-            {/* Price badge */}
-            <div className="absolute top-4 right-4 bg-forest/80 backdrop-blur text-white font-serif text-xl font-bold px-4 py-1.5 rounded-full pointer-events-none">
-              {tree.price}
+        {/* Hero photo — full width, taller */}
+        <div className="relative w-full h-[300px] overflow-hidden bg-forest">
+          <PhotoCarousel urls={photos} name={tree.name} />
+          <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/40 pointer-events-none" />
+          <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/40 pointer-events-none" />
+          <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-white/40 pointer-events-none" />
+          <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-white/40 pointer-events-none" />
+          {/* Status badge */}
+          {tree.status && STATUS_CONFIG[tree.status] && (
+            <div className="absolute top-4 left-4 font-sans text-xs font-bold px-3 py-1.5 rounded-full pointer-events-none"
+              style={{ backgroundColor: STATUS_CONFIG[tree.status].bg, color: STATUS_CONFIG[tree.status].color }}>
+              {STATUS_CONFIG[tree.status].label}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Tree info card */}
-          <div className="card p-6 mb-5">
-            <div className="mb-4">
-              <h1 className="font-serif text-3xl text-forest">{tree.name}</h1>
-              {tree.species && <p className="font-sans text-sm italic text-ink-light">{tree.species}</p>}
-              <span className={`inline-block mt-2 font-sans text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full ${
-                tree.level === 'Beginner Friendly'
-                  ? 'bg-bonsai-pink-pale text-bonsai-pink'
-                  : 'bg-sage-pale text-forest'
-              }`}>
-                {tree.level}
-              </span>
-            </div>
+        <div className="max-w-lg mx-auto px-4">
+          {/* Main info card — overlaps photo slightly */}
+          <div className="card p-6 -mt-4 relative z-10 mb-4 shadow-card-lg">
+            {/* Price */}
+            <p className="font-serif text-3xl font-bold text-forest mb-1">${tree.price}</p>
 
-            <div className="w-full h-px bg-bonsai-pink-lt/50 my-4" />
+            {/* Name */}
+            <h1 className="font-serif text-4xl text-forest leading-tight">{tree.name}</h1>
+            {tree.species && <p className="font-sans text-sm italic text-ink-light mt-1">{tree.species}</p>}
 
-            <ul className="space-y-3">
+            {/* Level badge */}
+            <span className={`inline-block mt-3 font-sans text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full ${
+              tree.level === 'Beginner Friendly'
+                ? 'bg-bonsai-pink-pale text-bonsai-pink'
+                : 'bg-sage-pale text-forest'
+            }`}>
+              {tree.level}
+            </span>
+
+            <div className="w-full h-px bg-forest/8 my-4" />
+
+            {/* Quick care summary */}
+            <ul className="space-y-2">
               <li className="flex items-start gap-3">
                 <SunIcon className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
                 <span className="font-sans text-sm text-ink-light"><strong className="text-forest-dark">Sun:</strong> {tree.sun}</span>
@@ -548,49 +600,56 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
                 <WaterIcon className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
                 <span className="font-sans text-sm text-ink-light"><strong className="text-forest-dark">Water:</strong> {tree.water}</span>
               </li>
-              <li className="flex items-start gap-3">
-                <LeafIcon className="w-4 h-4 text-sage mt-0.5 flex-shrink-0" />
-                <span className="font-sans text-sm text-ink-light"><strong className="text-forest-dark">Level:</strong> {tree.level}</span>
-              </li>
             </ul>
 
-            {/* Staff notes — only visible to authenticated staff */}
-            {isStaff && tree.notes && (
-              <>
-                <div className="w-full h-px bg-bonsai-pink-lt/50 my-4" />
-                <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Staff Notes</p>
-                <p className="font-sans text-sm italic text-ink-light leading-relaxed">{tree.notes}</p>
-              </>
-            )}
+            {/* CTA buttons — near top */}
+            <div className="flex gap-3 mt-5">
+              <a href={CONTACT.phone.tel}
+                className="btn-primary flex-1 justify-center text-base py-3.5" aria-label="Call Bonsai Florida">
+                <PhoneIcon className="w-5 h-5" /> Call Now
+              </a>
+              <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code ?? ''})`}
+                className="btn-secondary flex-1 justify-center text-base py-3.5" aria-label="Text Bonsai Florida">
+                <MessageIcon className="w-5 h-5" /> Text Us
+              </a>
+            </div>
           </div>
+
+          {/* Staff notes — only visible to authenticated staff */}
+          {isStaff && tree.notes && (
+            <div className="card p-5 mb-4">
+              <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Staff Notes</p>
+              <p className="font-sans text-sm italic text-ink-light leading-relaxed">{tree.notes}</p>
+            </div>
+          )}
 
           {/* Species care guide */}
           {species
             ? <SpeciesCareGuide species={species} />
             : (
-              <div className="card p-6 mb-5">
+              <div className="card p-6 mb-4">
                 <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Care Guide</p>
                 <p className="font-sans text-base text-ink-light leading-relaxed">Care guide not linked yet. Please ask Bonsai Florida for care instructions specific to this tree.</p>
               </div>
             )
           }
 
-          {/* Contact CTA */}
-          <div className="card p-6 text-center">
+          {/* Bottom CTA */}
+          <div className="card p-6 text-center mb-8">
             <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Interested in this tree?</p>
             <h2 className="font-serif text-xl text-forest mb-5">Contact Bonsai Florida</h2>
             <div className="flex flex-col gap-3">
               <a href={CONTACT.phone.tel} className="btn-primary w-full justify-center" aria-label="Call Bonsai Florida">
                 <PhoneIcon className="w-5 h-5" /> Call {CONTACT.phone.display}
               </a>
-              <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code})`}
+              <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code ?? ''})`}
                 className="btn-secondary w-full justify-center" aria-label="Text Bonsai Florida">
                 <MessageIcon className="w-5 h-5" /> Text Us
               </a>
             </div>
           </div>
 
-          <p className="text-center font-sans text-xs text-ink-light mt-6 tracking-widest uppercase">
+          <p className="text-center font-sans text-xs text-ink-light mb-6 tracking-widest uppercase">
             Bonsai Florida · Palm Beach, Florida
           </p>
         </div>
