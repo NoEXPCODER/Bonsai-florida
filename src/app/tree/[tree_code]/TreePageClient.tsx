@@ -88,9 +88,14 @@ function PhotoCarousel({ urls, name, onTap }: { urls: string[]; name: string; on
 
   return (
     <div className="relative w-full h-full" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* Blurred background fill — same image, blurred + scaled to fill gaps */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={urls[idx]} alt="" aria-hidden
+        className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-60 pointer-events-none" />
+      {/* Main image — object-contain so full tree is always visible */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={urls[idx]} alt={`${name} ${idx + 1}`}
-        className={`w-full h-full object-contain ${onTap ? 'cursor-zoom-in' : ''}`}
+        className={`relative w-full h-full object-contain ${onTap ? 'cursor-zoom-in' : ''}`}
         onClick={() => onTap?.(idx)} />
       {urls.length > 1 && idx > 0 && (
         <button onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}
@@ -621,7 +626,7 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
 
         <div className="max-w-lg mx-auto px-4 pt-4">
           {/* Hero photo — portrait, taller, with rounded corners */}
-          <div className="relative rounded-3xl overflow-hidden bg-forest h-[440px]">
+          <div className="relative rounded-3xl overflow-hidden bg-black h-[440px]">
             <PhotoCarousel urls={photos} name={tree.name} onTap={photos.length > 0 ? (i) => setLightboxIdx(i) : undefined} />
             {/* Status badge */}
             {tree.status && STATUS_CONFIG[tree.status] && (
