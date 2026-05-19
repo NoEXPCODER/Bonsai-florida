@@ -17,60 +17,6 @@ interface TagTree {
 const G = '#2A4538'
 const P = '#C0426A'
 
-// ─── Bonsai SVG illustration ──────────────────────────────────────────────────
-function BonsaiSVG({ size = 80 }: { size?: number }) {
-  const h = Math.round(size * 124 / 140)
-  return (
-    <svg viewBox="0 0 140 124" width={size} height={h} aria-hidden="true">
-      <defs>
-        <radialGradient id="b1" cx="38%" cy="30%" r="62%">
-          <stop offset="0%" stopColor="#E05080" />
-          <stop offset="100%" stopColor="#A02050" />
-        </radialGradient>
-        <radialGradient id="b2" cx="45%" cy="35%" r="58%">
-          <stop offset="0%" stopColor="#D84070" />
-          <stop offset="100%" stopColor="#901840" />
-        </radialGradient>
-      </defs>
-      <path d="M55 106 L58 116 Q70 122 82 116 L85 106 Z" fill="#7A5220" />
-      <rect x="52" y="99" width="36" height="9" rx="3" fill="#9A6828" />
-      <rect x="55" y="101" width="30" height="2.5" rx="1" fill="#C8902A" opacity="0.35" />
-      <ellipse cx="70" cy="99" rx="18" ry="3.5" fill="#7A5220" />
-      <ellipse cx="70" cy="98" rx="14" ry="2.5" fill="#3A2008" />
-      <path d="M65 98 Q59 95 54 97" stroke="#6A4018" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <path d="M74 98 Q80 95 86 97" stroke="#6A4018" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <path d="M67 98 Q64 84 66 70 Q69 55 68 42 Q68 30 71 18" stroke="#5A3810" strokeWidth="9" fill="none" strokeLinecap="round" />
-      <path d="M68 98 Q66 84 68 70 Q71 55 70 42 Q70 30 73 18" stroke="#8A5A20" strokeWidth="4" fill="none" strokeLinecap="round" opacity="0.38" />
-      <path d="M67 74 Q54 68 42 58" stroke="#5A3810" strokeWidth="4.5" fill="none" strokeLinecap="round"/>
-      <path d="M68 58 Q56 50 46 40" stroke="#5A3810" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <path d="M69 68 Q84 62 96 52" stroke="#5A3810" strokeWidth="4.5" fill="none" strokeLinecap="round"/>
-      <path d="M70 54 Q84 46 94 36" stroke="#5A3810" strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <circle cx="40" cy="54" r="13" fill="#8A1840" opacity="0.60"/>
-      <circle cx="98" cy="48" r="13" fill="#8A1840" opacity="0.60"/>
-      <circle cx="70" cy="20" r="14" fill="#8A1840" opacity="0.65"/>
-      <circle cx="54" cy="30" r="11" fill="#8A1840" opacity="0.55"/>
-      <circle cx="86" cy="28" r="11" fill="#8A1840" opacity="0.55"/>
-      <circle cx="44" cy="46" r="13" fill="url(#b1)" opacity="0.85"/>
-      <circle cx="92" cy="42" r="13" fill="url(#b1)" opacity="0.85"/>
-      <circle cx="68" cy="26" r="14" fill="url(#b1)" opacity="0.88"/>
-      <circle cx="56" cy="38" r="12" fill="url(#b2)" opacity="0.82"/>
-      <circle cx="84" cy="34" r="12" fill="url(#b2)" opacity="0.82"/>
-      <circle cx="36" cy="42" r="10" fill="url(#b2)" opacity="0.75"/>
-      <circle cx="100" cy="36" r="10" fill="url(#b2)" opacity="0.75"/>
-      <circle cx="60" cy="30" r="12" fill="#C83468" opacity="0.92"/>
-      <circle cx="80" cy="26" r="11" fill="#D03C72" opacity="0.92"/>
-      <circle cx="70" cy="40" r="11" fill="#C83468" opacity="0.88"/>
-      <circle cx="50" cy="42" r="10" fill="#D03C72" opacity="0.86"/>
-      <circle cx="90" cy="36" r="10" fill="#C83468" opacity="0.86"/>
-      <circle cx="68" cy="26" r="5" fill="white" opacity="0.22"/>
-      <circle cx="58" cy="34" r="3.5" fill="white" opacity="0.18"/>
-      <circle cx="88" cy="30" r="3.5" fill="white" opacity="0.18"/>
-      <circle cx="42" cy="42" r="3" fill="white" opacity="0.15"/>
-      <circle cx="96" cy="40" r="3" fill="white" opacity="0.15"/>
-    </svg>
-  )
-}
-
 // ─── Feature icons ────────────────────────────────────────────────────────────
 function PriceTagIcon() {
   return (
@@ -131,36 +77,27 @@ function TagFront({ tree }: { tree: TagTree | null }) {
       border: '1px dashed #999',
       boxSizing: 'border-box', padding: '22px 18px 12px',
       display: 'flex', flexDirection: 'row', alignItems: 'center',
-      gap: '16px', overflow: 'hidden', width: '100%', height: '100%',
+      gap: '14px', overflow: 'hidden', width: '100%', height: '100%',
     }}>
       <PunchHole />
 
-      {/* Left: bonsai illustration */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <BonsaiSVG size={74} />
+      {/* Left: brand logo */}
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '110px' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Bonsai Florida" style={{ width: '110px', height: 'auto', objectFit: 'contain' }} />
       </div>
 
       {/* Vertical divider */}
-      <div style={{ width: '0.75px', alignSelf: 'stretch', backgroundColor: `${G}18`, margin: '8px 0' }} />
+      <div style={{ width: '0.75px', alignSelf: 'stretch', backgroundColor: `${G}20`, margin: '8px 0' }} />
 
-      {/* Right: branding + tree info */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '3px' }}>
-        {/* BONSAI FLORIDA */}
-        <div style={{ textAlign: 'center', lineHeight: 1 }}>
-          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '20px', fontWeight: 'bold', color: G, letterSpacing: '0.16em', margin: 0, lineHeight: 1 }}>BONSAI</p>
-          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '8.5px', color: G, letterSpacing: '0.5em', margin: '1px 0 0', lineHeight: 1 }}>FLORIDA</p>
-        </div>
-
+      {/* Right: tree info */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '4px' }}>
         {/* Pink ornament */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '85%', margin: '3px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '90%' }}>
           <div style={{ flex: 1, height: '0.75px', backgroundColor: P }} />
           <span style={{ color: P, fontSize: '9px', lineHeight: 1 }}>✿</span>
           <div style={{ flex: 1, height: '0.75px', backgroundColor: P }} />
         </div>
-
-        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '5.5px', color: G, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
-
-        <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '3px 0' }} />
 
         {/* Tree name */}
         <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: nameFontSize, fontWeight: 'bold', color: G, letterSpacing: '0.06em', margin: 0, textAlign: 'center', textTransform: 'uppercase', lineHeight: 1.25 }}>
@@ -169,13 +106,17 @@ function TagFront({ tree }: { tree: TagTree | null }) {
 
         {/* Latin name */}
         {tree.species && (
-          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '6px', fontStyle: 'italic', color: `${G}80`, margin: 0, textAlign: 'center' }}>
-            ({tree.species})
+          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '6.5px', fontStyle: 'italic', color: `${G}80`, margin: 0, textAlign: 'center' }}>
+            {tree.species}
           </p>
         )}
 
+        <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '2px 0' }} />
+
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '5.5px', color: `${G}60`, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
+
         {/* ✦ divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', margin: '3px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
           <span style={{ fontSize: '8px', color: G, lineHeight: 1 }}>✦</span>
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
@@ -280,23 +221,23 @@ const PRINT_STYLES = `
     @page { size: letter portrait; margin: 0.25in; }
     body, body * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .no-print { display: none !important; }
-    .preview-bg { background: white !important; padding: 0 !important; min-height: 0 !important; }
+    .preview-bg { background: white !important; padding: 0 !important; margin: 0 !important; }
     .tag-page {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      grid-template-rows: repeat(4, 2.625in) !important;
+      gap: 0 !important;
       width: 100% !important;
-      height: 10.5in !important;
       margin: 0 !important;
       padding: 0 !important;
       box-shadow: none !important;
       background: white !important;
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
-      grid-template-rows: repeat(4, 1fr) !important;
-      gap: 0 !important;
+      overflow: hidden !important;
       page-break-after: always !important;
       break-after: page !important;
     }
     .tag-page:last-child { page-break-after: auto !important; break-after: auto !important; }
-    .tag-page > * { width: 100% !important; height: 100% !important; }
+    .tag-page > * { overflow: hidden !important; box-sizing: border-box !important; }
   }
   @media screen {
     .tag-page {
@@ -329,8 +270,17 @@ export default function QrTagsClient({ trees }: { trees: TagTree[] }) {
     return pages
   }
 
+  // Mirror left↔right columns so backs align with fronts after long-edge duplex flip
+  function mirrorColumns(page: (TagTree | null)[]): (TagTree | null)[] {
+    const out: (TagTree | null)[] = []
+    for (let i = 0; i < page.length; i += 2) {
+      out.push(page[i + 1] ?? null, page[i] ?? null)
+    }
+    return out
+  }
+
   const frontPages = paginate(trees)
-  const backPages  = paginate(trees)
+  const backPages  = paginate(trees).map(mirrorColumns)
   const totalSheets = frontPages.length
 
   return (
