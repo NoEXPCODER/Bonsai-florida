@@ -22,16 +22,17 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
   const startX = useRef<number | null>(null)
 
   const current = trees[idx]
-  const next = trees[(idx + 1) % trees.length]
   const total = trees.length
 
-  function advance(dir: 'left' | 'right') {
-    setLeaving(dir)
+  function navigate(dir: 'next' | 'prev') {
+    if (leaving) return
+    const visualDir = dir === 'next' ? 'left' : 'right'
+    setLeaving(visualDir)
     setTimeout(() => {
-      setIdx(i => (i + 1) % total)
+      setIdx(i => dir === 'next' ? (i + 1) % total : (i - 1 + total) % total)
       setLeaving(null)
       setDrag(0)
-    }, 300)
+    }, 280)
   }
 
   function onTouchStart(e: React.TouchEvent) { startX.current = e.touches[0].clientX }
@@ -40,7 +41,7 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
     setDrag(e.touches[0].clientX - startX.current)
   }
   function onTouchEnd() {
-    if (Math.abs(drag) > 60) advance(drag < 0 ? 'left' : 'right')
+    if (Math.abs(drag) > 60) navigate(drag < 0 ? 'next' : 'prev')
     else setDrag(0)
     startX.current = null
   }
@@ -51,7 +52,7 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
     setDrag(e.clientX - startX.current)
   }
   function onMouseUp() {
-    if (Math.abs(drag) > 60) advance(drag < 0 ? 'left' : 'right')
+    if (Math.abs(drag) > 60) navigate(drag < 0 ? 'next' : 'prev')
     else setDrag(0)
     startX.current = null
   }
@@ -61,41 +62,19 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
   const rotation = drag * 0.06
   const leaveX = leaving === 'left' ? -120 : leaving === 'right' ? 120 : drag
   const leaveRot = leaving ? (leaving === 'left' ? -15 : 15) : rotation
-  const opacity = leaving ? 0 : 1
+  const cardOpacity = leaving ? 0 : 1
 
   const photo = getPrimaryTreeImageUrl(current)
-  const nextPhoto = next ? getPrimaryTreeImageUrl(next) : null
 
   return (
     <div className="relative w-full max-w-sm mx-auto select-none" style={{ height: '480px' }}>
-      {/* Back card — hidden at rest, fades in as user drags, fully visible when leaving */}
-      {next && (
-        <div className="absolute inset-0 rounded-3xl overflow-hidden bg-forest shadow-card"
-          style={{
-            opacity: leaving ? 1 : Math.min(Math.abs(drag) / 50, 1),
-            transform: leaving
-              ? 'scale(1) translateY(0)'
-              : `scale(${0.93 + Math.min(Math.abs(drag) / 1800, 0.07)}) translateY(${Math.max(0, 16 - Math.abs(drag) * 0.27)}px)`,
-            zIndex: 1,
-            transition: leaving ? 'transform 0.3s ease-out, opacity 0.3s' : drag ? 'none' : 'transform 0.3s, opacity 0.3s',
-          }}>
-          {nextPhoto
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={nextPhoto} alt={next.name} className="w-full h-full object-cover" />
-            : <div className="w-full h-full bg-gradient-to-b from-forest to-forest-light" />}
-          <div className="absolute inset-0 bg-black/20 transition-opacity duration-300"
-            style={{ opacity: leaving ? 0 : 1 }} />
-        </div>
-      )}
-
-      {/* Front card (current tree) */}
+      {/* Single card — no back card, eliminates background image flash */}
       <div
         className="absolute inset-0 rounded-3xl overflow-hidden shadow-card-lg cursor-grab active:cursor-grabbing"
         style={{
-          zIndex: 2,
           transform: `translateX(${leaveX}px) rotate(${leaveRot}deg)`,
-          opacity,
-          transition: leaving ? 'transform 0.3s ease-out, opacity 0.3s' : drag ? 'none' : 'transform 0.3s ease-out',
+          opacity: cardOpacity,
+          transition: leaving ? 'transform 0.28s ease-out, opacity 0.28s' : drag ? 'none' : 'transform 0.28s ease-out',
         }}
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
         onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
@@ -105,35 +84,27 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
           ? <img src={photo} alt={current.name} className="w-full h-full object-cover pointer-events-none" draggable={false} />
           : <div className="w-full h-full bg-gradient-to-b from-forest to-forest-light flex items-center justify-center text-8xl opacity-30">🌿</div>}
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
 
-        {/* Corner marks */}
         <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-white/40 pointer-events-none" />
         <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-white/40 pointer-events-none" />
 
-        {/* Level badge */}
         <div className="absolute top-4 left-4 pt-6">
           <span className={`font-sans text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${
             current.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage-pale text-forest'
           }`}>{current.level}</span>
         </div>
 
-        {/* Swipe hint overlays */}
-        {drag > 30 && <div className="absolute inset-0 bg-green-500/15 flex items-center justify-center pointer-events-none"><span className="text-5xl">👍</span></div>}
-        {drag < -30 && <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center pointer-events-none"><span className="text-5xl">👋</span></div>}
-
-        {/* Tree info at bottom */}
         <div className="absolute bottom-0 inset-x-0 px-5 pb-5 pointer-events-none">
           <h3 className="font-serif text-2xl text-white leading-tight">{current.name}</h3>
           {current.species && <p className="font-sans text-sm text-white/60 italic">{current.species}</p>}
-          <p className="font-serif text-xl font-bold text-bonsai-pink mt-1">{current.price}</p>
+          <p className="font-serif text-xl font-bold text-bonsai-pink mt-1">${current.price}</p>
         </div>
       </div>
 
-      {/* Counter + arrows */}
+      {/* Arrows + dots */}
       <div className="absolute -bottom-12 inset-x-0 flex items-center justify-between px-2">
-        <button onClick={() => advance('right')}
+        <button onClick={() => navigate('prev')}
           className="w-10 h-10 rounded-full border border-forest/20 bg-white text-forest hover:bg-forest hover:text-white transition-colors flex items-center justify-center text-lg shadow-soft">
           ‹
         </button>
@@ -142,7 +113,7 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
             <div key={i} className={`rounded-full transition-all ${i === idx ? 'w-4 h-1.5 bg-forest' : 'w-1.5 h-1.5 bg-forest/20'}`} />
           ))}
         </div>
-        <button onClick={() => advance('left')}
+        <button onClick={() => navigate('next')}
           className="w-10 h-10 rounded-full border border-forest/20 bg-white text-forest hover:bg-forest hover:text-white transition-colors flex items-center justify-center text-lg shadow-soft">
           ›
         </button>
