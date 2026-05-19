@@ -279,6 +279,7 @@ export const vi: Messages = {
     waterLabel: 'Tưới nước',
     comingSoon: 'Sẽ bổ sung thêm chi tiết chăm sóc cho loài này.',
     noResults: 'Không tìm thấy hướng dẫn loài phù hợp.',
+    openFullGuide: 'Mở Hướng Dẫn Đầy Đủ',
     sections: {
       quickFacts: 'Thông tin nhanh',
       light: 'Ánh sáng',

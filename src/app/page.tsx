@@ -21,6 +21,12 @@ export default async function HomePage() {
     .order('created_at', { ascending: false })
     .limit(4)
 
+  const { data: featuredSpecies } = await supabase
+    .from('tree_species')
+    .select('*')
+    .order('name_en', { ascending: true })
+    .limit(4)
+
   try {
     const db = createServerClient()
     const { data } = await db
@@ -40,7 +46,7 @@ export default async function HomePage() {
         <Hero trees={trees ?? []} logoUrl={logoUrl} />
         <FeaturedTrees trees={trees ?? []} />
         <HowItWorks />
-        <CareGuidePreview />
+        <CareGuidePreview species={featuredSpecies ?? []} />
         <VisitSection />
         <ConnectSimple />
       </main>

@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { DbSpecies } from '@/lib/supabase'
+import Link from 'next/link'
 import { useAuth, useMessages } from '@/lib/i18n'
+import { getSpeciesDifficulty, getSpeciesLatin, makeSpeciesSlug, type SpeciesWithSlug } from '@/lib/species'
 import { LeafIcon, QuestionIcon, SunIcon, WaterIcon } from '@/components/Icons'
 
 const sectionFields = [
@@ -21,21 +22,16 @@ function text(value: string | null | undefined) {
   return value?.trim() || ''
 }
 
-function speciesSlug(species: DbSpecies) {
-  return species.name_en
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-}
-
-function SpeciesCard({ species }: { species: DbSpecies }) {
+export function SpeciesGuideArticle({ species, compact = false }: { species: SpeciesWithSlug; compact?: boolean }) {
   const { locale } = useAuth()
   const t = useMessages().carePage
   const name = locale === 'vi' ? text(species.name_vi) || species.name_en : species.name_en
   const sun = locale === 'vi' ? text(species.sun_vi) || species.sun_en : species.sun_en
   const water = locale === 'vi' ? text(species.water_vi) || species.water_en : species.water_en
   const care = locale === 'vi' ? text(species.care_vi) || species.care_en : species.care_en
-  const slug = speciesSlug(species)
+  const slug = makeSpeciesSlug(species)
+  const latin = getSpeciesLatin(species)
+  const difficulty = getSpeciesDifficulty(species)
 
   const sections = sectionFields
     .map(([labelKey, enKey, viKey]) => {
@@ -48,17 +44,25 @@ function SpeciesCard({ species }: { species: DbSpecies }) {
 
   return (
     <article id={slug} className="scroll-mt-28 rounded-[1.75rem] border border-forest/12 bg-cream-light p-5 shadow-soft sm:p-7">
+      {species.care_image_url && (
+        <div className="mb-6 overflow-hidden rounded-2xl bg-sage-pale">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={species.care_image_url} alt={name} className="h-64 w-full object-cover" />
+        </div>
+      )}
+
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <div className="flex-1">
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-sage-pale px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-[0.16em] text-forest">
-              {species.level}
+              {difficulty}
             </span>
-            {species.species_latin && (
-              <span className="font-sans text-xs italic text-ink-light">
-                {species.species_latin}
+            {species.indoor_outdoor && (
+              <span className="rounded-full bg-bonsai-pink-pale px-3 py-1 font-sans text-[10px] font-bold uppercase tracking-[0.16em] text-bonsai-pink">
+                {species.indoor_outdoor}
               </span>
             )}
+            {latin && <span className="font-sans text-xs italic text-ink-light">{latin}</span>}
           </div>
           <h2 className="font-serif text-3xl leading-tight text-forest sm:text-4xl">{name}</h2>
           {care && (
@@ -87,7 +91,7 @@ function SpeciesCard({ species }: { species: DbSpecies }) {
       </div>
 
       {sections.length > 0 ? (
-        <div className="mt-7 grid gap-4 md:grid-cols-2">
+        <div className={`mt-7 grid gap-4 ${compact ? 'md:grid-cols-2' : 'md:grid-cols-2'}`}>
           {sections.map(section => (
             <section key={section.label} className="rounded-2xl border border-forest/10 bg-white/70 p-4">
               <h3 className="mb-2 font-serif text-xl leading-tight text-forest">{section.label}</h3>
@@ -101,11 +105,17 @@ function SpeciesCard({ species }: { species: DbSpecies }) {
           <p className="font-sans text-sm text-ink-light">{t.comingSoon}</p>
         </div>
       )}
+
+      {compact && (
+        <Link href={`/care-guides/${slug}`} className="btn-secondary mt-6 w-full justify-center text-sm py-3 sm:w-auto">
+          {t.openFullGuide}
+        </Link>
+      )}
     </article>
   )
 }
 
-export default function CarePageClient({ species }: { species: DbSpecies[] }) {
+export default function CareGuidesClient({ species }: { species: SpeciesWithSlug[] }) {
   const t = useMessages().carePage
   const [search, setSearch] = useState('')
 
@@ -115,7 +125,7 @@ export default function CarePageClient({ species }: { species: DbSpecies[] }) {
     return species.filter(item =>
       item.name_en.toLowerCase().includes(q) ||
       item.name_vi.toLowerCase().includes(q) ||
-      item.species_latin.toLowerCase().includes(q) ||
+      getSpeciesLatin(item).toLowerCase().includes(q) ||
       item.care_en.toLowerCase().includes(q) ||
       item.care_vi.toLowerCase().includes(q)
     )
@@ -154,7 +164,7 @@ export default function CarePageClient({ species }: { species: DbSpecies[] }) {
               {filtered.map(item => (
                 <a
                   key={item.id}
-                  href={`#${speciesSlug(item)}`}
+                  href={`#${makeSpeciesSlug(item)}`}
                   className="block rounded-xl px-3 py-2 font-sans text-sm text-ink-light transition-colors hover:bg-sage-pale hover:text-forest"
                 >
                   {item.name_en}
@@ -171,7 +181,7 @@ export default function CarePageClient({ species }: { species: DbSpecies[] }) {
           </div>
 
           {filtered.map(item => (
-            <SpeciesCard key={item.id} species={item} />
+            <SpeciesGuideArticle key={item.id} species={item} compact />
           ))}
 
           {filtered.length === 0 && (

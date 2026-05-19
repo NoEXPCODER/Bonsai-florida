@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getTreeImageUrls } from '@/lib/tree-images'
+import { makeSpeciesSlug } from '@/lib/species'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
@@ -201,6 +202,9 @@ function SpeciesCareGuide({ species }: { species: DbSpecies }) {
       <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Care Guide</p>
       <h2 className="font-serif text-2xl text-forest">{species.name_en}</h2>
       {species.species_latin && <p className="font-sans text-sm italic text-ink-light mt-0.5">{species.species_latin}</p>}
+      <a href={`/care-guides/${makeSpeciesSlug(species)}`} className="mt-3 inline-flex font-sans text-sm font-semibold text-bonsai-pink hover:text-forest">
+        Open full species guide
+      </a>
       <div className="w-8 h-0.5 bg-bonsai-pink-lt mt-3" />
     </div>
   )
@@ -706,7 +710,7 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
             : (
               <div className="card p-6 mb-4">
                 <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Care Guide</p>
-                <p className="font-sans text-base text-ink-light leading-relaxed">Care guide not linked yet. Please ask Bonsai Florida for care instructions specific to this tree.</p>
+                <p className="font-sans text-base text-ink-light leading-relaxed">Care guide not linked yet. Please ask Bonsai Florida.</p>
               </div>
             )
           }

@@ -26,7 +26,11 @@ export async function POST(req: NextRequest) {
     .insert({
       name_en: body.name_en,
       name_vi: body.name_vi || '',
+      slug: body.slug || null,
       species_latin: body.species_latin || '',
+      difficulty: body.difficulty || body.level || 'Beginner Friendly',
+      indoor_outdoor: body.indoor_outdoor || null,
+      care_image_url: body.care_image_url || null,
       level: body.level || 'Beginner Friendly',
       sun_en: body.sun_en || '',
       sun_vi: body.sun_vi || '',

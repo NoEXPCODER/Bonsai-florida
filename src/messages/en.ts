@@ -276,6 +276,7 @@ export const en = {
     waterLabel: 'Water',
     comingSoon: 'More care details coming soon for this species.',
     noResults: 'No species guides found.',
+    openFullGuide: 'Open Full Guide',
     sections: {
       quickFacts: 'Quick facts',
       light: 'Light',

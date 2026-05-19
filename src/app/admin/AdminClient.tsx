@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
+import { getSpeciesLatin } from '@/lib/species'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { useMessages, useAuth } from '@/lib/i18n'
 
@@ -138,7 +139,7 @@ function SpeciesCombobox({ allSpecies, locale, onSelect }: {
     ? allSpecies.filter(s =>
         s.name_en.toLowerCase().includes(query.toLowerCase()) ||
         s.name_vi.toLowerCase().includes(query.toLowerCase()) ||
-        s.species_latin.toLowerCase().includes(query.toLowerCase())
+        getSpeciesLatin(s).toLowerCase().includes(query.toLowerCase())
       )
     : allSpecies
 
@@ -186,13 +187,21 @@ function SpeciesCombobox({ allSpecies, locale, onSelect }: {
             <div>
               <p className="font-sans text-sm font-bold text-forest">{selected.name_en}</p>
               <p className="font-sans text-sm text-ink-light">{selected.name_vi}</p>
-              <p className="font-sans text-xs italic text-ink-light/60">{selected.species_latin}</p>
+              <p className="font-sans text-xs italic text-ink-light/60">{getSpeciesLatin(selected)}</p>
             </div>
             <span className={`font-sans text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${
               selected.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage text-white'
             }`}>{selected.level}</span>
           </div>
-          <p className="font-sans text-xs text-ink-light mt-2 italic">✓ Care details auto-filled from species database</p>
+          <div className="mt-2 space-y-1 rounded-xl bg-white/70 px-3 py-2">
+            <p className="font-sans text-xs text-ink-light">
+              <strong className="text-forest">Light:</strong> {locale === 'vi' ? selected.light_vi || selected.light_en || selected.sun_vi || selected.sun_en : selected.light_en || selected.sun_en}
+            </p>
+            <p className="font-sans text-xs text-ink-light">
+              <strong className="text-forest">Water:</strong> {locale === 'vi' ? selected.watering_vi || selected.watering_en || selected.water_vi || selected.water_en : selected.watering_en || selected.water_en}
+            </p>
+          </div>
+          <p className="font-sans text-xs text-ink-light mt-2 italic">Care guide stays linked by species. Staff notes stay tree-specific.</p>
         </div>
       )}
 
@@ -216,7 +225,7 @@ function SpeciesCombobox({ allSpecies, locale, onSelect }: {
                   <div>
                     <span className="font-sans text-sm font-semibold text-forest">{s.name_en}</span>
                     <span className="font-sans text-sm text-ink-light ml-2">· {s.name_vi}</span>
-                    <p className="font-sans text-xs italic text-ink-light/50">{s.species_latin}</p>
+                    <p className="font-sans text-xs italic text-ink-light/50">{getSpeciesLatin(s)}</p>
                   </div>
                   <span className={`font-sans text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
                     s.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage-pale text-forest'
@@ -271,12 +280,12 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
     setForm(p => {
       const isDefaultSun = p.sun === DEFAULT_FORM.sun || p.sun === ''
       const isDefaultWater = p.water === DEFAULT_FORM.water || p.water === ''
-      const sun = locale === 'vi' ? s.sun_vi || s.sun_en : s.sun_en
-      const water = locale === 'vi' ? s.water_vi || s.water_en : s.water_en
+      const sun = locale === 'vi' ? s.light_vi || s.light_en || s.sun_vi || s.sun_en : s.light_en || s.sun_en
+      const water = locale === 'vi' ? s.watering_vi || s.watering_en || s.water_vi || s.water_en : s.watering_en || s.water_en
       return {
         ...p,
         name: p.name || s.name_en,             // always English, fill only if empty
-        species: p.species || s.species_latin, // fill only if empty
+        species: p.species || getSpeciesLatin(s), // fill only if empty
         level: s.level,                        // always match species
         sun: isDefaultSun ? sun : p.sun,       // fill only if unchanged from default
         water: isDefaultWater ? water : p.water,
@@ -562,7 +571,7 @@ function EditTreeModal({ tree, onClose, onSaved }: {
 
   function handleSpeciesSelect(s: DbSpecies | null, _autoName: string) {
     if (!s) return
-    setForm(p => ({ ...p, species: s.species_latin, species_id: s.id }))
+    setForm(p => ({ ...p, species: getSpeciesLatin(s), species_id: s.id }))
     setComboboxKey(k => k + 1)
   }
 

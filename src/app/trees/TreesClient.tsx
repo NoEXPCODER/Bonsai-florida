@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
-import { findCareGuideForTree } from '@/data/care-guides'
 import { useMessages } from '@/lib/i18n'
+import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
 import { MessageIcon, PhoneIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 
@@ -16,7 +16,9 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const t = useMessages().collection
   const primary = getPrimaryTreeImageUrl(tree)
   const count = getTreeImageUrls(tree).length
-  const isBeginner = tree.level === 'Beginner Friendly'
+  const species = tree.tree_species
+  const difficulty = species ? getSpeciesDifficulty(species) : tree.level
+  const isBeginner = difficulty === 'Beginner Friendly'
 
   return (
     <article className="cursor-pointer group select-none" onClick={onClick}>
@@ -55,8 +57,18 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
       {/* Info strip */}
       <div className="px-0.5">
         <h3 className="font-serif text-[15px] leading-snug text-forest line-clamp-2">{tree.name}</h3>
-        {tree.species && (
-          <p className="font-sans text-[11px] text-ink-light/70 italic mt-0.5 line-clamp-1">{tree.species}</p>
+        {(species || tree.species) && (
+          <p className="font-sans text-[11px] text-ink-light/70 italic mt-0.5 line-clamp-1">{species ? getSpeciesLatin(species) : tree.species}</p>
+        )}
+        {species && (
+          <div className="mt-2 space-y-1">
+            <p className="font-sans text-[11px] text-ink-light line-clamp-1">
+              <strong className="text-forest">Light:</strong> {species.light_en || species.sun_en}
+            </p>
+            <p className="font-sans text-[11px] text-ink-light line-clamp-1">
+              <strong className="text-forest">Water:</strong> {species.watering_en || species.water_en}
+            </p>
+          </div>
         )}
         <div className="flex items-center justify-between gap-2 mt-2">
           <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
@@ -79,7 +91,10 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const t = useMessages().collection
   const primary = getPrimaryTreeImageUrl(tree)
-  const isBeginner = tree.level === 'Beginner Friendly'
+  const species = tree.tree_species
+  const difficulty = species ? getSpeciesDifficulty(species) : tree.level
+  const isBeginner = difficulty === 'Beginner Friendly'
+  const lightText = species?.light_en || species?.sun_en || tree.sun
 
   return (
     <article
@@ -104,10 +119,10 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
             isBeginner ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage-pale text-forest'
           }`}>{isBeginner ? 'Easy' : 'Inter.'}</span>
         </div>
-        {tree.species && <p className="font-sans text-[11px] text-ink-light italic mt-0.5 line-clamp-1">{tree.species}</p>}
+        {(species || tree.species) && <p className="font-sans text-[11px] text-ink-light italic mt-0.5 line-clamp-1">{species ? getSpeciesLatin(species) : tree.species}</p>}
         <div className="flex items-center gap-1 mt-1.5">
           <SunIcon className="w-3 h-3 text-sage flex-shrink-0" />
-          <span className="font-sans text-[11px] text-ink-light line-clamp-1">{tree.sun}</span>
+          <span className="font-sans text-[11px] text-ink-light line-clamp-1">{lightText}</span>
         </div>
       </div>
 
@@ -131,14 +146,13 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
 function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
   const t = useMessages().collection
-  const guide = findCareGuideForTree(tree)
   const species = tree.tree_species
   const image = getPrimaryTreeImageUrl(tree)
 
-  const displaySpecies = species?.name_en || tree.species || guide.name
-  const lightText = species?.light_en || guide.quick.light
-  const waterText = species?.watering_en || guide.quick.water
-  const summary = species?.care_en || guide.summary
+  const displaySpecies = species?.name_en || tree.species || 'Care guide not linked'
+  const lightText = species?.light_en || species?.sun_en || 'Ask Bonsai Florida'
+  const waterText = species?.watering_en || species?.water_en || 'Ask Bonsai Florida'
+  const summary = species?.care_en || 'Care guide not linked yet. Please ask Bonsai Florida.'
 
   return (
     <article className="bg-white rounded-3xl overflow-hidden shadow-sm">
@@ -164,7 +178,7 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         {/* Care info */}
         <div className="p-4">
           {summary && (
-            <p className="font-sans text-sm text-ink-light leading-relaxed mb-3 line-clamp-2">{summary}</p>
+          <p className="font-sans text-sm text-ink-light leading-relaxed mb-3 line-clamp-2">{summary}</p>
           )}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-sage-pale/60 rounded-xl px-3 py-2">
@@ -187,7 +201,7 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
       <div className="flex gap-2 px-4 pb-4">
         <button type="button" onClick={onClick} className="btn-primary flex-1 justify-center text-xs py-2.5">
-          Full Care Guide →
+          {species ? 'Tree Care Guide →' : 'Ask for Care Guide'}
         </button>
         <a
           href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
@@ -226,7 +240,8 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
         (tree.species ?? '').toLowerCase().includes(q) ||
         (tree.tree_species?.name_en ?? '').toLowerCase().includes(q) ||
         (tree.tree_species?.name_vi ?? '').toLowerCase().includes(q) ||
-        (tree.tree_species?.species_latin ?? '').toLowerCase().includes(q)
+        (tree.tree_species?.species_latin ?? '').toLowerCase().includes(q) ||
+        (tree.tree_species?.latin_name ?? '').toLowerCase().includes(q)
       )
     }
     if (filter === 'beginner') list = list.filter(t => t.level === 'Beginner Friendly')

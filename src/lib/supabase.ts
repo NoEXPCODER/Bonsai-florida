@@ -10,8 +10,13 @@ export interface DbSpecies {
   id: string
   name_en: string
   name_vi: string
+  slug?: string | null
   species_latin: string
+  latin_name?: string | null
   level: string
+  difficulty?: string | null
+  indoor_outdoor?: string | null
+  care_image_url?: string | null
   sun_en: string
   sun_vi: string
   water_en: string
