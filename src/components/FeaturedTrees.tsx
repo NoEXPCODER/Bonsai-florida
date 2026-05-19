@@ -20,7 +20,7 @@ function TreeCard({ tree, onSave }: { tree: DbTree; onSave: () => void }) {
     toggle({
       id: tree.id,
       name: tree.name,
-      price: tree.price,
+      price: parseFloat(tree.price),
       imageUrl: photo ?? undefined,
       treeCode: tree.tree_code ?? undefined,
     })
