@@ -625,6 +625,12 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
         )}
 
         <div className="max-w-lg mx-auto px-4 pt-4">
+          {/* Back to collection */}
+          <a href="/trees"
+            className="inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-ink-light hover:text-forest transition-colors mb-3">
+            ← Collection
+          </a>
+
           {/* Hero photo — portrait, taller, with rounded corners */}
           <div className="relative rounded-3xl overflow-hidden bg-black h-[440px]">
             <PhotoCarousel urls={photos} name={tree.name} onTap={photos.length > 0 ? (i) => setLightboxIdx(i) : undefined} />
