@@ -69,7 +69,15 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
   if (!tree) {
     return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.625in' }} />
   }
-  const nameFontSize = tree.name.length > 20 ? '13px' : tree.name.length > 14 ? '17px' : '22px'
+  const rightPct = 100 - logoSize
+  const isNarrow = rightPct < 45
+  const nameFontSize = isNarrow
+    ? (tree.name.length > 10 ? '11px' : tree.name.length > 6 ? '14px' : '18px')
+    : (tree.name.length > 20 ? '13px' : tree.name.length > 14 ? '17px' : '22px')
+  const speciesFontSize = isNarrow ? '7.5px' : '9px'
+  const subFontSize     = isNarrow ? '6px'   : '7.5px'
+  const taglineFontSize = isNarrow ? '5px'   : '6.5px'
+  const rightPad        = isNarrow ? '20px 6px 10px' : '24px 14px 12px'
   const logoSrc = logoUrl ?? '/logo.png'
 
   return (
@@ -99,8 +107,8 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
       {/* Right: tree info */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', flex: 1, gap: '5px',
-        padding: '24px 14px 12px',
+        justifyContent: 'center', flex: 1, minWidth: 0, gap: '5px',
+        padding: rightPad, overflow: 'hidden',
       }}>
         {/* Pink ornament */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '90%' }}>
@@ -110,20 +118,20 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
         </div>
 
         {/* Tree name */}
-        <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: nameFontSize, fontWeight: 'bold', color: G, letterSpacing: '0.06em', margin: 0, textAlign: 'center', textTransform: 'uppercase', lineHeight: 1.2 }}>
+        <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: nameFontSize, fontWeight: 'bold', color: G, letterSpacing: '0.06em', margin: 0, textAlign: 'center', textTransform: 'uppercase', lineHeight: 1.2, wordBreak: 'break-word', width: '100%' }}>
           {tree.name}
         </p>
 
         {/* Latin name */}
         {tree.species && (
-          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '9px', fontStyle: 'italic', color: `${G}80`, margin: 0, textAlign: 'center' }}>
+          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: speciesFontSize, fontStyle: 'italic', color: `${G}80`, margin: 0, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {tree.species}
           </p>
         )}
 
         <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '2px 0' }} />
 
-        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '7.5px', color: `${G}60`, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: subFontSize, color: `${G}60`, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
@@ -131,7 +139,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
         </div>
 
-        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '6.5px', color: `${G}60`, letterSpacing: '0.12em', margin: 0 }}>TROPICAL BEAUTY. TIMELESS ART.</p>
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: taglineFontSize, color: `${G}60`, letterSpacing: '0.12em', margin: 0 }}>TROPICAL BEAUTY. TIMELESS ART.</p>
       </div>
     </div>
   )
