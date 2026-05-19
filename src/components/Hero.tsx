@@ -68,15 +68,22 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
 
   return (
     <div className="relative w-full max-w-sm mx-auto select-none" style={{ height: '480px' }}>
-      {/* Back card (next tree) */}
+      {/* Back card (next tree) — scales up and loses dim as front card leaves */}
       {next && (
         <div className="absolute inset-0 rounded-3xl overflow-hidden bg-forest shadow-card"
-          style={{ transform: `scale(0.93) translateY(16px)`, zIndex: 1, transition: 'transform 0.3s' }}>
+          style={{
+            transform: leaving
+              ? 'scale(1) translateY(0)'
+              : `scale(${0.93 + Math.min(Math.abs(drag) / 1800, 0.07)}) translateY(${Math.max(0, 16 - Math.abs(drag) * 0.27)}px)`,
+            zIndex: 1,
+            transition: leaving ? 'transform 0.3s ease-out' : drag ? 'none' : 'transform 0.3s',
+          }}>
           {nextPhoto
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={nextPhoto} alt={next.name} className="w-full h-full object-cover" />
             : <div className="w-full h-full bg-gradient-to-b from-forest to-forest-light" />}
-          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-black/20 transition-opacity duration-300"
+            style={{ opacity: leaving ? 0 : 1 }} />
         </div>
       )}
 
