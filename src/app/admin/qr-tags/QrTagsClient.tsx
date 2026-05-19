@@ -67,7 +67,7 @@ function PunchHole() {
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
 function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | null }) {
   if (!tree) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '100%' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.625in' }} />
   }
   const nameFontSize = tree.name.length > 20 ? '13px' : tree.name.length > 14 ? '17px' : '22px'
   const logoSrc = logoUrl ?? '/logo.png'
@@ -78,7 +78,7 @@ function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | n
       border: '1px dashed #999',
       boxSizing: 'border-box', padding: '0',
       display: 'flex', flexDirection: 'row', alignItems: 'stretch',
-      overflow: 'hidden', width: '100%', height: '100%',
+      overflow: 'hidden', width: '100%', height: '2.625in',
     }}>
       <PunchHole />
 
@@ -92,7 +92,7 @@ function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | n
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
-          style={{ height: '100%', width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
+          style={{ height: 'calc(2.625in - 36px)', width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
       </div>
 
       {/* Right: tree info */}
@@ -139,7 +139,7 @@ function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | n
 // ─── Tag BACK (landscape) — matches reference ─────────────────────────────────
 function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
   if (!tree || !tree.tree_code) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.625in' }} />
   }
   const qrUrl = `${origin}/tree/${tree.tree_code}`
 
@@ -156,7 +156,7 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
       border: '1px dashed #999',
       boxSizing: 'border-box', padding: '22px 16px 10px',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      gap: '5px', overflow: 'hidden', width: '100%', height: '100%',
+      gap: '5px', overflow: 'hidden', width: '100%', height: '2.625in',
     }}>
       <PunchHole />
 
