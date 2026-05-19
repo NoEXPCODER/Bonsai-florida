@@ -65,11 +65,12 @@ function PunchHole() {
 }
 
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
-function TagFront({ tree }: { tree: TagTree | null }) {
+function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | null }) {
   if (!tree) {
     return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box' }} />
   }
   const nameFontSize = tree.name.length > 20 ? '9px' : tree.name.length > 14 ? '11px' : '13px'
+  const logoSrc = logoUrl ?? '/logo.png'
 
   return (
     <div style={{
@@ -84,7 +85,7 @@ function TagFront({ tree }: { tree: TagTree | null }) {
       {/* Left: brand logo */}
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '110px' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Bonsai Florida"
+        <img src={logoSrc} alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
           style={{ width: '110px', height: 'auto', objectFit: 'contain' }} />
       </div>
@@ -257,7 +258,7 @@ const PRINT_STYLES = `
 `
 
 // ─── Main client ──────────────────────────────────────────────────────────────
-export default function QrTagsClient({ trees }: { trees: TagTree[] }) {
+export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; logoUrl: string | null }) {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
   useEffect(() => { setOrigin(window.location.origin) }, [])
@@ -322,7 +323,7 @@ export default function QrTagsClient({ trees }: { trees: TagTree[] }) {
         </p>
         {frontPages.map((page, pi) => (
           <div key={`f-${pi}`} className="tag-page">
-            {page.map((tree, ti) => <TagFront key={ti} tree={tree} />)}
+            {page.map((tree, ti) => <TagFront key={ti} tree={tree} logoUrl={logoUrl} />)}
           </div>
         ))}
 

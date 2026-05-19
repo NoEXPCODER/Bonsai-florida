@@ -21,18 +21,21 @@ export default async function QrTagsPage({
   if (treeIds.length === 0) redirect('/admin')
 
   const db = createServerClient()
-  const { data: trees } = await db
-    .from('bonsai_trees')
-    .select('id, name, tree_code, image_url, species')
-    .in('id', treeIds)
-    .eq('is_active', true)
+  const [{ data: trees }, { data: settings }] = await Promise.all([
+    db.from('bonsai_trees')
+      .select('id, name, tree_code, image_url, species')
+      .in('id', treeIds)
+      .eq('is_active', true),
+    db.from('site_settings').select('key, value'),
+  ])
 
-  // Preserve the order from the URL
+  const logoUrl = (settings ?? []).find(s => s.key === 'logo_url')?.value ?? null
+
   const ordered = treeIds
     .map(id => (trees ?? []).find(t => t.id === id))
     .filter((t): t is NonNullable<typeof t> => t != null)
 
   if (ordered.length === 0) redirect('/admin')
 
-  return <QrTagsClient trees={ordered} />
+  return <QrTagsClient trees={ordered} logoUrl={logoUrl} />
 }
