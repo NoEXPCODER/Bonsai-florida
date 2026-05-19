@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import { useAuth, useMessages } from '@/lib/i18n'
 import { PhoneIcon } from '@/components/Icons'
@@ -25,14 +26,13 @@ export default function Navbar() {
           aria-label="Main navigation"
         >
           {/* Brand mark */}
-          <a
-            href="#top"
+          <Link
+            href="/"
             className="flex items-center gap-3 group"
             aria-label="Bonsai Florida — home"
           >
-            <div className="w-10 h-10 rounded-full border-2 border-forest flex items-center justify-center bg-cream-light text-xl select-none group-hover:bg-white transition-colors">
-              🌸
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="" aria-hidden className="w-9 h-9 sm:w-10 sm:h-10" />
             <div>
               <span className="block font-serif font-bold text-forest tracking-[0.15em] text-sm sm:text-base uppercase leading-tight">
                 Bonsai Florida
@@ -41,7 +41,7 @@ export default function Navbar() {
                 Palm Beach
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-7 font-sans text-xs font-semibold tracking-[0.14em] text-forest uppercase">
