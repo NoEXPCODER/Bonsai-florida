@@ -29,7 +29,6 @@ export default async function HomePage() {
 
   const trees = treesResult.data ?? []
   const featuredSpecies = speciesResult.data ?? []
-  const featuredTree = trees[0] ?? null
 
   let logoUrl: string | null = null
   try {
@@ -48,7 +47,7 @@ export default async function HomePage() {
     <>
       <Navbar logoUrl={logoUrl} />
       <main>
-        <Hero featuredTree={featuredTree} logoUrl={logoUrl} />
+        <Hero trees={trees} logoUrl={logoUrl} />
         <FeaturedTrees trees={trees} />
         <HowItWorks />
         <CareGuidePreview species={featuredSpecies} />
