@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.npm
+.npm-cache/
+
+# Next.js
+.next/
+out/
+build/
+
+# TypeScript
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# Claude Code local settings (never commit)
+.claude/settings.local.json
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
