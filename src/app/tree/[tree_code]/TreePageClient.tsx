@@ -625,10 +625,10 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
         )}
 
         <div className="max-w-lg mx-auto px-4 pt-4">
-          {/* Back to collection */}
-          <a href="/trees"
+          {/* Back link */}
+          <a href={isStaff ? '/admin' : '/trees'}
             className="inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-ink-light hover:text-forest transition-colors mb-3">
-            ← Collection
+            ← {isStaff ? 'Inventory' : 'Collection'}
           </a>
 
           {/* Hero photo — portrait, taller, with rounded corners */}
