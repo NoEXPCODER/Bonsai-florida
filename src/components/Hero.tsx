@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
-import { PhoneIcon, MessageIcon, InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
+import { MessageIcon, InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import BookAppointment from '@/components/BookAppointment'
+import DistanceBadge from '@/components/DistanceBadge'
 
 const SOCIALS = [
   { href: CONTACT.social.instagram.url, icon: InstagramIcon, label: 'Instagram' },
@@ -136,6 +137,8 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
               </div>
             </div>
 
+            <DistanceBadge className="font-sans text-[11px] font-semibold text-bonsai-pink mb-5 block" />
+
             <h1 className="font-serif text-[clamp(2.6rem,6vw,4.2rem)] text-forest leading-[1.07] mb-5">
               {t.tagline}
             </h1>
@@ -148,15 +151,8 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
 
             <div className="flex flex-wrap gap-3 mb-7">
               <a
-                href={CONTACT.phone.tel}
-                className="btn-primary text-base py-3.5 px-7 min-h-[52px]"
-                aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
-              >
-                <PhoneIcon className="w-5 h-5" /> {t.callNow}
-              </a>
-              <a
                 href={CONTACT.phone.sms}
-                className="btn-secondary text-base py-3.5 px-7 min-h-[52px]"
+                className="btn-primary text-base py-3.5 px-7 min-h-[52px]"
                 aria-label="Text Bonsai Florida"
               >
                 <MessageIcon className="w-5 h-5" /> {t.textUs}

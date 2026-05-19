@@ -7,7 +7,7 @@ import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
-import { MessageIcon, PhoneIcon, SunIcon, WaterIcon } from '@/components/Icons'
+import { MessageIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 import BookAppointment from '@/components/BookAppointment'
 
@@ -265,8 +265,8 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         <div className="pink-divider mb-4" />
         <p className="font-sans text-sm text-ink-light max-w-sm mx-auto">{t.description}</p>
         <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
-          <a href={CONTACT.phone.tel} className="btn-primary text-sm py-2.5">
-            <PhoneIcon className="w-4 h-4" /> Call Now
+          <a href={CONTACT.phone.sms} className="btn-primary text-sm py-2.5">
+            <MessageIcon className="w-4 h-4" /> Text Us
           </a>
           <BookAppointment label={t.bookBannerButton} />
         </div>
@@ -377,10 +377,10 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
             <div className="flex flex-wrap items-center justify-center gap-3">
               <BookAppointment label={t.bookBannerButton} />
               <a
-                href={CONTACT.phone.tel}
+                href={CONTACT.phone.sms}
                 className="inline-flex items-center gap-2 border-2 border-white/40 text-white rounded-full px-6 py-3 font-sans text-sm font-bold hover:bg-white/10 transition-colors min-h-[48px]"
               >
-                <PhoneIcon className="w-4 h-4" /> Call Us Instead
+                <MessageIcon className="w-4 h-4" /> Text Us Instead
               </a>
             </div>
             <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-8" />
@@ -391,7 +391,9 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         {displayed.length > 0 && (
           <div className="mt-10 text-center">
             <p className="font-serif italic text-ink-light text-lg mb-5">{t.footerNote}</p>
-            <a href={CONTACT.phone.tel} className="btn-secondary inline-flex">{t.footerCta}</a>
+            <a href={CONTACT.phone.sms} className="btn-secondary inline-flex">
+              <MessageIcon className="w-4 h-4" /> Text to Ask About More Trees
+            </a>
           </div>
         )}
       </div>

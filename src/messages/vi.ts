@@ -86,6 +86,7 @@ export const vi: Messages = {
     visit: 'Tham Quan',
     connect: 'Liên Hệ',
     callNow: 'Gọi Ngay',
+    textUs: 'Nhắn Tin',
     adminLogin: 'Đăng Nhập Admin',
     login: 'Đăng Nhập',
     logout: 'Đăng Xuất',

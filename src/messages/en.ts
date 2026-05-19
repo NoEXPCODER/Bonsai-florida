@@ -84,6 +84,7 @@ export const en = {
     visit: 'Visit',
     connect: 'Connect',
     callNow: 'Call Now',
+    textUs: 'Text Us',
     adminLogin: 'Admin Login',
     login: 'Login',
     logout: 'Logout',
