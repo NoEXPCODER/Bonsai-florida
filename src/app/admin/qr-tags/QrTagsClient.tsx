@@ -69,63 +69,63 @@ function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | n
   if (!tree) {
     return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box' }} />
   }
-  const nameFontSize = tree.name.length > 20 ? '9px' : tree.name.length > 14 ? '11px' : '13px'
+  const nameFontSize = tree.name.length > 20 ? '13px' : tree.name.length > 14 ? '16px' : '20px'
   const logoSrc = logoUrl ?? '/logo.png'
 
   return (
     <div style={{
       position: 'relative', backgroundColor: 'white',
       border: '1px dashed #999',
-      boxSizing: 'border-box', padding: '22px 18px 12px',
+      boxSizing: 'border-box', padding: '22px 14px 12px',
       display: 'flex', flexDirection: 'row', alignItems: 'center',
-      gap: '14px', overflow: 'hidden', width: '100%', height: '100%',
+      gap: '12px', overflow: 'hidden', width: '100%', height: '100%',
     }}>
       <PunchHole />
 
       {/* Left: brand logo */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '110px' }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '155px' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
-          style={{ width: '110px', height: 'auto', objectFit: 'contain' }} />
+          style={{ width: '155px', height: 'auto', objectFit: 'contain' }} />
       </div>
 
       {/* Vertical divider */}
       <div style={{ width: '0.75px', alignSelf: 'stretch', backgroundColor: `${G}20`, margin: '8px 0' }} />
 
       {/* Right: tree info */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '5px' }}>
         {/* Pink ornament */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '90%' }}>
           <div style={{ flex: 1, height: '0.75px', backgroundColor: P }} />
-          <span style={{ color: P, fontSize: '9px', lineHeight: 1 }}>✿</span>
+          <span style={{ color: P, fontSize: '12px', lineHeight: 1 }}>✿</span>
           <div style={{ flex: 1, height: '0.75px', backgroundColor: P }} />
         </div>
 
         {/* Tree name */}
-        <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: nameFontSize, fontWeight: 'bold', color: G, letterSpacing: '0.06em', margin: 0, textAlign: 'center', textTransform: 'uppercase', lineHeight: 1.25 }}>
+        <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: nameFontSize, fontWeight: 'bold', color: G, letterSpacing: '0.06em', margin: 0, textAlign: 'center', textTransform: 'uppercase', lineHeight: 1.2 }}>
           {tree.name}
         </p>
 
         {/* Latin name */}
         {tree.species && (
-          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '6.5px', fontStyle: 'italic', color: `${G}80`, margin: 0, textAlign: 'center' }}>
+          <p style={{ fontFamily: 'Georgia,"Times New Roman",serif', fontSize: '9px', fontStyle: 'italic', color: `${G}80`, margin: 0, textAlign: 'center' }}>
             {tree.species}
           </p>
         )}
 
-        <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '2px 0' }} />
+        <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '1px 0' }} />
 
-        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '5.5px', color: `${G}60`, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '7.5px', color: `${G}60`, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
 
         {/* ✦ divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
-          <span style={{ fontSize: '8px', color: G, lineHeight: 1 }}>✦</span>
+          <span style={{ fontSize: '10px', color: G, lineHeight: 1 }}>✦</span>
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
         </div>
 
-        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '5px', color: `${G}60`, letterSpacing: '0.12em', margin: 0 }}>TROPICAL BEAUTY. TIMELESS ART.</p>
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '6.5px', color: `${G}60`, letterSpacing: '0.12em', margin: 0 }}>TROPICAL BEAUTY. TIMELESS ART.</p>
       </div>
     </div>
   )
