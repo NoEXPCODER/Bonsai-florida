@@ -1024,16 +1024,33 @@ function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
                 </div>
 
                 {/* Thumbnail */}
-                <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-sage-pale border border-forest/10">
-                  {primaryImage
-                    // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={primaryImage} alt={tree.name} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-2xl">🌿</div>}
-                </div>
+                {tree.tree_code ? (
+                  <a href={`/tree/${tree.tree_code}`} target="_blank" rel="noopener noreferrer"
+                    className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-sage-pale border border-forest/10 block hover:opacity-80 transition-opacity">
+                    {primaryImage
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={primaryImage} alt={tree.name} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-2xl">🌿</div>}
+                  </a>
+                ) : (
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-sage-pale border border-forest/10">
+                    {primaryImage
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={primaryImage} alt={tree.name} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-2xl">🌿</div>}
+                  </div>
+                )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-serif text-base text-forest leading-tight">{tree.name}</p>
+                  {tree.tree_code ? (
+                    <a href={`/tree/${tree.tree_code}`} target="_blank" rel="noopener noreferrer"
+                      className="font-serif text-base text-forest leading-tight hover:underline">
+                      {tree.name}
+                    </a>
+                  ) : (
+                    <p className="font-serif text-base text-forest leading-tight">{tree.name}</p>
+                  )}
                   {tree.species && <p className="font-sans text-xs italic text-ink-light">{tree.species}</p>}
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
                     <span className="font-sans text-sm font-bold text-bonsai-pink">{tree.price}</span>
