@@ -23,7 +23,7 @@ export default async function QrTagsPage({
   const db = createServerClient()
   const { data: trees } = await db
     .from('bonsai_trees')
-    .select('id, name, tree_code, image_url')
+    .select('id, name, tree_code, image_url, species')
     .in('id', treeIds)
     .eq('is_active', true)
 
