@@ -7,103 +7,6 @@ import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { useMessages, useAuth } from '@/lib/i18n'
 
-// ─── Settings Panel ───────────────────────────────────────────────────────────
-function SettingsPanel() {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [status, setStatus] = useState<'' | 'success' | 'error'>('')
-  const fileRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    fetch('/api/admin/settings')
-      .then(r => r.json())
-      .then((d: Record<string, string | null>) => setLogoUrl(d.logo_url ?? null))
-      .catch(() => {})
-  }, [])
-
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true); setStatus('')
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      const res = await fetch('/api/admin/settings/logo', { method: 'POST', body: form })
-      if (!res.ok) throw new Error()
-      const { url } = await res.json()
-      setLogoUrl(url); setStatus('success')
-    } catch {
-      setStatus('error')
-    } finally {
-      setUploading(false); e.target.value = ''
-    }
-  }
-
-  async function handleRemove() {
-    await fetch('/api/admin/settings/logo', { method: 'DELETE' })
-    setLogoUrl(null); setStatus('')
-  }
-
-  return (
-    <section id="settings-panel" className="card p-6 space-y-5">
-      <h2 className="font-serif text-xl text-forest">⚙️ Settings</h2>
-
-      <div>
-        <p className="font-sans text-sm font-semibold text-forest mb-1">Brand Logo</p>
-        <p className="font-sans text-xs text-ink-light mb-4">
-          Used on QR tag fronts. PNG with white or transparent background recommended.
-        </p>
-
-        {logoUrl ? (
-          <div className="flex items-start gap-4">
-            <div className="w-36 h-24 border border-forest/20 rounded-xl bg-white flex items-center justify-center p-2 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logoUrl} alt="Current logo" className="max-w-full max-h-full object-contain" />
-            </div>
-            <div className="flex flex-col gap-2 pt-1">
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="font-sans text-xs font-semibold border border-forest/30 text-forest px-4 py-2 rounded-full hover:bg-forest/5 transition-colors"
-              >
-                {uploading ? 'Uploading…' : '↑ Replace'}
-              </button>
-              <button
-                onClick={handleRemove}
-                className="font-sans text-xs text-bonsai-pink underline underline-offset-2 text-left"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-4">
-            <div className="w-36 h-24 border border-dashed border-forest/30 rounded-xl bg-white flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" alt="Default logo" className="max-w-full max-h-full object-contain p-2" />
-            </div>
-            <div>
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="btn-primary text-sm px-5 py-2.5"
-              >
-                {uploading ? 'Uploading…' : '📤 Upload Logo'}
-              </button>
-              <p className="font-sans text-xs text-ink-light mt-2">Using built-in SVG until you upload.</p>
-            </div>
-          </div>
-        )}
-
-        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={handleUpload} />
-
-        {status === 'success' && <p className="font-sans text-xs text-green-700 mt-3">✓ Logo updated — will appear on new QR tags.</p>}
-        {status === 'error'   && <p className="font-sans text-xs text-red-600 mt-3">Upload failed — try again.</p>}
-      </div>
-    </section>
-  )
-}
-
 // ─── Login Screen ─────────────────────────────────────────────────────────────
 
 function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
@@ -1394,12 +1297,10 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
               {label}
             </a>
           ))}
-          <button
-            onClick={() => document.getElementById('settings-panel')?.scrollIntoView({ behavior: 'smooth' })}
-            className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors"
-          >
+          <a href="/admin/settings"
+            className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors">
             ⚙️ Settings
-          </button>
+          </a>
         </div>
       </header>
 
@@ -1422,7 +1323,6 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
           onBulkQrPrint={handleBulkQrPrint}
         />
         <SoldTreeList trees={soldTrees} t={t} />
-        <SettingsPanel />
       </main>
 
       {soldTree && (
