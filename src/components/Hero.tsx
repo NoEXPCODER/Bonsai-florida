@@ -131,23 +131,21 @@ function SwipeStack({ trees }: { trees: DbTree[] }) {
         </div>
       </div>
 
-      {/* Left arrow — locked to left side of card */}
-      <button onClick={() => advance('right')}
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full border border-forest/20 bg-white text-forest hover:bg-forest hover:text-white transition-colors flex items-center justify-center text-lg shadow-soft z-10">
-        ‹
-      </button>
-
-      {/* Right arrow — locked to right side of card */}
-      <button onClick={() => advance('left')}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-10 h-10 rounded-full border border-forest/20 bg-white text-forest hover:bg-forest hover:text-white transition-colors flex items-center justify-center text-lg shadow-soft z-10">
-        ›
-      </button>
-
-      {/* Dot indicators — below card */}
-      <div className="absolute -bottom-10 inset-x-0 flex items-center justify-center gap-2">
-        {trees.map((_, i) => (
-          <div key={i} className={`rounded-full transition-all ${i === idx ? 'w-4 h-1.5 bg-forest' : 'w-1.5 h-1.5 bg-forest/20'}`} />
-        ))}
+      {/* Counter + arrows */}
+      <div className="absolute -bottom-12 inset-x-0 flex items-center justify-between px-2">
+        <button onClick={() => advance('right')}
+          className="w-10 h-10 rounded-full border border-forest/20 bg-white text-forest hover:bg-forest hover:text-white transition-colors flex items-center justify-center text-lg shadow-soft">
+          ‹
+        </button>
+        <div className="flex items-center gap-2">
+          {trees.map((_, i) => (
+            <div key={i} className={`rounded-full transition-all ${i === idx ? 'w-4 h-1.5 bg-forest' : 'w-1.5 h-1.5 bg-forest/20'}`} />
+          ))}
+        </div>
+        <button onClick={() => advance('left')}
+          className="w-10 h-10 rounded-full border border-forest/20 bg-white text-forest hover:bg-forest hover:text-white transition-colors flex items-center justify-center text-lg shadow-soft">
+          ›
+        </button>
       </div>
 
       {/* Tap to view */}
