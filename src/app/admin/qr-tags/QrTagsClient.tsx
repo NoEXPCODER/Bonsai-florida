@@ -65,7 +65,7 @@ function PunchHole() {
 }
 
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
-function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | null }) {
+function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: string | null; logoSize: number }) {
   if (!tree) {
     return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.625in' }} />
   }
@@ -92,7 +92,7 @@ function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | n
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
-          style={{ height: 'calc(2.625in - 36px)', width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
+          style={{ height: `calc((2.625in - 36px) * ${logoSize / 100})`, width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
       </div>
 
       {/* Right: tree info */}
@@ -271,6 +271,7 @@ const PRINT_STYLES = `
 export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; logoUrl: string | null }) {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
+  const [logoSize, setLogoSize] = useState(80)
   useEffect(() => { setOrigin(window.location.origin) }, [])
 
   function paginate(items: TagTree[]): (TagTree | null)[][] {
@@ -308,7 +309,17 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
             {trees.length} tag{trees.length !== 1 ? 's' : ''} · {totalSheets} sheet{totalSheets !== 1 ? 's' : ''} · Print fronts → flip paper → print backs
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Logo size slider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>Logo</span>
+            <input
+              type="range" min={30} max={100} value={logoSize}
+              onChange={e => setLogoSize(Number(e.target.value))}
+              style={{ width: '90px', accentColor: P, cursor: 'pointer' }}
+            />
+            <span style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.5)', width: '30px' }}>{logoSize}%</span>
+          </div>
           <button onClick={() => router.push('/admin')} style={{ fontFamily: 'system-ui,sans-serif', fontSize: '12px', border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: 'white', padding: '8px 16px', borderRadius: '999px', cursor: 'pointer' }}>
             ← Admin
           </button>
@@ -333,7 +344,7 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
         </p>
         {frontPages.map((page, pi) => (
           <div key={`f-${pi}`} className="tag-page">
-            {page.map((tree, ti) => <TagFront key={ti} tree={tree} logoUrl={logoUrl} />)}
+            {page.map((tree, ti) => <TagFront key={ti} tree={tree} logoUrl={logoUrl} logoSize={logoSize} />)}
           </div>
         ))}
 
