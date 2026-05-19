@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
-import { MessageIcon, InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
+import { InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
-import BookAppointment from '@/components/BookAppointment'
 import DistanceBadge from '@/components/DistanceBadge'
 
 const SOCIALS = [
@@ -149,22 +148,20 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
               {t.description}
             </p>
 
-            <div className="flex flex-wrap gap-3 mb-7">
-              <a
-                href={CONTACT.phone.sms}
-                className="btn-primary text-base py-3.5 px-7 min-h-[52px]"
-                aria-label="Text Bonsai Florida"
-              >
-                <MessageIcon className="w-5 h-5" /> {t.textUs}
+            <div className="flex flex-wrap gap-3 mb-5">
+              <a href="/book" className="btn-primary text-base py-3.5 px-7 min-h-[52px]">
+                {t.bookVisit}
               </a>
               <a href="/trees" className="btn-secondary text-base py-3.5 px-7 min-h-[52px]">
                 {t.viewTrees}
               </a>
-              <BookAppointment
-                label={t.bookAppointment}
-                className="btn-secondary text-base py-3.5 px-7 min-h-[52px]"
-              />
             </div>
+            <a
+              href={CONTACT.phone.sms}
+              className="font-sans text-sm text-ink-light hover:text-forest transition-colors underline underline-offset-2"
+            >
+              {t.textInterest} →
+            </a>
 
             <div className="flex items-center gap-4">
               <span className="font-sans text-[11px] font-bold tracking-[0.2em] uppercase text-ink-light/50">
