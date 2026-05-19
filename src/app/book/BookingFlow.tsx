@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CONTACT } from '@/config/contact'
+import { getVisitList, type VisitItem } from '@/lib/visit-list'
 
 const CALENDAR_URL =
   'https://calendar.google.com/calendar/appointments/schedules/AcZssZ2rQtgIgRIvKdusIMMARHlSxDTqPkyVpjcaRj8FYeULUNtJkIU8sMhWsD9ccA1iymKsd4wjE3Xw?gv=true'
@@ -85,6 +86,7 @@ function ContactStep({
   onNext,
   loading,
   error,
+  savedTrees,
 }: {
   data: FormData
   onChange: (k: keyof FormData, v: string) => void
@@ -92,6 +94,7 @@ function ContactStep({
   onNext: () => void
   loading: boolean
   error: string
+  savedTrees: VisitItem[]
 }) {
   function field(label: string, key: keyof FormData, type = 'text', placeholder = '') {
     return (
@@ -163,6 +166,32 @@ function ContactStep({
             className="w-full px-4 py-3 rounded-xl border border-forest/20 bg-white font-sans text-sm text-ink placeholder-ink-light/40 focus:outline-none focus:ring-2 focus:ring-forest/30 transition resize-none"
           />
         </div>
+
+        {savedTrees.length > 0 && (
+          <div className="bg-sage-pale rounded-2xl p-4">
+            <p className="font-sans text-xs font-semibold text-forest tracking-wide uppercase mb-3">
+              Your Saved Trees ({savedTrees.length})
+            </p>
+            <ul className="space-y-2.5">
+              {savedTrees.map(item => (
+                <li key={item.id} className="flex items-center gap-3">
+                  {item.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-serif text-sm text-forest leading-snug">{item.name}</p>
+                    {item.treeCode && <p className="font-sans text-[10px] text-ink-light">{item.treeCode}</p>}
+                  </div>
+                  <span className="font-sans text-xs font-bold text-bonsai-pink flex-shrink-0">${item.price}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="font-sans text-[11px] text-ink-light/60 mt-3 leading-relaxed">
+              We&apos;ll prepare these trees for your visit.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Honeypot — hidden from real users, bots fill it */}
@@ -293,6 +322,11 @@ export default function BookingFlow() {
   const [data, setData] = useState<FormData>(EMPTY)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [savedTrees, setSavedTrees] = useState<VisitItem[]>([])
+
+  useEffect(() => {
+    setSavedTrees(getVisitList())
+  }, [])
 
   function change(k: keyof FormData, v: string) {
     setData(prev => ({ ...prev, [k]: v }))
@@ -321,6 +355,7 @@ export default function BookingFlow() {
           phone: data.phone,
           notes: data.notes || null,
           tree_name: data.treeName || null,
+          saved_trees: savedTrees.length > 0 ? savedTrees : null,
           _hp: '', // honeypot — must stay empty
         }),
       })
@@ -349,6 +384,7 @@ export default function BookingFlow() {
           onNext={submit}
           loading={loading}
           error={error}
+          savedTrees={savedTrees}
         />
       )}
 
