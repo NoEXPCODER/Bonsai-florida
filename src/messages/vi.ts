@@ -103,18 +103,19 @@ export const vi: Messages = {
   },
   hero: {
     location: 'Palm Beach, Florida',
+    nursery: 'Vườn Bonsai Nhiệt Đới',
     tagline: 'Bonsai Nhiệt Đới Cho Cuộc Sống Miền Nam Florida',
     description:
       'Bonsai thân thiện với người mới bắt đầu, hướng dẫn địa phương và những buổi tham quan vườn yên bình tại Palm Beach, Florida.',
     callNow: 'Gọi Ngay',
     textUs: 'Nhắn Tin',
     viewTrees: 'Xem Cây Có Sẵn',
+    bookAppointment: 'Đặt Lịch Hẹn',
     alsoOn: 'Tìm chúng tôi trên',
-    cardSpecies: 'Ficus · Liễu · Dạng Nhiệt Đới',
-    premiumTag: 'Vườn bonsai nhiệt đới',
     localCollection: 'Bộ Sưu Tập Địa Phương',
-    careIncluded: 'Mỗi cây đều có hướng dẫn chăm sóc',
-    careIncludedSub: 'Quét thẻ, làm theo ghi chú đơn giản và hỏi chúng tôi bất cứ lúc nào.',
+    careGuideCard: 'Hướng dẫn chăm sóc kèm theo mỗi cây',
+    careGuideCardSub: 'Quét thẻ, làm theo ghi chú đơn giản và hỏi chúng tôi bất cứ lúc nào.',
+    cardSpecies: 'Ficus · Liễu · Dạng Nhiệt Đới',
   },
   connect: {
     label: 'Chỉ một chạm',

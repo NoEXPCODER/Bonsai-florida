@@ -101,18 +101,19 @@ export const en = {
   },
   hero: {
     location: 'Palm Beach, Florida',
+    nursery: 'Tropical Bonsai Nursery',
     tagline: 'Tropical Bonsai for South Florida Living',
     description:
       'Beginner-friendly bonsai, local guidance, and peaceful garden visits in Palm Beach, Florida.',
     callNow: 'Call Now',
     textUs: 'Text Us',
     viewTrees: 'View Available Trees',
+    bookAppointment: 'Book an Appointment',
     alsoOn: 'Also find us on',
-    cardSpecies: 'Ficus · Willow · Tropical Forms',
-    premiumTag: 'Tropical bonsai nursery',
     localCollection: 'Local Collection',
-    careIncluded: 'Care guide included with every tree',
-    careIncludedSub: 'Scan the tag, follow simple care notes, and ask us anytime.',
+    careGuideCard: 'Care guide included with every tree',
+    careGuideCardSub: 'Scan the tag, follow simple care notes, and ask us anytime.',
+    cardSpecies: 'Ficus · Willow · Tropical Forms',
   },
   connect: {
     label: 'One tap away',
