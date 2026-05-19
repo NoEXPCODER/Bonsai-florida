@@ -3,6 +3,7 @@
 import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
 import { PhoneIcon, MessageIcon, MapPinIcon } from '@/components/Icons'
+import DistanceBadge from '@/components/DistanceBadge'
 
 export default function VisitSection() {
   const m = useMessages()
@@ -28,11 +29,14 @@ export default function VisitSection() {
               <div className="absolute top-6 left-6 text-white/20 text-2xl select-none" aria-hidden="true">🌸</div>
               <div className="absolute top-6 right-6 text-white/20 text-2xl select-none" aria-hidden="true">🌸</div>
 
-              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-5 py-2 mb-8">
-                <MapPinIcon className="w-4 h-4 text-bonsai-pink-lt" />
-                <span className="font-sans text-xs font-semibold tracking-[0.2em] uppercase text-white/80">
-                  {t.locationBadge}
-                </span>
+              <div className="inline-flex flex-col items-center gap-1.5 mb-8">
+                <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-5 py-2">
+                  <MapPinIcon className="w-4 h-4 text-bonsai-pink-lt" />
+                  <span className="font-sans text-xs font-semibold tracking-[0.2em] uppercase text-white/80">
+                    {t.locationBadge}
+                  </span>
+                </div>
+                <DistanceBadge />
               </div>
 
               <p className="font-sans text-xs font-semibold tracking-[0.2em] uppercase text-bonsai-pink-lt mb-3">

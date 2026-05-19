@@ -42,5 +42,7 @@ export const CONTACT = {
     },
   },
   location: 'Palm Beach, Florida',
+  // 12419 77th Pl N, West Palm Beach FL 33412 — update with exact coords from Google Maps if needed
+  coordinates: { lat: 26.7800, lng: -80.2300 },
   year: '2026',
 } as const
