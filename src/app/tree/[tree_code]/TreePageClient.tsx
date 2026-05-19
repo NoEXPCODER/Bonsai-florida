@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
@@ -10,9 +10,67 @@ import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/componen
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
+// ─── Lightbox ─────────────────────────────────────────────────────────────────
+
+function Lightbox({ urls, startIdx, onClose }: { urls: string[]; startIdx: number; onClose: () => void }) {
+  const [idx, setIdx] = useState(startIdx)
+  const [startX, setStartX] = useState<number | null>(null)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft')  setIdx(i => Math.max(i - 1, 0))
+      if (e.key === 'ArrowRight') setIdx(i => Math.min(i + 1, urls.length - 1))
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose, urls.length])
+
+  function onTouchStart(e: React.TouchEvent) { setStartX(e.touches[0].clientX) }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (startX === null) return
+    const dx = startX - e.changedTouches[0].clientX
+    if (Math.abs(dx) > 40) setIdx(i => dx > 0 ? Math.min(i + 1, urls.length - 1) : Math.max(i - 1, 0))
+    setStartX(null)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+      onClick={onClose} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <button onClick={e => { e.stopPropagation(); onClose() }}
+        className="absolute top-4 right-4 text-white bg-white/10 w-11 h-11 rounded-full flex items-center justify-center text-xl z-10">✕</button>
+      {urls.length > 1 && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+          {idx + 1} / {urls.length}
+        </div>
+      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={urls[idx]} alt={`Photo ${idx + 1}`}
+        className="max-w-full max-h-full object-contain p-2"
+        onClick={e => e.stopPropagation()} />
+      {idx > 0 && (
+        <button onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/10 text-white w-11 h-11 rounded-full flex items-center justify-center text-2xl">‹</button>
+      )}
+      {idx < urls.length - 1 && (
+        <button onClick={e => { e.stopPropagation(); setIdx(i => i + 1) }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/10 text-white w-11 h-11 rounded-full flex items-center justify-center text-2xl">›</button>
+      )}
+      {urls.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+          {urls.map((_, i) => (
+            <button key={i} onClick={e => { e.stopPropagation(); setIdx(i) }}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? 'bg-white w-5' : 'bg-white/40 w-1.5'}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Photo carousel ───────────────────────────────────────────────────────────
 
-function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
+function PhotoCarousel({ urls, name, onTap }: { urls: string[]; name: string; onTap?: (idx: number) => void }) {
   const [idx, setIdx] = useState(0)
   const [startX, setStartX] = useState<number | null>(null)
 
@@ -31,13 +89,15 @@ function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
   return (
     <div className="relative w-full h-full" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={urls[idx]} alt={`${name} ${idx + 1}`} className="w-full h-full object-cover" />
+      <img src={urls[idx]} alt={`${name} ${idx + 1}`}
+        className={`w-full h-full object-contain ${onTap ? 'cursor-zoom-in' : ''}`}
+        onClick={() => onTap?.(idx)} />
       {urls.length > 1 && idx > 0 && (
-        <button onClick={() => setIdx(i => i - 1)}
+        <button onClick={e => { e.stopPropagation(); setIdx(i => i - 1) }}
           className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center text-lg">‹</button>
       )}
       {urls.length > 1 && idx < urls.length - 1 && (
-        <button onClick={() => setIdx(i => i + 1)}
+        <button onClick={e => { e.stopPropagation(); setIdx(i => i + 1) }}
           className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center text-lg">›</button>
       )}
       {urls.length > 1 && (
@@ -49,7 +109,12 @@ function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
         </div>
       )}
       {urls.length > 1 && (
-        <div className="absolute top-4 right-16 bg-black/50 text-white text-xs font-bold px-2 py-0.5 rounded-full">{idx + 1}/{urls.length}</div>
+        <div className="absolute top-3 right-3 bg-black/50 text-white text-xs font-bold px-2 py-0.5 rounded-full">{idx + 1}/{urls.length}</div>
+      )}
+      {onTap && (
+        <div className="absolute bottom-3 left-3 bg-black/40 text-white text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none">
+          Tap to zoom
+        </div>
       )}
     </div>
   )
@@ -520,6 +585,7 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
 }) {
   const [tree, setTree] = useState<DbTree>(initialTree)
   const [editing, setEditing] = useState(false)
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const router = useRouter()
   const photos = getTreeImageUrls(tree)
 
@@ -553,25 +619,23 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
           </div>
         )}
 
-        {/* Hero photo — full width, taller */}
-        <div className="relative w-full h-[300px] overflow-hidden bg-forest">
-          <PhotoCarousel urls={photos} name={tree.name} />
-          <div className="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-white/40 pointer-events-none" />
-          <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-white/40 pointer-events-none" />
-          <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-white/40 pointer-events-none" />
-          <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-white/40 pointer-events-none" />
-          {/* Status badge */}
-          {tree.status && STATUS_CONFIG[tree.status] && (
-            <div className="absolute top-4 left-4 font-sans text-xs font-bold px-3 py-1.5 rounded-full pointer-events-none"
-              style={{ backgroundColor: STATUS_CONFIG[tree.status].bg, color: STATUS_CONFIG[tree.status].color }}>
-              {STATUS_CONFIG[tree.status].label}
-            </div>
-          )}
+        <div className="max-w-lg mx-auto px-4 pt-4">
+          {/* Hero photo — portrait, taller, with rounded corners */}
+          <div className="relative rounded-3xl overflow-hidden bg-forest h-[440px]">
+            <PhotoCarousel urls={photos} name={tree.name} onTap={photos.length > 0 ? (i) => setLightboxIdx(i) : undefined} />
+            {/* Status badge */}
+            {tree.status && STATUS_CONFIG[tree.status] && (
+              <div className="absolute top-4 left-4 font-sans text-xs font-bold px-3 py-1.5 rounded-full pointer-events-none"
+                style={{ backgroundColor: STATUS_CONFIG[tree.status].bg, color: STATUS_CONFIG[tree.status].color }}>
+                {STATUS_CONFIG[tree.status].label}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="max-w-lg mx-auto px-4">
-          {/* Main info card — overlaps photo slightly */}
-          <div className="card p-6 -mt-4 relative z-10 mb-4 shadow-card-lg">
+          {/* Main info card */}
+          <div className="card p-6 mt-4 mb-4 shadow-card-lg">
             {/* Price */}
             <p className="font-serif text-3xl font-bold text-forest mb-1">${tree.price}</p>
 
@@ -658,6 +722,9 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
       </div>
 
       {editing && <EditModal tree={tree} onClose={() => setEditing(false)} onSaved={handleSaved} />}
+      {lightboxIdx !== null && photos.length > 0 && (
+        <Lightbox urls={photos} startIdx={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
     </>
   )
 }
