@@ -171,6 +171,9 @@ export const vi: Messages = {
     askButton: 'Hỏi Về Cây Này',
     footerNote: 'Không thấy cây bạn tìm? Chúng tôi có thể có thêm cây khác.',
     footerCta: 'Gọi Để Hỏi Thêm',
+    bookBannerHeading: 'Muốn xem cây trực tiếp?',
+    bookBannerDesc: 'Đặt lịch tham quan miễn phí vườn bonsai Palm Beach — đi xem bộ sưu tập và tìm cây hoàn hảo cho bạn.',
+    bookBannerButton: 'Đặt Lịch Tham Quan',
   },
   care: {
     label: 'Hướng dẫn đơn giản',

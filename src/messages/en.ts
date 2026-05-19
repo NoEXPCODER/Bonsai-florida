@@ -169,6 +169,9 @@ export const en = {
     askButton: 'Ask About This Tree',
     footerNote: "Don't see what you're looking for? We may have more trees available.",
     footerCta: 'Call to Ask About More Trees',
+    bookBannerHeading: 'Want to see the trees in person?',
+    bookBannerDesc: 'Book a free visit to our Palm Beach garden — walk through the collection and find your perfect tree.',
+    bookBannerButton: 'Book a Garden Visit',
   },
   care: {
     label: 'Simple guidance',

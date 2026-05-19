@@ -9,6 +9,7 @@ import { useMessages } from '@/lib/i18n'
 import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
 import { MessageIcon, PhoneIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
+import BookAppointment from '@/components/BookAppointment'
 
 // ─── Photo card (grid view — default) ────────────────────────────────────────
 
@@ -263,10 +264,11 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
         <h1 className="font-serif text-4xl sm:text-5xl text-forest mb-2">{t.heading}</h1>
         <div className="pink-divider mb-4" />
         <p className="font-sans text-sm text-ink-light max-w-sm mx-auto">{t.description}</p>
-        <div className="flex items-center justify-center gap-3 mt-5">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
           <a href={CONTACT.phone.tel} className="btn-primary text-sm py-2.5">
             <PhoneIcon className="w-4 h-4" /> Call Now
           </a>
+          <BookAppointment label={t.bookBannerButton} />
         </div>
       </div>
 
@@ -362,9 +364,32 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
           </div>
         )}
 
+        {/* Book a visit banner */}
+        {displayed.length > 0 && (
+          <div className="mt-14 rounded-3xl bg-forest px-6 py-10 text-center">
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mb-8" />
+            <p className="font-serif text-2xl sm:text-3xl text-white mb-3">
+              {t.bookBannerHeading}
+            </p>
+            <p className="font-sans text-base text-white/70 leading-relaxed max-w-sm mx-auto mb-7">
+              {t.bookBannerDesc}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <BookAppointment label={t.bookBannerButton} />
+              <a
+                href={CONTACT.phone.tel}
+                className="inline-flex items-center gap-2 border-2 border-white/40 text-white rounded-full px-6 py-3 font-sans text-sm font-bold hover:bg-white/10 transition-colors min-h-[48px]"
+              >
+                <PhoneIcon className="w-4 h-4" /> Call Us Instead
+              </a>
+            </div>
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-8" />
+          </div>
+        )}
+
         {/* Footer CTA */}
         {displayed.length > 0 && (
-          <div className="mt-16 text-center">
+          <div className="mt-10 text-center">
             <p className="font-serif italic text-ink-light text-lg mb-5">{t.footerNote}</p>
             <a href={CONTACT.phone.tel} className="btn-secondary inline-flex">{t.footerCta}</a>
           </div>
