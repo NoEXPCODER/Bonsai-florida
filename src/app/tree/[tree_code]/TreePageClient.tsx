@@ -57,46 +57,149 @@ function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
 
 // ─── Species care guide ───────────────────────────────────────────────────────
 
-interface CareSection { label: string; value: string | null | undefined }
+function ScissorsIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+}
+function PlantPotIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6"/><path d="M5 7h14l-2 13H7L5 7z"/><path d="M12 11v5"/></svg>
+}
+function AlertIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+}
+function PalmIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V10M7 10c0-3 1.5-6 5-7 3.5 1 5 4 5 7"/><path d="M4 14c1-3 3-5 8-4"/><path d="M20 14c-1-3-3-5-8-4"/></svg>
+}
+function CheckboxIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+}
+function StarIcon({ className }: { className?: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+}
+
+function parseChecklist(text: string): string[] {
+  return text.split(/\.\s+/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.endsWith('.') ? s.slice(0, -1) : s)
+}
+
+function CareSectionCard({ icon, title, children, highlighted }: {
+  icon: React.ReactNode; title: string; children: React.ReactNode; highlighted?: boolean
+}) {
+  return (
+    <div className={`rounded-3xl border p-5 mb-3 ${highlighted ? 'border-forest/20 bg-sage-pale/50' : 'bg-white border-forest/10'}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-forest flex-shrink-0">{icon}</span>
+        <p className="font-sans text-xs font-bold text-forest tracking-widest uppercase">{title}</p>
+      </div>
+      {children}
+    </div>
+  )
+}
 
 function SpeciesCareGuide({ species }: { species: DbSpecies }) {
-  const sections: CareSection[] = [
-    { label: 'Quick Facts', value: species.quick_facts_en },
-    { label: 'Light', value: species.light_en },
-    { label: 'Watering', value: species.watering_en },
-    { label: 'Fertilizer', value: species.fertilizer_en },
-    { label: 'Pruning', value: species.pruning_en },
-    { label: 'Repotting', value: species.repotting_en },
-    { label: 'Watch For', value: species.watch_for_en },
-    { label: 'Florida Tips', value: species.florida_tips_en },
-    { label: 'Weekly Checklist', value: species.weekly_checklist_en },
-  ].filter(s => s.value)
+  const hasDetail = !!(species.quick_facts_en || species.light_en || species.watering_en ||
+    species.fertilizer_en || species.pruning_en || species.repotting_en ||
+    species.watch_for_en || species.florida_tips_en || species.weekly_checklist_en)
 
-  if (sections.length === 0) {
+  const header = (
+    <div className="card p-6 mb-3">
+      <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Care Guide</p>
+      <h2 className="font-serif text-2xl text-forest">{species.name_en}</h2>
+      {species.species_latin && <p className="font-sans text-sm italic text-ink-light mt-0.5">{species.species_latin}</p>}
+      <div className="w-8 h-0.5 bg-bonsai-pink-lt mt-3" />
+    </div>
+  )
+
+  if (!hasDetail) {
+    const fallback = [
+      { label: 'Sun', value: species.sun_en },
+      { label: 'Water', value: species.water_en },
+      { label: 'Care', value: species.care_en },
+    ].filter(s => s.value)
     return (
-      <div className="card p-6 mb-5">
-        <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Care Guide</p>
-        <h3 className="font-serif text-lg text-forest mb-1">{species.name_en}</h3>
-        <p className="font-sans text-xs italic text-ink-light">{species.species_latin}</p>
-        <p className="font-sans text-sm text-ink-light mt-3">Detailed care guide coming soon for this species.</p>
+      <div className="mb-5">
+        {header}
+        {fallback.map(({ label, value }) => (
+          <div key={label} className="card p-5 mb-3">
+            <p className="font-sans text-xs font-bold text-forest tracking-widest uppercase mb-2">{label}</p>
+            <p className="font-sans text-base text-ink leading-relaxed">{value}</p>
+          </div>
+        ))}
       </div>
     )
   }
 
+  const checklistItems = species.weekly_checklist_en ? parseChecklist(species.weekly_checklist_en) : []
+
   return (
-    <div className="card p-6 mb-5 space-y-5">
-      <div>
-        <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Care Guide</p>
-        <h3 className="font-serif text-xl text-forest">{species.name_en}</h3>
-        <p className="font-sans text-xs italic text-ink-light">{species.species_latin}</p>
-      </div>
-      <div className="w-10 h-px bg-bonsai-pink-lt" />
-      {sections.map(({ label, value }) => (
-        <div key={label}>
-          <p className="font-sans text-xs font-bold text-forest tracking-wide uppercase mb-1">{label}</p>
-          <p className="font-sans text-sm text-ink-light leading-relaxed whitespace-pre-line">{value}</p>
-        </div>
-      ))}
+    <div className="mb-5">
+      {header}
+
+      {species.quick_facts_en && (
+        <CareSectionCard icon={<StarIcon className="w-4 h-4" />} title="Quick Facts">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.quick_facts_en}</p>
+        </CareSectionCard>
+      )}
+
+      {species.light_en && (
+        <CareSectionCard icon={<SunIcon className="w-4 h-4" />} title="Light">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.light_en}</p>
+        </CareSectionCard>
+      )}
+
+      {species.watering_en && (
+        <CareSectionCard icon={<WaterIcon className="w-4 h-4" />} title="Detailed Watering Guide" highlighted>
+          <div className="space-y-3">
+            {species.watering_en.split('\n\n').map((para, i) => (
+              <p key={i} className="font-sans text-base text-ink leading-relaxed">{para.trim()}</p>
+            ))}
+          </div>
+        </CareSectionCard>
+      )}
+
+      {species.fertilizer_en && (
+        <CareSectionCard icon={<LeafIcon className="w-4 h-4" />} title="Fertilizer">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.fertilizer_en}</p>
+        </CareSectionCard>
+      )}
+
+      {species.pruning_en && (
+        <CareSectionCard icon={<ScissorsIcon className="w-4 h-4" />} title="Pruning">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.pruning_en}</p>
+        </CareSectionCard>
+      )}
+
+      {species.repotting_en && (
+        <CareSectionCard icon={<PlantPotIcon className="w-4 h-4" />} title="Repotting">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.repotting_en}</p>
+        </CareSectionCard>
+      )}
+
+      {species.watch_for_en && (
+        <CareSectionCard icon={<AlertIcon className="w-4 h-4" />} title="Watch For">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.watch_for_en}</p>
+        </CareSectionCard>
+      )}
+
+      {species.florida_tips_en && (
+        <CareSectionCard icon={<PalmIcon className="w-4 h-4" />} title="Florida Tips">
+          <p className="font-sans text-base text-ink leading-relaxed">{species.florida_tips_en}</p>
+        </CareSectionCard>
+      )}
+
+      {checklistItems.length > 0 && (
+        <CareSectionCard icon={<CheckboxIcon className="w-4 h-4" />} title="Weekly Checklist">
+          <ul className="space-y-3">
+            {checklistItems.map((item, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="mt-0.5 w-5 h-5 rounded border-2 border-forest/30 flex-shrink-0 bg-white" />
+                <span className="font-sans text-base text-ink leading-relaxed">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </CareSectionCard>
+      )}
     </div>
   )
 }
@@ -451,8 +554,8 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
               </li>
             </ul>
 
-            {/* Custom staff notes (separate from species care guide) */}
-            {tree.notes && (
+            {/* Staff notes — only visible to authenticated staff */}
+            {isStaff && tree.notes && (
               <>
                 <div className="w-full h-px bg-bonsai-pink-lt/50 my-4" />
                 <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Staff Notes</p>
@@ -461,8 +564,16 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
             )}
           </div>
 
-          {/* Species care guide — only shown when linked species has data */}
-          {species && <SpeciesCareGuide species={species} />}
+          {/* Species care guide */}
+          {species
+            ? <SpeciesCareGuide species={species} />
+            : (
+              <div className="card p-6 mb-5">
+                <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Care Guide</p>
+                <p className="font-sans text-base text-ink-light leading-relaxed">Care guide not linked yet. Please ask Bonsai Florida for care instructions specific to this tree.</p>
+              </div>
+            )
+          }
 
           {/* Contact CTA */}
           <div className="card p-6 text-center">
