@@ -1,5 +1,52 @@
 # Bonsai Florida — Claude Instructions
 
+## Core Rules (Karpathy's 4 — apply every session, no exceptions)
+
+1. **Ask, don't assume.** If anything is unclear, ask before writing a single line. Never make silent assumptions about intent, architecture, or requirements.
+2. **Simplest solution first.** Implement the simplest thing that works. Do not add abstractions, flexibility, or cleverness that were not explicitly requested.
+3. **Don't touch unrelated code.** If a file or function is not directly part of the current task, do not modify it — even if you think it could be improved. Mention it in a note at the end instead.
+4. **Flag uncertainty explicitly.** If you are not confident about an approach or technical detail, say so before proceeding. Never fill gaps with plausible-sounding information.
+
+---
+
+## Response Style
+
+- Never open with filler phrases ("Great question!", "Of course!", "Certainly!"). Start with the actual answer.
+- Match response length to task complexity. Short question = short answer. Complex task = full detail. Never pad or restate.
+- No emojis unless explicitly requested.
+
+---
+
+## Behavior Rules
+
+- Only modify files, functions, and lines directly related to the current task. Flag anything else as a note — never touch it.
+- Before any change that significantly alters existing content (rewriting sections, removing code, restructuring): describe what you're about to change and why. Wait for confirmation.
+- Before deleting files, overwriting code, dropping DB records, or removing dependencies: list exactly what will be affected and ask for explicit confirmation.
+- These require explicit in-session confirmation, no exceptions: pushing to remote, running migrations, sending external API calls, any irreversible command.
+- After every coding task, end with: **Files changed** (list every file) / **What was modified** (one line per file) / **Files not touched** / **Follow-up needed**.
+- For architecture decisions, complex debugging, or non-trivial features: reason through the problem step by step before writing any code. Show tradeoffs. Flag uncertainty. Then implement.
+
+---
+
+## Memory
+
+- Read `MEMORY.md` at session start if it exists. Never contradict a logged decision without flagging it first.
+- When I say "session end", "wrapping up", or "let's stop here": write a session summary to `MEMORY.md` — what was worked on, completed, in progress, decisions made, next priorities.
+- Read `ERRORS.md` before suggesting approaches to similar problems. When an approach takes more than 2 attempts, log it there: what didn't work, what worked instead, note for next time.
+
+---
+
+## Tech Stack (always use these — never suggest alternatives unless asked)
+
+- Language: TypeScript (strict)
+- Framework: Next.js 15 (App Router)
+- Styling: Tailwind CSS 3
+- Database + Storage: Supabase (project: `kezvvfocbpbyykgeohsw`)
+- Package manager: npm
+- Branch: `claude/bonsai-florida-website-XzS9G`
+
+---
+
 ## 7 Bước Viết Prompt Cho Claude 4.7 Mới
 
 ### BƯỚC 1 — Xác định rõ phạm vi.
@@ -101,7 +148,7 @@ All development on: `claude/bonsai-florida-website-XzS9G`
 ### Supabase Project
 - Project ref: `kezvvfocbpbyykgeohsw`
 - URL: `https://kezvvfocbpbyykgeohsw.supabase.co`
-- Tables: `bonsai_trees`, `staff_sessions`
+- Tables: `bonsai_trees`, `tree_species`, `staff_sessions`, `site_settings`
 - Storage bucket: `bonsai-trees` (public)
 
 ---
