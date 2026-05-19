@@ -1383,14 +1383,16 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
         {/* Nav strip */}
         <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
           {[
-            { label: '🌿 Collection', path: '/trees' },
-            { label: '🏠 Site', path: '/' },
-            { label: `📱 ${t.devicesLink}`, path: '/admin/devices' },
-          ].map(({ label, path }) => (
-            <button key={path} onClick={() => router.push(path)}
+            { label: '🌿 Collection', path: '/trees', newTab: true },
+            { label: '🏠 Public Site', path: '/', newTab: true },
+            { label: `📱 ${t.devicesLink}`, path: '/admin/devices', newTab: false },
+          ].map(({ label, path, newTab }) => (
+            <a key={path} href={path}
+              target={newTab ? '_blank' : undefined}
+              rel={newTab ? 'noopener noreferrer' : undefined}
               className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors">
               {label}
-            </button>
+            </a>
           ))}
           <button
             onClick={() => document.getElementById('settings-panel')?.scrollIntoView({ behavior: 'smooth' })}
