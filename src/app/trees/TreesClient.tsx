@@ -223,7 +223,7 @@ type Filter = 'all' | 'beginner' | 'intermediate'
 const VIEW_ICONS: Record<View, string> = { grid: '⊞', list: '≡', care: '✿' }
 const VIEW_LABELS: Record<View, string> = { grid: 'Photos', list: 'List', care: 'Care' }
 
-export default function TreesClient({ trees }: { trees: DbTree[] }) {
+export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]; logoUrl?: string | null }) {
   const router = useRouter()
   const m = useMessages()
   const t = m.collection
@@ -256,7 +256,7 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
 
   return (
     <div className="min-h-screen bg-cream">
-      <Navbar />
+      <Navbar logoUrl={logoUrl} />
 
       {/* Header */}
       <div className="bg-cream-light border-b border-forest/10 px-4 py-10 text-center">
