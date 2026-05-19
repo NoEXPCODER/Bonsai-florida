@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash, timingSafeEqual } from 'crypto'
-import { getAdminPin } from '@/lib/admin-auth'
+import { AUTH } from '@/config/auth'
 import { createServerClient } from '@/lib/supabase-server'
 import {
   generateToken,
@@ -28,7 +28,7 @@ function isRateLimited(ip: string): boolean {
   return false
 }
 
-/** POST /api/admin/auth — validate PIN, create session, set httpOnly cookie */
+/** POST /api/admin/auth — validate username + password, create session, set httpOnly cookie */
 export async function POST(req: NextRequest) {
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
@@ -42,29 +42,32 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { pin, remember = true } = await req.json()
+  const { username, password, remember = true } = await req.json()
 
-  let adminPin: string
-  try {
-    adminPin = getAdminPin()
-  } catch (error) {
-    console.error(error instanceof Error ? error.message : 'Admin PIN is not configured.')
-    return NextResponse.json({ error: 'Admin PIN is not configured' }, { status: 500 })
-  }
+  // Timing-safe comparison for both fields
+  const usernameMatch = timingSafeEqual(
+    createHash('sha256').update(String(username ?? '')).digest(),
+    createHash('sha256').update(AUTH.username).digest(),
+  )
+  const passwordMatch = timingSafeEqual(
+    createHash('sha256').update(String(password ?? '')).digest(),
+    createHash('sha256').update(AUTH.password).digest(),
+  )
 
-  // Hash both sides and use constant-time comparison to prevent timing attacks
-  const incoming = createHash('sha256').update(String(pin ?? '')).digest()
-  const expected = createHash('sha256').update(adminPin).digest()
-  const pinValid = timingSafeEqual(incoming, expected)
-
-  if (!pinValid) {
-    return NextResponse.json({ error: 'Invalid PIN' }, { status: 401 })
+  if (!usernameMatch || !passwordMatch) {
+    return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
   }
 
   // Clear rate limit on success
   attempts.delete(ip)
 
-  const db = createServerClient()
+  let db
+  try {
+    db = createServerClient()
+  } catch {
+    return NextResponse.json({ error: 'Server error — check Vercel env vars (SUPABASE_SERVICE_ROLE_KEY).' }, { status: 500 })
+  }
+
   const rawToken = generateToken()
   const tokenHash = hashToken(rawToken)
   const ua = req.headers.get('user-agent') ?? ''

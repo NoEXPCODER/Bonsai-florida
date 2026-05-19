@@ -104,19 +104,17 @@ function SettingsPanel() {
   )
 }
 
-// ─── PIN Screen ───────────────────────────────────────────────────────────────
+// ─── Login Screen ─────────────────────────────────────────────────────────────
 
-function PinScreen({ onUnlock, t }: {
-  onUnlock: () => void
-  t: ReturnType<typeof useMessages>['admin']
-}) {
-  const [pin, setPin] = useState('')
+function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const usernameRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { inputRef.current?.focus() }, [])
+  useEffect(() => { usernameRef.current?.focus() }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -126,23 +124,18 @@ function PinScreen({ onUnlock, t }: {
     const res = await fetch('/api/admin/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin, remember }),
+      body: JSON.stringify({ username, password, remember }),
     })
 
     if (res.ok) {
       onUnlock()
     } else if (res.status === 401) {
-      setError(t.pinError)
-      setPin('')
-      inputRef.current?.focus()
+      setError('Invalid username or password.')
+      setPassword('')
     } else if (res.status === 429) {
       setError('Too many attempts. Try again in 15 minutes.')
-      setPin('')
-      inputRef.current?.focus()
     } else {
       setError('Server error — check Vercel env vars (SUPABASE_SERVICE_ROLE_KEY).')
-      setPin('')
-      inputRef.current?.focus()
     }
     setLoading(false)
   }
@@ -154,22 +147,30 @@ function PinScreen({ onUnlock, t }: {
 
         <div className="card p-8 text-center shadow-card-lg">
           <div className="text-4xl mb-5">🌸</div>
-          <h1 className="font-serif text-3xl text-forest mb-2">{t.pinTitle}</h1>
-          <p className="font-sans text-sm text-ink-light mb-8">{t.pinSubtitle}</p>
+          <h1 className="font-serif text-3xl text-forest mb-2">Admin Login</h1>
+          <p className="font-sans text-sm text-ink-light mb-8">Sign in to manage your collection.</p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
-              ref={inputRef}
+              ref={usernameRef}
+              type="text"
+              autoComplete="username"
+              placeholder="Username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              className="w-full px-5 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
+            />
+            <input
               type="password"
-              inputMode="numeric"
-              placeholder={t.pinPlaceholder}
-              value={pin}
-              onChange={e => setPin(e.target.value)}
-              className="w-full px-5 py-4 rounded-2xl border border-forest/20 bg-white font-sans text-2xl text-center tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
+              autoComplete="current-password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full px-5 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
             />
 
-            {/* Remember device checkbox */}
-            <label className="flex items-center gap-3 cursor-pointer text-left select-none">
+            {/* Remember device */}
+            <label className="flex items-center gap-3 cursor-pointer text-left select-none pt-1">
               <div
                 className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                   remember ? 'bg-forest border-forest' : 'border-forest/30 bg-white'
@@ -178,16 +179,10 @@ function PinScreen({ onUnlock, t }: {
               >
                 {remember && <span className="text-white text-sm">✓</span>}
               </div>
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-                className="sr-only"
-                aria-label={t.rememberDevice}
-              />
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="sr-only" />
               <div>
-                <span className="font-sans text-sm font-semibold text-forest">{t.rememberDevice}</span>
-                <span className="block font-sans text-xs text-ink-light">{t.rememberHint}</span>
+                <span className="font-sans text-sm font-semibold text-forest">Remember this device</span>
+                <span className="block font-sans text-xs text-ink-light">Stay logged in for 30 days</span>
               </div>
             </label>
 
@@ -195,10 +190,10 @@ function PinScreen({ onUnlock, t }: {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !username || !password}
               className="btn-primary w-full justify-center text-lg py-4 disabled:opacity-60"
             >
-              {loading ? t.pinLoading : t.pinButton}
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
         </div>
@@ -1331,7 +1326,7 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
   }
 
   if (!isAuth) {
-    return <PinScreen onUnlock={() => setIsAuth(true)} t={t} />
+    return <LoginScreen onUnlock={() => setIsAuth(true)} />
   }
 
   return (
