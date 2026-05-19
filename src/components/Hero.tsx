@@ -6,6 +6,7 @@ import { useMessages } from '@/lib/i18n'
 import { PhoneIcon, MessageIcon, InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
+import BookAppointment from '@/components/BookAppointment'
 
 const SOCIALS = [
   { href: CONTACT.social.instagram.url, icon: InstagramIcon, label: 'Instagram' },
@@ -163,6 +164,10 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
               <a href="/trees" className="btn-secondary text-base py-3.5 px-7 min-h-[52px]">
                 {t.viewTrees}
               </a>
+              <BookAppointment
+                label={t.bookAppointment}
+                className="btn-secondary text-base py-3.5 px-7 min-h-[52px]"
+              />
             </div>
 
             <div className="flex items-center gap-4">
