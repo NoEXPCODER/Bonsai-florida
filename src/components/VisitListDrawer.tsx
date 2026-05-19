@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useVisitList } from '@/hooks/useVisitList'
-import { VISIT_LIST_EVENT, MAX_VISIT_LIST } from '@/lib/visit-list'
+import { MAX_VISIT_LIST } from '@/lib/visit-list'
 import { CONTACT } from '@/config/contact'
 import { saveCustomer } from '@/lib/customer-session'
 import { useAuth } from '@/lib/i18n'
@@ -18,16 +18,11 @@ export default function VisitListDrawer({ open, onClose }: Props) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [saved, setSaved] = useState(false)
+  const [contactError, setContactError] = useState('')
 
   useEffect(() => {
     if (open && customer) { setName(customer.name); setPhone(customer.phone) }
   }, [open, customer])
-
-  useEffect(() => {
-    function sync() {}
-    window.addEventListener(VISIT_LIST_EVENT, sync)
-    return () => window.removeEventListener(VISIT_LIST_EVENT, sync)
-  }, [])
 
   if (!open) return null
 
@@ -39,11 +34,13 @@ export default function VisitListDrawer({ open, onClose }: Props) {
 
   function handleSaveContact(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !phone.trim()) return
+    if (!name.trim()) { setContactError('Please enter your name.'); return }
+    if (!phone.trim()) { setContactError('Please enter your phone number.'); return }
     const c = { name: name.trim(), phone: phone.trim() }
     saveCustomer(c)
     setCustomer(c)
     setSaved(true)
+    setContactError('')
   }
 
   return (
@@ -128,6 +125,9 @@ export default function VisitListDrawer({ open, onClose }: Props) {
                   onChange={e => setPhone(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl border border-forest/20 bg-white font-sans text-sm focus:outline-none focus:ring-2 focus:ring-forest/20"
                 />
+                {contactError && (
+                  <p className="font-sans text-xs text-red-500">{contactError}</p>
+                )}
                 <button type="submit" className="btn-primary w-full justify-center text-sm py-2.5">
                   Save My List
                 </button>

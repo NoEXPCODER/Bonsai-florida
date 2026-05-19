@@ -195,7 +195,7 @@ function ContactStep({
       </div>
 
       {/* Honeypot — hidden from real users, bots fill it */}
-      <input type="text" name="_hp" className="hidden" tabIndex={-1} aria-hidden="true" readOnly />
+      <input type="text" name="_hp" className="hidden" tabIndex={-1} aria-hidden="true" />
 
       {error && (
         <p className="font-sans text-xs text-red-500 mt-4">{error}</p>

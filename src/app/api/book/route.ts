@@ -22,18 +22,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true }) // silent accept to fool bots
   }
 
-  const { reason, name, email, phone, notes, tree_name } = body as Record<string, string>
+  const { reason, name, email, phone, notes, tree_name, saved_trees } = body as Record<string, unknown>
 
-  if (!reason || !name || !email || !phone) {
+  if (!reason || !name || !email || !phone || typeof reason !== 'string' || typeof name !== 'string' || typeof email !== 'string' || typeof phone !== 'string') {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
 
   // Basic field length guards
   if (
-    name.length > 120 ||
-    email.length > 200 ||
-    phone.length > 30 ||
-    (notes && notes.length > 1000)
+    (reason as string).length > 120 ||
+    (name as string).length > 120 ||
+    (email as string).length > 200 ||
+    (phone as string).length > 30 ||
+    (notes && typeof notes === 'string' && notes.length > 1000)
   ) {
     return NextResponse.json({ error: 'Field too long.' }, { status: 400 })
   }
@@ -56,12 +57,13 @@ export async function POST(req: NextRequest) {
   }
 
   const { error } = await db.from('bookings').insert({
-    reason: reason.trim(),
-    name: name.trim(),
-    email: email.trim().toLowerCase(),
-    phone: phone.trim(),
-    notes: notes?.trim() ?? null,
-    tree_name: tree_name?.trim() ?? null,
+    reason: (reason as string).trim(),
+    name: (name as string).trim(),
+    email: (email as string).trim().toLowerCase(),
+    phone: (phone as string).trim(),
+    notes: typeof notes === 'string' ? notes.trim() || null : null,
+    tree_name: typeof tree_name === 'string' ? tree_name.trim() || null : null,
+    saved_trees: Array.isArray(saved_trees) && saved_trees.length > 0 ? saved_trees : null,
     status: 'pending',
   })
 
