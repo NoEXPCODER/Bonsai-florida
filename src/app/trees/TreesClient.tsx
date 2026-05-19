@@ -16,7 +16,6 @@ import { MAX_VISIT_LIST } from '@/lib/visit-list'
 // ─── Photo card (grid view — default) ────────────────────────────────────────
 
 function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const t = useMessages().collection
   const { list, toggle } = useVisitList()
   const primary = getPrimaryTreeImageUrl(tree)
   const count = getTreeImageUrls(tree).length
@@ -93,16 +92,8 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
             </p>
           </div>
         )}
-        <div className="flex items-center justify-between gap-2 mt-2">
+        <div className="mt-2">
           <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
-          <a
-            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light active:scale-95 transition-all flex-shrink-0"
-            aria-label={`Ask about ${tree.name}`}
-          >
-            <MessageIcon className="w-3 h-3" /> {t.askButton}
-          </a>
         </div>
       </div>
     </article>
@@ -112,7 +103,6 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 // ─── List row ─────────────────────────────────────────────────────────────────
 
 function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const t = useMessages().collection
   const { list, toggle } = useVisitList()
   const primary = getPrimaryTreeImageUrl(tree)
   const species = tree.tree_species
@@ -158,29 +148,19 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         </div>
       </div>
 
-      {/* Price + Ask + Save */}
+      {/* Price + Save */}
       <div className="flex-shrink-0 flex flex-col items-end gap-2 pr-4 py-3">
         <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleSave}
-            disabled={listFull}
-            aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
-              isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-forest/10 text-ink-light/30' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
-            }`}
-          >
-            <span className="text-xs leading-none">{isSaved ? '♥' : '♡'}</span>
-          </button>
-          <a
-            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
-            aria-label={`Ask about ${tree.name}`}
-          >
-            <MessageIcon className="w-3 h-3" /> {t.askButton}
-          </a>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={listFull}
+          aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+            isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-forest/10 text-ink-light/30' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
+          }`}
+        >
+          <span className="text-sm leading-none">{isSaved ? '♥' : '♡'}</span>
+        </button>
       </div>
     </article>
   )
@@ -189,7 +169,6 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 // ─── Care row ─────────────────────────────────────────────────────────────────
 
 function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const t = useMessages().collection
   const { list, toggle } = useVisitList()
   const species = tree.tree_species
   const image = getPrimaryTreeImageUrl(tree)
@@ -254,15 +233,8 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
       <div className="flex gap-2 px-4 pb-4">
         <button type="button" onClick={onClick} className="btn-primary flex-1 justify-center text-xs py-2.5">
-          {species ? 'Tree Care Guide →' : 'Ask for Care Guide'}
+          {species ? 'Tree Care Guide →' : 'View Tree'}
         </button>
-        <a
-          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-          onClick={e => e.stopPropagation()}
-          className="btn-secondary flex-1 justify-center text-xs py-2.5"
-        >
-          <MessageIcon className="w-3 h-3" /> {t.askButton}
-        </a>
         <button
           onClick={handleSave}
           disabled={listFull}
