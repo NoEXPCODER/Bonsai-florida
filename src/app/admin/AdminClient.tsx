@@ -45,7 +45,7 @@ function SettingsPanel() {
   }
 
   return (
-    <section className="card p-6 space-y-5">
+    <section id="settings-panel" className="card p-6 space-y-5">
       <h2 className="font-serif text-xl text-forest">⚙️ Settings</h2>
 
       <div>
@@ -1363,6 +1363,12 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
               {label}
             </button>
           ))}
+          <button
+            onClick={() => document.getElementById('settings-panel')?.scrollIntoView({ behavior: 'smooth' })}
+            className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+          >
+            ⚙️ Settings
+          </button>
         </div>
       </header>
 

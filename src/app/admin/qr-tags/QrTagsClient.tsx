@@ -67,34 +67,40 @@ function PunchHole() {
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
 function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | null }) {
   if (!tree) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '100%' }} />
   }
-  const nameFontSize = tree.name.length > 20 ? '13px' : tree.name.length > 14 ? '16px' : '20px'
+  const nameFontSize = tree.name.length > 20 ? '13px' : tree.name.length > 14 ? '17px' : '22px'
   const logoSrc = logoUrl ?? '/logo.png'
 
   return (
     <div style={{
       position: 'relative', backgroundColor: 'white',
       border: '1px dashed #999',
-      boxSizing: 'border-box', padding: '22px 14px 12px',
-      display: 'flex', flexDirection: 'row', alignItems: 'center',
-      gap: '12px', overflow: 'hidden', width: '100%', height: '100%',
+      boxSizing: 'border-box', padding: '0',
+      display: 'flex', flexDirection: 'row', alignItems: 'stretch',
+      overflow: 'hidden', width: '100%', height: '100%',
     }}>
       <PunchHole />
 
-      {/* Left: brand logo */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '155px' }}>
+      {/* Left: brand logo panel — fills full height */}
+      <div style={{
+        flexShrink: 0, width: '42%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        borderRight: `0.75px solid ${G}18`,
+        padding: '24px 10px 12px',
+      }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
-          style={{ width: '155px', height: 'auto', objectFit: 'contain' }} />
+          style={{ height: '100%', width: 'auto', maxWidth: '100%', objectFit: 'contain' }} />
       </div>
 
-      {/* Vertical divider */}
-      <div style={{ width: '0.75px', alignSelf: 'stretch', backgroundColor: `${G}20`, margin: '8px 0' }} />
-
       {/* Right: tree info */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '5px' }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', flex: 1, gap: '5px',
+        padding: '24px 14px 12px',
+      }}>
         {/* Pink ornament */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '90%' }}>
           <div style={{ flex: 1, height: '0.75px', backgroundColor: P }} />
@@ -114,11 +120,10 @@ function TagFront({ tree, logoUrl }: { tree: TagTree | null; logoUrl: string | n
           </p>
         )}
 
-        <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '1px 0' }} />
+        <div style={{ width: '80%', height: '0.5px', backgroundColor: `${G}18`, margin: '2px 0' }} />
 
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '7.5px', color: `${G}60`, letterSpacing: '0.16em', margin: 0 }}>PALM BEACH, FLORIDA</p>
 
-        {/* ✦ divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <div style={{ width: '14px', height: '0.5px', backgroundColor: `${G}40` }} />
           <span style={{ fontSize: '10px', color: G, lineHeight: 1 }}>✦</span>
@@ -253,6 +258,11 @@ const PRINT_STYLES = `
       grid-template-columns: 1fr 1fr;
       grid-template-rows: repeat(4, 2.625in);
       gap: 0;
+    }
+    .tag-page > * {
+      height: 2.625in;
+      box-sizing: border-box;
+      overflow: hidden;
     }
   }
 `
