@@ -11,10 +11,10 @@ export default function Navbar() {
   const m = useMessages()
 
   const navLinks = [
-    { href: '#connect', label: m.nav.connect },
+    { href: '/#connect', label: m.nav.connect },
     { href: '/trees', label: m.nav.collection },
-    { href: '#care', label: m.nav.care },
-    { href: '#visit', label: m.nav.visit },
+    { href: '/#care', label: m.nav.care },
+    { href: '/#visit', label: m.nav.visit },
   ]
 
   return (

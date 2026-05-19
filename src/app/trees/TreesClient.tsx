@@ -2,13 +2,13 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
 import { findCareGuideForTree } from '@/data/care-guides'
 import { useMessages } from '@/lib/i18n'
 import { MessageIcon, PhoneIcon, SunIcon, WaterIcon } from '@/components/Icons'
+import Navbar from '@/components/Navbar'
 
 // ─── Photo card (grid view — default) ────────────────────────────────────────
 
@@ -240,7 +240,7 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
 
   return (
     <div className="min-h-screen bg-cream">
-      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
+      <Navbar />
 
       {/* Header */}
       <div className="bg-cream-light border-b border-forest/10 px-4 py-10 text-center">
@@ -252,7 +252,6 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
           <a href={CONTACT.phone.tel} className="btn-primary text-sm py-2.5">
             <PhoneIcon className="w-4 h-4" /> Call Now
           </a>
-          <Link href="/" className="btn-secondary text-sm py-2.5">← Home</Link>
         </div>
       </div>
 

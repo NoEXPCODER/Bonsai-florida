@@ -7,6 +7,7 @@ import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getTreeImageUrls } from '@/lib/tree-images'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
+import Navbar from '@/components/Navbar'
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
@@ -601,6 +602,7 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
   return (
     <>
       <div className="min-h-screen bg-cream">
+        {!isStaff && <Navbar />}
         <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
 
         {/* Staff banner */}
