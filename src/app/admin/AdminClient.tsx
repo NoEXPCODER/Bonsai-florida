@@ -270,7 +270,7 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
 
   function setField(k: keyof FormData, v: string) { setForm(p => ({ ...p, [k]: v })) }
 
-  function handleSpeciesSelect(s: DbSpecies | null, autoName: string) {
+  function handleSpeciesSelect(s: DbSpecies | null, _autoName: string) {
     if (!s) return
     setForm(p => {
       const isDefaultSun = p.sun === DEFAULT_FORM.sun || p.sun === ''
@@ -519,11 +519,261 @@ function exportCSV(trees: DbTree[], baseUrl: string) {
   a.click()
 }
 
-function TreeList({ trees, t, onDelete, onBulkDelete }: {
+// ─── Edit Tree Modal ──────────────────────────────────────────────────────────
+
+function EditTreeModal({ tree, onClose, onSaved }: {
+  tree: DbTree
+  onClose: () => void
+  onSaved: (id: string, updates: Partial<DbTree>) => void
+}) {
+  const { locale } = useAuth()
+  const [form, setForm] = useState({
+    name: tree.name,
+    species: tree.species ?? '',
+    price: tree.price,
+    level: tree.level,
+    sun: tree.sun,
+    water: tree.water,
+    notes: tree.notes ?? '',
+    location_row: tree.location_row ?? '',
+    location_tree: tree.location_tree ?? '',
+    species_id: tree.species_id ?? '',
+  })
+  const [imageUrl, setImageUrl] = useState<string | null>(tree.image_url ?? null)
+  const [imageUrls, setImageUrls] = useState<string[]>(tree.image_urls ?? [])
+  const [newMainFile, setNewMainFile] = useState<File | null>(null)
+  const [newMainPreview, setNewMainPreview] = useState('')
+  const [newGalleryFiles, setNewGalleryFiles] = useState<File[]>([])
+  const [newGalleryPreviews, setNewGalleryPreviews] = useState<string[]>([])
+  const [allSpecies, setAllSpecies] = useState<DbSpecies[]>([])
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const [comboboxKey, setComboboxKey] = useState(0)
+
+  const mainRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/species')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data)) setAllSpecies(data) })
+      .catch(() => {})
+  }, [])
+
+  function setF(k: keyof typeof form, v: string) { setForm(p => ({ ...p, [k]: v })) }
+
+  function handleSpeciesSelect(s: DbSpecies | null, _autoName: string) {
+    if (!s) return
+    setForm(p => ({ ...p, species: s.species_latin, species_id: s.id }))
+    setComboboxKey(k => k + 1)
+  }
+
+  function pickMainFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null
+    if (!f) return
+    setNewMainFile(f); setNewMainPreview(URL.createObjectURL(f)); e.target.value = ''
+  }
+  function pickGalleryFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(e.target.files ?? [])
+    if (!picked.length) return
+    setNewGalleryFiles(prev => [...prev, ...picked])
+    setNewGalleryPreviews(prev => [...prev, ...picked.map(f => URL.createObjectURL(f))])
+    e.target.value = ''
+  }
+  function removeCurrentMain() { setImageUrl(null); setNewMainFile(null); setNewMainPreview('') }
+  function removeCurrentGallery(i: number) { setImageUrls(prev => prev.filter((_, idx) => idx !== i)) }
+  function removeNewGallery(i: number) {
+    setNewGalleryFiles(prev => prev.filter((_, idx) => idx !== i))
+    setNewGalleryPreviews(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  async function uploadFile(file: File, slug: string, prefix: string, idx: number): Promise<string> {
+    const result = await optimizeTreeImage(file)
+    const ext = result.file.name.split('.').pop() ?? 'jpg'
+    const path = `${prefix}${Date.now()}-${idx}-${slug}.${ext}`
+    const fd = new FormData()
+    fd.append('file', result.file)
+    fd.append('path', path)
+    const up = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+    if (!up.ok) {
+      const err = await up.json().catch(() => ({}))
+      throw new Error(up.status === 401 ? 'Session expired.' : `Upload failed: ${err.error ?? up.status}`)
+    }
+    return (await up.json()).url as string
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true); setUploading(true); setError('')
+    try {
+      const slug = form.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'bonsai'
+      let finalMainUrl = imageUrl
+      if (newMainFile) finalMainUrl = await uploadFile(newMainFile, slug, '', 0)
+      const newGalleryUrls = await Promise.all(newGalleryFiles.map((file, i) => uploadFile(file, slug, 'gallery-', i)))
+      setUploading(false)
+
+      const updates: Partial<DbTree> = {
+        name: form.name,
+        species: form.species || null,
+        price: form.price,
+        level: form.level,
+        sun: form.sun,
+        water: form.water,
+        notes: form.notes || null,
+        location_row: form.location_row || null,
+        location_tree: form.location_tree || null,
+        species_id: form.species_id || null,
+        image_url: finalMainUrl,
+        image_urls: [...imageUrls, ...newGalleryUrls],
+      }
+
+      const res = await fetch(`/api/admin/trees/${tree.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (!res.ok) throw new Error('Save failed — check your session.')
+      onSaved(tree.id, updates)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed.')
+    } finally {
+      setSaving(false); setUploading(false)
+    }
+  }
+
+  const mainDisplay = newMainPreview || imageUrl
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-cream-light rounded-3xl shadow-card-lg overflow-hidden">
+        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
+        <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-xl text-forest">Edit — {tree.name}</h2>
+            <button type="button" onClick={onClose} className="text-ink-light hover:text-ink text-xl">✕</button>
+          </div>
+
+          {/* Species picker */}
+          <div>
+            <label className="block font-sans text-sm font-semibold text-forest mb-1.5">
+              Species <span className="font-normal text-ink-light">(auto-fills latin name)</span>
+            </label>
+            <SpeciesCombobox key={comboboxKey} allSpecies={allSpecies} locale={locale} onSelect={handleSpeciesSelect} />
+          </div>
+
+          {/* Cover photo */}
+          <div>
+            <p className="font-sans text-sm font-semibold text-forest mb-2">Cover Photo</p>
+            {mainDisplay ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={mainDisplay} alt="Cover" className="w-full aspect-[4/3] object-cover rounded-2xl border border-forest/20" />
+                <span className="absolute top-2 left-2 bg-forest text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Cover</span>
+                <button type="button" onClick={removeCurrentMain} className="absolute top-2 right-2 bg-black/60 text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/80">✕</button>
+                <button type="button" onClick={() => mainRef.current?.click()} className="absolute bottom-2 left-2 bg-forest/80 text-white font-sans text-[10px] font-bold px-2.5 py-1 rounded-full hover:bg-forest transition-colors">Replace</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => mainRef.current?.click()} className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-forest/30 bg-sage-pale/50 flex flex-col items-center justify-center gap-2 hover:border-forest transition-colors">
+                <span className="text-3xl">📷</span>
+                <span className="font-sans text-sm font-semibold text-forest">Add Cover Photo</span>
+              </button>
+            )}
+            <input ref={mainRef} type="file" accept="image/*" onChange={pickMainFile} className="hidden" />
+          </div>
+
+          {/* Gallery */}
+          <div>
+            <p className="font-sans text-xs text-ink-light mb-2">Gallery photos</p>
+            <div className="grid grid-cols-4 gap-2">
+              {imageUrls.map((url, i) => (
+                <div key={`c-${i}`} className="relative aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover rounded-xl border border-forest/20" />
+                  <button type="button" onClick={() => removeCurrentGallery(i)} className="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] hover:bg-black/80">✕</button>
+                </div>
+              ))}
+              {newGalleryPreviews.map((url, i) => (
+                <div key={`n-${i}`} className="relative aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover rounded-xl border-2 border-forest/40" />
+                  <button type="button" onClick={() => removeNewGallery(i)} className="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] hover:bg-black/80">✕</button>
+                </div>
+              ))}
+              <button type="button" onClick={() => galleryRef.current?.click()} className="aspect-square rounded-xl border-2 border-dashed border-forest/30 bg-sage-pale/50 flex items-center justify-center text-2xl hover:border-forest transition-colors">+</button>
+            </div>
+            <input ref={galleryRef} type="file" accept="image/*" multiple onChange={pickGalleryFiles} className="hidden" />
+          </div>
+
+          {/* Text fields */}
+          {([
+            { label: 'Name', key: 'name' as const },
+            { label: 'Species (Latin)', key: 'species' as const },
+            { label: 'Price', key: 'price' as const },
+            { label: 'Sun', key: 'sun' as const },
+            { label: 'Water', key: 'water' as const },
+          ] as { label: string; key: keyof typeof form }[]).map(({ label, key }) => (
+            <div key={key}>
+              <label className="block font-sans text-sm font-semibold text-forest mb-1">{label}</label>
+              <input type="text" value={form[key]} onChange={e => setF(key, e.target.value)} className={inputCls} />
+            </div>
+          ))}
+
+          <div>
+            <label className="block font-sans text-sm font-semibold text-forest mb-1">Level</label>
+            <select value={form.level} onChange={e => setF('level', e.target.value)} className={inputCls}>
+              <option value="Beginner Friendly">Beginner Friendly</option>
+              <option value="Intermediate">Intermediate</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-sans text-sm font-semibold text-forest mb-1">Staff Notes</label>
+            <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={2} className={inputCls + ' resize-none'} />
+          </div>
+
+          {/* Garden location */}
+          <div className="rounded-2xl border border-forest/10 bg-sage-pale/40 px-4 py-4 space-y-3">
+            <p className="font-sans text-sm font-semibold text-forest">📍 Garden Location</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-sans text-xs text-ink-light mb-1">Row</label>
+                <input type="text" value={form.location_row} onChange={e => setF('location_row', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block font-sans text-xs text-ink-light mb-1">Tree #</label>
+                <input type="text" value={form.location_tree} onChange={e => setF('location_tree', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+          </div>
+
+          {uploading && <p className="font-sans text-sm text-forest text-center animate-pulse">Uploading photos…</p>}
+          {error && <p className="font-sans text-sm text-bonsai-pink text-center">{error}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1 justify-center py-3">Cancel</button>
+            <button type="submit" disabled={saving} className="btn-primary flex-1 justify-center py-3 disabled:opacity-60">
+              {saving ? (uploading ? 'Uploading…' : 'Saving…') : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
+      </div>
+    </div>
+  )
+}
+
+// ─── Tree List ────────────────────────────────────────────────────────────────
+
+function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
   trees: DbTree[]
   t: ReturnType<typeof useMessages>['admin']
   onDelete: (tree: DbTree) => void
   onBulkDelete: (ids: string[], trees: DbTree[]) => void
+  onEdit: (tree: DbTree) => void
+  onBulkQrPrint: (trees: DbTree[]) => void
 }) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
@@ -561,6 +811,11 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
   function handleBulkExport() {
     const selectedTrees = sorted.filter(t => selected.has(t.id))
     exportCSV(selectedTrees, baseUrl)
+  }
+
+  function handleBulkQrPrint() {
+    const selectedTrees = sorted.filter(t => selected.has(t.id))
+    onBulkQrPrint(selectedTrees)
   }
 
   if (trees.length === 0) {
@@ -614,6 +869,13 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
             className="font-sans text-xs font-bold border border-white/40 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
             Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={handleBulkQrPrint}
+            className="font-sans text-xs font-bold border border-white/40 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            🏷 QR Tags
           </button>
           <button
             type="button"
@@ -699,13 +961,21 @@ function TreeList({ trees, t, onDelete, onBulkDelete }: {
                   </div>
                 </div>
 
-                {/* Single delete */}
-                <button
-                  onClick={() => onDelete(tree)}
-                  className="flex-shrink-0 bg-bonsai-pink-pale border border-bonsai-pink/30 text-bonsai-pink font-sans text-xs font-bold px-3 py-2 rounded-xl hover:bg-bonsai-pink hover:text-white transition-colors"
-                >
-                  {t.deleteButton}
-                </button>
+                {/* Actions */}
+                <div className="flex-shrink-0 flex flex-col gap-1.5">
+                  <button
+                    onClick={() => onEdit(tree)}
+                    className="bg-sage-pale border border-forest/20 text-forest font-sans text-xs font-bold px-3 py-2 rounded-xl hover:bg-sage hover:text-white transition-colors"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => onDelete(tree)}
+                    className="bg-bonsai-pink-pale border border-bonsai-pink/30 text-bonsai-pink font-sans text-xs font-bold px-3 py-2 rounded-xl hover:bg-bonsai-pink hover:text-white transition-colors"
+                  >
+                    {t.deleteButton}
+                  </button>
+                </div>
               </div>
 
               {/* QR row */}
@@ -908,6 +1178,7 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
   const [isAuth, setIsAuth] = useState(initialAuth)
   const [trees, setTrees] = useState<DbTree[]>([])
   const [soldTree, setSoldTree] = useState<DbTree | null>(null)
+  const [editTree, setEditTree] = useState<DbTree | null>(null)
   const [loadingTrees, setLoadingTrees] = useState(false)
   const activeTrees = trees.filter(tree => tree.is_active)
   const soldTrees = trees.filter(tree => !tree.is_active)
@@ -946,6 +1217,15 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
     const results = await Promise.all(ids.map(id => fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })))
     const soldIds = new Set(ids.filter((_, i) => results[i]?.ok))
     setTrees(p => p.map(tree => soldIds.has(tree.id) ? { ...tree, is_active: false } : tree))
+  }
+
+  function handleTreeSaved(id: string, updates: Partial<DbTree>) {
+    setTrees(p => p.map(t => t.id === id ? { ...t, ...updates } : t))
+  }
+
+  function handleBulkQrPrint(selectedTrees: DbTree[]) {
+    const ids = selectedTrees.map(t => t.id).join(',')
+    router.push(`/admin/qr-tags?ids=${ids}`)
   }
 
   async function handleLogout() {
@@ -1004,7 +1284,14 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
           </span>
           <div className="flex-1 h-px bg-forest/10" />
         </div>
-        <TreeList trees={activeTrees} t={t} onDelete={handleDelete} onBulkDelete={handleBulkDelete} />
+        <TreeList
+          trees={activeTrees}
+          t={t}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
+          onEdit={setEditTree}
+          onBulkQrPrint={handleBulkQrPrint}
+        />
         <SoldTreeList trees={soldTrees} t={t} />
       </main>
 
@@ -1014,6 +1301,14 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
           t={t}
           onClose={() => setSoldTree(null)}
           onSold={markTreeSold}
+        />
+      )}
+
+      {editTree && (
+        <EditTreeModal
+          tree={editTree}
+          onClose={() => setEditTree(null)}
+          onSaved={handleTreeSaved}
         />
       )}
 
