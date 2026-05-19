@@ -2,7 +2,7 @@
 
 import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
-import { PhoneIcon, MessageIcon, MapPinIcon } from '@/components/Icons'
+import { MessageIcon, MapPinIcon } from '@/components/Icons'
 import DistanceBadge from '@/components/DistanceBadge'
 
 export default function VisitSection() {
@@ -57,16 +57,8 @@ export default function VisitSection() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href={CONTACT.phone.tel}
-                  className="inline-flex items-center justify-center gap-3 bg-white text-forest rounded-full px-10 py-4 font-sans font-bold text-base tracking-wide shadow-card hover:bg-cream transition-colors min-h-[56px]"
-                  aria-label={`Call us at ${CONTACT.phone.display} to plan a visit`}
-                >
-                  <PhoneIcon className="w-5 h-5" />
-                  {t.callNow}
-                </a>
-                <a
                   href={CONTACT.phone.sms}
-                  className="inline-flex items-center justify-center gap-3 border-2 border-white/50 text-white rounded-full px-10 py-4 font-sans font-bold text-base tracking-wide hover:bg-white/10 transition-colors min-h-[56px]"
+                  className="inline-flex items-center justify-center gap-3 bg-white text-forest rounded-full px-10 py-4 font-sans font-bold text-base tracking-wide shadow-card hover:bg-cream transition-colors min-h-[56px]"
                   aria-label="Send us a text to plan a visit"
                 >
                   <MessageIcon className="w-5 h-5" />

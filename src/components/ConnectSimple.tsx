@@ -3,7 +3,7 @@
 import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
 import {
-  PhoneIcon, MessageIcon,
+  MessageIcon,
   FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon,
 } from '@/components/Icons'
 
@@ -11,14 +11,6 @@ export default function ConnectSimple() {
   const t = useMessages().connectSimple
 
   const LINKS = [
-    {
-      label: t.callUs,
-      sub: CONTACT.phone.display,
-      href: CONTACT.phone.tel,
-      icon: <PhoneIcon className="w-6 h-6" />,
-      bg: 'bg-forest',
-      external: false,
-    },
     {
       label: t.textUs,
       sub: CONTACT.phone.display,
