@@ -4,11 +4,12 @@ import Navbar from '@/components/Navbar'
 import Hero from '@/components/Hero'
 import FeaturedTrees from '@/components/FeaturedTrees'
 import HowItWorks from '@/components/HowItWorks'
+import WhyBonsaiFlorida from '@/components/WhyBonsaiFlorida'
 import CareGuidePreview from '@/components/CareGuidePreview'
-import VisitSection from '@/components/VisitSection'
+import FinalCTA from '@/components/FinalCTA'
 import ConnectSimple from '@/components/ConnectSimple'
-import BookAppointment from '@/components/BookAppointment'
 import Footer from '@/components/Footer'
+import StickyMobileCTA from '@/components/StickyMobileCTA'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,17 +51,13 @@ export default async function HomePage() {
         <Hero trees={trees} logoUrl={logoUrl} />
         <FeaturedTrees trees={trees} />
         <HowItWorks />
+        <WhyBonsaiFlorida />
         <CareGuidePreview species={featuredSpecies} />
-        <VisitSection />
-
-        {/* Appointment booking */}
-        <section className="bg-cream py-10 flex justify-center">
-          <BookAppointment label="Book a Garden Visit" />
-        </section>
-
+        <FinalCTA />
         <ConnectSimple />
       </main>
       <Footer />
+      <StickyMobileCTA />
     </>
   )
 }

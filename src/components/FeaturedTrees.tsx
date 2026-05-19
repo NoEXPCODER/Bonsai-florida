@@ -1,15 +1,31 @@
 'use client'
 
+import { useState } from 'react'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
-import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
-import { MessageIcon } from '@/components/Icons'
+import { useVisitList } from '@/hooks/useVisitList'
+import { MAX_VISIT_LIST } from '@/lib/visit-list'
+import VisitListDrawer from '@/components/VisitListDrawer'
 
-function TreeCard({ tree }: { tree: DbTree }) {
+function TreeCard({ tree, onSave }: { tree: DbTree; onSave: () => void }) {
   const t = useMessages().featuredTrees
+  const { list, toggle } = useVisitList()
   const photo = getPrimaryTreeImageUrl(tree)
   const isBeginner = tree.level === 'Beginner Friendly'
+  const isSaved = list.some(i => i.id === tree.id)
+  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
+
+  function handleSave() {
+    toggle({
+      id: tree.id,
+      name: tree.name,
+      price: tree.price,
+      imageUrl: photo ?? undefined,
+      treeCode: tree.tree_code ?? undefined,
+    })
+    if (!isSaved && !listFull) onSave()
+  }
 
   return (
     <article className="card overflow-hidden flex flex-col">
@@ -45,17 +61,24 @@ function TreeCard({ tree }: { tree: DbTree }) {
         <div className="mt-auto flex flex-col gap-2">
           <a
             href={tree.tree_code ? `/tree/${tree.tree_code}` : '#'}
-            className="btn-primary w-full justify-center text-sm py-3"
+            className="btn-secondary w-full justify-center text-sm py-3"
           >
             {t.viewTree}
           </a>
-          <a
-            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-            className="btn-secondary w-full justify-center text-sm py-3"
-            aria-label={`Ask about ${tree.name}`}
+          <button
+            onClick={handleSave}
+            disabled={listFull}
+            className={`w-full justify-center text-sm py-3 rounded-full font-sans font-bold transition-all duration-200 flex items-center gap-2 ${
+              isSaved
+                ? 'bg-forest text-white'
+                : listFull
+                ? 'border border-forest/20 text-ink-light/40 cursor-not-allowed'
+                : 'border border-forest/30 text-forest hover:bg-forest hover:text-white hover:border-forest'
+            }`}
           >
-            <MessageIcon className="w-4 h-4" /> {t.askAboutTree}
-          </a>
+            {isSaved ? '✓ ' : '♡ '}
+            {isSaved ? t.savedToList : listFull ? t.listFull : t.saveToList}
+          </button>
         </div>
       </div>
     </article>
@@ -64,30 +87,37 @@ function TreeCard({ tree }: { tree: DbTree }) {
 
 export default function FeaturedTrees({ trees }: { trees: DbTree[] }) {
   const t = useMessages().featuredTrees
+  const [drawerOpen, setDrawerOpen] = useState(false)
   if (trees.length === 0) return null
 
   return (
-    <section id="collection" className="bg-cream py-16 sm:py-20" aria-labelledby="featured-heading">
-      <div className="section-wrap">
-        <div className="text-center mb-12">
-          <p className="section-label mb-3">{t.label}</p>
-          <h2 id="featured-heading" className="section-heading mb-4">{t.heading}</h2>
-          <div className="pink-divider mb-4" />
-          <p className="font-sans text-lg text-ink-light max-w-md mx-auto leading-relaxed">
-            {t.description}
-          </p>
-        </div>
+    <>
+      <section id="collection" className="bg-cream py-16 sm:py-20" aria-labelledby="featured-heading">
+        <div className="section-wrap">
+          <div className="text-center mb-12">
+            <p className="section-label mb-3">{t.label}</p>
+            <h2 id="featured-heading" className="section-heading mb-4">{t.heading}</h2>
+            <div className="pink-divider mb-4" />
+            <p className="font-sans text-lg text-ink-light max-w-md mx-auto leading-relaxed">
+              {t.description}
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-          {trees.map(tree => <TreeCard key={tree.id} tree={tree} />)}
-        </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            {trees.map(tree => (
+              <TreeCard key={tree.id} tree={tree} onSave={() => setDrawerOpen(true)} />
+            ))}
+          </div>
 
-        <div className="text-center mt-12">
-          <a href="/trees" className="btn-primary inline-flex text-base px-10 py-4">
-            {t.viewInventory}
-          </a>
+          <div className="text-center mt-12">
+            <a href="/trees" className="btn-primary inline-flex text-base px-10 py-4">
+              {t.viewInventory}
+            </a>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <VisitListDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    </>
   )
 }
