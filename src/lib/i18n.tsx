@@ -1,60 +1,30 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { AUTH } from '@/config/auth'
+import { createContext, useContext, useState } from 'react'
 import { en } from '@/messages/en'
 import { vi } from '@/messages/vi'
 
 type Locale = 'en' | 'vi'
 
-interface AuthContextValue {
+interface LocaleContextValue {
   locale: Locale
-  isLoggedIn: boolean
-  login: (username: string, password: string) => boolean
-  logout: () => void
+  toggleLocale: () => void
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null)
-
-const STORAGE_KEY = 'bf_owner_session'
+const LocaleContext = createContext<LocaleContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>('en')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-  // Restore session from localStorage on first mount
-  useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY) === '1') {
-      setLocale('vi')
-      setIsLoggedIn(true)
-    }
-  }, [])
-
-  function login(username: string, password: string): boolean {
-    const ok = username.trim() === AUTH.username && password === AUTH.password
-    if (ok) {
-      setLocale('vi')
-      setIsLoggedIn(true)
-      localStorage.setItem(STORAGE_KEY, '1')
-    }
-    return ok
-  }
-
-  function logout() {
-    setLocale('en')
-    setIsLoggedIn(false)
-    localStorage.removeItem(STORAGE_KEY)
-  }
-
+  function toggleLocale() { setLocale(l => l === 'en' ? 'vi' : 'en') }
   return (
-    <AuthContext.Provider value={{ locale, isLoggedIn, login, logout }}>
+    <LocaleContext.Provider value={{ locale, toggleLocale }}>
       {children}
-    </AuthContext.Provider>
+    </LocaleContext.Provider>
   )
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
+  const ctx = useContext(LocaleContext)
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
   return ctx
 }
