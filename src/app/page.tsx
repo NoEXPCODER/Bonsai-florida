@@ -5,7 +5,7 @@ import Hero from '@/components/Hero'
 import FeaturedTrees from '@/components/FeaturedTrees'
 import HowItWorks from '@/components/HowItWorks'
 import CareGuidePreview from '@/components/CareGuidePreview'
-import VisitSection from '@/components/VisitSection'
+import AppointmentSection from '@/components/AppointmentSection'
 import ConnectSimple from '@/components/ConnectSimple'
 import Footer from '@/components/Footer'
 
@@ -46,8 +46,8 @@ export default async function HomePage() {
         <Hero trees={trees ?? []} logoUrl={logoUrl} />
         <FeaturedTrees trees={trees ?? []} />
         <HowItWorks />
+        <AppointmentSection />
         <CareGuidePreview species={featuredSpecies ?? []} />
-        <VisitSection />
         <ConnectSimple />
       </main>
       <Footer />

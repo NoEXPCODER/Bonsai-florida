@@ -3,10 +3,12 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
+import BookGardenVisitButton from '@/components/BookGardenVisitButton'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
+import { siteConfig } from '@/lib/siteConfig'
 import { MessageIcon, PhoneIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 
@@ -263,7 +265,11 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
         <h1 className="font-serif text-4xl sm:text-5xl text-forest mb-2">{t.heading}</h1>
         <div className="pink-divider mb-4" />
         <p className="font-sans text-sm text-ink-light max-w-sm mx-auto">{t.description}</p>
-        <div className="flex items-center justify-center gap-3 mt-5">
+        <p className="font-sans text-sm text-ink-light max-w-2xl mx-auto mt-4">
+          Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
+        </p>
+        <div className="flex flex-col items-center justify-center gap-3 mt-5 sm:flex-row">
+          <BookGardenVisitButton />
           <a href={CONTACT.phone.tel} className="btn-primary text-sm py-2.5">
             <PhoneIcon className="w-4 h-4" /> Call Now
           </a>

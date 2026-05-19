@@ -3,9 +3,11 @@
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
+import BookGardenVisitButton from '@/components/BookGardenVisitButton'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getTreeImageUrls } from '@/lib/tree-images'
 import { makeSpeciesSlug } from '@/lib/species'
+import { siteConfig } from '@/lib/siteConfig'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
@@ -719,7 +721,11 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
           <div className="card p-6 text-center mb-8">
             <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Interested in this tree?</p>
             <h2 className="font-serif text-xl text-forest mb-5">Contact Bonsai Florida</h2>
+            <p className="font-sans text-sm leading-6 text-ink-light mb-5">
+              Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
+            </p>
             <div className="flex flex-col gap-3">
+              <BookGardenVisitButton />
               <a href={CONTACT.phone.tel} className="btn-primary w-full justify-center" aria-label="Call Bonsai Florida">
                 <PhoneIcon className="w-5 h-5" /> Call {CONTACT.phone.display}
               </a>
