@@ -84,7 +84,9 @@ function TagFront({ tree }: { tree: TagTree | null }) {
       {/* Left: brand logo */}
       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '110px' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Bonsai Florida" style={{ width: '110px', height: 'auto', objectFit: 'contain' }} />
+        <img src="/logo.png" alt="Bonsai Florida"
+          onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
+          style={{ width: '110px', height: 'auto', objectFit: 'contain' }} />
       </div>
 
       {/* Vertical divider */}
