@@ -55,6 +55,16 @@ export const vi: Messages = {
     // Mã QR
     qrLabel: 'Đường dẫn QR cho cây này',
     qrCopy: 'Sao Chép Link',
+    // Màn hình đăng nhập
+    loginTitle: 'Đăng Nhập Admin',
+    loginSubtitle: 'Đăng nhập để quản lý bộ sưu tập cây.',
+    usernamePlaceholder: 'Tên đăng nhập',
+    passwordPlaceholder: 'Mật khẩu',
+    signIn: 'Đăng Nhập',
+    signingIn: 'Đang đăng nhập…',
+    errorInvalid: 'Tên đăng nhập hoặc mật khẩu không đúng.',
+    errorTooMany: 'Quá nhiều lần thử. Vui lòng thử lại sau 15 phút.',
+    errorServer: 'Lỗi máy chủ — kiểm tra cài đặt Vercel.',
     // Trang thiết bị
     devicesLink: 'Thiết Bị',
     devicesPageTitle: 'Thiết Bị Đã Lưu',
@@ -223,6 +233,39 @@ export const vi: Messages = {
     description:
       'Bạn muốn xem cây trực tiếp? Hãy gọi hoặc nhắn tin để sắp xếp một buổi tham quan vườn bonsai thư thái. Chúng tôi rất vui khi được chia sẻ bộ sưu tập với những ai yêu quý cây đẹp.',
     callNow: 'Gọi Ngay',
+    textUs: 'Nhắn Tin',
+  },
+  howItWorks: {
+    label: 'Quy Trình Đơn Giản',
+    heading: 'Cách Mua Cây',
+    steps: [
+      { title: 'Chọn Cây', description: 'Duyệt bộ sưu tập trực tuyến hoặc đến thăm vườn của chúng tôi ở Palm Beach để tìm cây hoàn hảo.' },
+      { title: 'Quét Mã QR', description: 'Mỗi cây đều có thẻ QR với hướng dẫn chăm sóc đầy đủ, mẹo chăm sóc và giá — ngay trên điện thoại của bạn.' },
+      { title: 'Gọi Hoặc Nhắn Tin Để Ghé Thăm', description: 'Liên hệ với chúng tôi để sắp xếp buổi thăm vườn hoặc nhận cây. Chúng tôi sẽ giúp bạn mang cây về nhà tự tin.' },
+    ],
+  },
+  featuredTrees: {
+    label: 'Hiện Có Sẵn',
+    heading: 'Cây Nổi Bật',
+    description: 'Mỗi cây được trồng và chăm sóc tại Palm Beach.',
+    easy: 'Dễ',
+    intermediate: 'Trung Cấp',
+    viewTree: 'Xem Cây',
+    askAboutTree: 'Hỏi Về Cây Này',
+    viewInventory: 'Xem Toàn Bộ Kho →',
+  },
+  carePreview: {
+    label: 'Dễ Thực Hiện',
+    heading: 'Hướng Dẫn Chăm Sóc',
+    description: 'Mỗi cây đều có thẻ QR liên kết đến hướng dẫn chăm sóc đầy đủ. Đây là cái nhìn nhanh về các loài phổ biến nhất.',
+    viewGuide: 'Xem Hướng Dẫn',
+    viewAll: 'Xem Tất Cả Hướng Dẫn →',
+    beginner: 'Người Mới',
+  },
+  connectSimple: {
+    label: 'Liên Hệ',
+    heading: 'Kết Nối Với Chúng Tôi',
+    callUs: 'Gọi Điện',
     textUs: 'Nhắn Tin',
   },
   footer: {

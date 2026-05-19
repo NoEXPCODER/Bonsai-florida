@@ -10,6 +10,7 @@ import { useMessages, useAuth } from '@/lib/i18n'
 // ─── Login Screen ─────────────────────────────────────────────────────────────
 
 function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
+  const t = useMessages().admin
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(true)
@@ -33,12 +34,12 @@ function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
     if (res.ok) {
       onUnlock()
     } else if (res.status === 401) {
-      setError('Invalid username or password.')
+      setError(t.errorInvalid)
       setPassword('')
     } else if (res.status === 429) {
-      setError('Too many attempts. Try again in 15 minutes.')
+      setError(t.errorTooMany)
     } else {
-      setError('Server error — check Vercel env vars (SUPABASE_SERVICE_ROLE_KEY).')
+      setError(t.errorServer)
     }
     setLoading(false)
   }
@@ -50,15 +51,15 @@ function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
 
         <div className="card p-8 text-center shadow-card-lg">
           <div className="text-4xl mb-5">🌸</div>
-          <h1 className="font-serif text-3xl text-forest mb-2">Admin Login</h1>
-          <p className="font-sans text-sm text-ink-light mb-8">Sign in to manage your collection.</p>
+          <h1 className="font-serif text-3xl text-forest mb-2">{t.loginTitle}</h1>
+          <p className="font-sans text-sm text-ink-light mb-8">{t.loginSubtitle}</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               ref={usernameRef}
               type="text"
               autoComplete="username"
-              placeholder="Username"
+              placeholder={t.usernamePlaceholder}
               value={username}
               onChange={e => setUsername(e.target.value)}
               className="w-full px-5 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
@@ -66,7 +67,7 @@ function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
             <input
               type="password"
               autoComplete="current-password"
-              placeholder="Password"
+              placeholder={t.passwordPlaceholder}
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="w-full px-5 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
@@ -84,8 +85,8 @@ function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
               </div>
               <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="sr-only" />
               <div>
-                <span className="font-sans text-sm font-semibold text-forest">Remember this device</span>
-                <span className="block font-sans text-xs text-ink-light">Stay logged in for 30 days</span>
+                <span className="font-sans text-sm font-semibold text-forest">{t.rememberDevice}</span>
+                <span className="block font-sans text-xs text-ink-light">{t.rememberHint}</span>
               </div>
             </label>
 
@@ -96,7 +97,7 @@ function LoginScreen({ onUnlock }: { onUnlock: () => void }) {
               disabled={loading || !username || !password}
               className="btn-primary w-full justify-center text-lg py-4 disabled:opacity-60"
             >
-              {loading ? 'Signing in…' : 'Sign In'}
+              {loading ? t.signingIn : t.signIn}
             </button>
           </form>
         </div>

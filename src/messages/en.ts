@@ -53,6 +53,16 @@ export const en = {
     // QR codes
     qrLabel: 'QR link for this tree',
     qrCopy: 'Copy Link',
+    // Login screen
+    loginTitle: 'Admin Login',
+    loginSubtitle: 'Sign in to manage your collection.',
+    usernamePlaceholder: 'Username',
+    passwordPlaceholder: 'Password',
+    signIn: 'Sign In',
+    signingIn: 'Signing in…',
+    errorInvalid: 'Invalid username or password.',
+    errorTooMany: 'Too many attempts. Try again in 15 minutes.',
+    errorServer: 'Server error — check Vercel env vars.',
     // Devices page
     devicesLink: 'Devices',
     devicesPageTitle: 'Remembered Devices',
@@ -220,6 +230,39 @@ export const en = {
     description:
       'Want to see the trees in person? Call or text us to plan a relaxed bonsai garden visit. We love sharing the collection with anyone who has a love for beautiful trees.',
     callNow: 'Call Now',
+    textUs: 'Text Us',
+  },
+  howItWorks: {
+    label: 'Simple Process',
+    heading: 'How It Works',
+    steps: [
+      { title: 'Pick a Tree', description: 'Browse our collection online or visit our garden in Palm Beach to find the perfect tree.' },
+      { title: 'Scan the QR Tag', description: 'Every tree has a QR tag with its full care guide, care tips, and price — right on your phone.' },
+      { title: 'Call or Text to Visit', description: "Contact us to arrange a garden visit or pickup. We'll help you take it home with confidence." },
+    ],
+  },
+  featuredTrees: {
+    label: 'Currently Available',
+    heading: 'Featured Trees',
+    description: 'Each tree is hand-grown and cared for right here in Palm Beach.',
+    easy: 'Easy',
+    intermediate: 'Intermediate',
+    viewTree: 'View Tree',
+    askAboutTree: 'Ask About This Tree',
+    viewInventory: 'View Full Inventory →',
+  },
+  carePreview: {
+    label: 'Easy to Follow',
+    heading: 'Care Guides',
+    description: "Every tree comes with a QR tag linking to its full care guide. Here's a quick look at the most popular species.",
+    viewGuide: 'View Full Guide',
+    viewAll: 'View All Care Guides →',
+    beginner: 'Beginner',
+  },
+  connectSimple: {
+    label: 'Get In Touch',
+    heading: 'Contact Us',
+    callUs: 'Call Us',
     textUs: 'Text Us',
   },
   footer: {
