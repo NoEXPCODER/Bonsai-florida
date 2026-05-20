@@ -136,8 +136,8 @@ function ContactStep({
 
       <div className="space-y-4">
         {field('Your Name *', 'name', 'text', 'e.g. Maria')}
-        {field('Email Address *', 'email', 'email', 'e.g. maria@email.com')}
         {field('Phone Number *', 'phone', 'tel', 'e.g. 561-555-0100')}
+        {field('Email (optional)', 'email', 'email', 'e.g. maria@email.com')}
 
         {data.reason === 'specific' && (
           <div>
@@ -206,7 +206,7 @@ function ContactStep({
         disabled={loading}
         className="btn-primary w-full justify-center mt-6 text-base py-4 min-h-[52px]"
       >
-        {loading ? 'Sending…' : 'Continue to Pick a Time →'}
+        {loading ? 'Opening your calendar…' : 'Pick Your Visit Time →'}
       </button>
 
       <p className="font-sans text-xs text-ink-light/50 text-center mt-4">
@@ -374,7 +374,6 @@ export default function BookingFlow() {
 
   async function submit() {
     if (!data.name.trim()) { setError('Please enter your name.'); return }
-    if (!data.email.trim()) { setError('Please enter your email address.'); return }
     if (!data.phone.trim()) { setError('Please enter your phone number.'); return }
 
     setLoading(true)
@@ -385,20 +384,22 @@ export default function BookingFlow() {
         body: JSON.stringify({
           reason: data.reasonLabel,
           name: data.name,
-          email: data.email,
+          email: data.email || null,
           phone: data.phone,
           notes: data.notes || null,
           tree_name: data.treeName || null,
           saved_trees: savedTrees.length > 0 ? savedTrees : null,
-          _hp: '', // honeypot — must stay empty
+          _hp: '',
         }),
       })
       if (!res.ok) throw new Error()
+      // Store data so back-button restores the confirm page
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(data))
-      setStep('confirm')
+      sessionStorage.setItem(CALENDAR_VISITED_KEY, '1')
+      // Go straight to Calendar — no extra tap needed
+      window.location.href = CALENDAR_URL
     } catch {
       setError('Something went wrong. Please try again or text us directly.')
-    } finally {
       setLoading(false)
     }
   }

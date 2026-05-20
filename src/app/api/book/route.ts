@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   const { reason, name, email, phone, notes, tree_name, saved_trees } = body as Record<string, unknown>
 
-  if (!reason || !name || !email || !phone || typeof reason !== 'string' || typeof name !== 'string' || typeof email !== 'string' || typeof phone !== 'string') {
+  if (!reason || !name || !phone || typeof reason !== 'string' || typeof name !== 'string' || typeof phone !== 'string') {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
 
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   if (
     (reason as string).length > 120 ||
     (name as string).length > 120 ||
-    (email as string).length > 200 ||
     (phone as string).length > 30 ||
+    (email && typeof email === 'string' && email.length > 200) ||
     (notes && typeof notes === 'string' && notes.length > 1000)
   ) {
     return NextResponse.json({ error: 'Field too long.' }, { status: 400 })
@@ -42,12 +42,12 @@ export async function POST(req: NextRequest) {
 
   const db = createServerClient()
 
-  // Rate limit: same email can't submit more than 3 times per hour
+  // Rate limit: same phone can't submit more than 5 times per hour
   const since = new Date(Date.now() - RATE_WINDOW_MS).toISOString()
   const { count } = await db
     .from('bookings')
     .select('id', { count: 'exact', head: true })
-    .eq('email', email.trim().toLowerCase())
+    .eq('phone', (phone as string).trim())
     .gte('created_at', since)
 
   if ((count ?? 0) >= 5) {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   const { error } = await db.from('bookings').insert({
     reason: (reason as string).trim(),
     name: (name as string).trim(),
-    email: (email as string).trim().toLowerCase(),
+    email: typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null,
     phone: (phone as string).trim(),
     notes: typeof notes === 'string' ? notes.trim() || null : null,
     tree_name: typeof tree_name === 'string' ? tree_name.trim() || null : null,
