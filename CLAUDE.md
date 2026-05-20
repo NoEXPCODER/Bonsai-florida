@@ -118,6 +118,7 @@ Do not dump many unrelated files into one folder. Keep modules isolated and easy
 
 - Always sync from GitHub before starting work: fetch the remote, check the active branch, and pull/rebase the latest target branch before editing files.
 - After finishing, always tell the user exactly what was done, what changed, what was tested, and what remains.
+- After each task, include a short better-practice note and the next useful thing to do so the user can learn faster and save time/tokens.
 - Plan before coding.
 - Build one feature per PR.
 - Keep PRs small and reviewable.
