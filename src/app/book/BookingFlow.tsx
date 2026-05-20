@@ -216,12 +216,19 @@ function ContactStep({
   )
 }
 
+const SESSION_KEY = 'bf_booking_confirmed'
+const CALENDAR_VISITED_KEY = 'bf_calendar_visited'
+
 // ── Step 3: Confirm + What to Expect ────────────────────────────────────────
 
-function ConfirmStep({ data, onRestart }: { data: FormData; onRestart: () => void }) {
+function ConfirmStep({ data, returning, onRestart }: { data: FormData; returning: boolean; onRestart: () => void }) {
   const smsBody = encodeURIComponent(
     `Hi! I just booked a visit — my name is ${data.name}. I'm coming to ${data.reasonLabel.toLowerCase()}.${data.treeName ? ` I'm interested in the ${data.treeName}.` : ''}${data.notes ? ` Notes: ${data.notes}` : ''}`
   )
+
+  function handleCalendarClick() {
+    sessionStorage.setItem(CALENDAR_VISITED_KEY, '1')
+  }
 
   return (
     <div className="max-w-lg mx-auto text-center">
@@ -229,21 +236,33 @@ function ConfirmStep({ data, onRestart }: { data: FormData; onRestart: () => voi
       <div className="w-16 h-16 rounded-full bg-forest flex items-center justify-center mx-auto mb-6 text-3xl">
         ✓
       </div>
-      <h2 className="font-serif text-3xl sm:text-4xl text-forest mb-3">
-        Almost done, {data.name.split(' ')[0]}!
-      </h2>
-      <p className="font-sans text-sm text-ink-light mb-8">
-        Your info is saved. One last step — pick your visit time below.
-      </p>
+      {returning ? (
+        <>
+          <h2 className="font-serif text-3xl sm:text-4xl text-forest mb-3">
+            You&rsquo;re all set, {data.name.split(' ')[0]}!
+          </h2>
+          <p className="font-sans text-sm text-ink-light mb-8">
+            Your visit time is confirmed. See you soon — we&apos;ll have the trees ready.
+          </p>
+        </>
+      ) : (
+        <>
+          <h2 className="font-serif text-3xl sm:text-4xl text-forest mb-3">
+            Almost done, {data.name.split(' ')[0]}!
+          </h2>
+          <p className="font-sans text-sm text-ink-light mb-8">
+            Your info is saved. One last step — pick your visit time below.
+          </p>
+        </>
+      )}
 
-      {/* Primary CTA — user taps → Calendar opens → back button returns here */}
+      {/* Calendar link — same tab, no popup, back button always returns here */}
       <a
         href={CALENDAR_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={handleCalendarClick}
         className="btn-primary w-full justify-center text-base py-4 min-h-[52px] mb-3"
       >
-        Pick Your Visit Time →
+        {returning ? 'Pick a Different Time →' : 'Pick Your Visit Time →'}
       </a>
 
       {/* Secondary — text us */}
@@ -309,7 +328,7 @@ function ConfirmStep({ data, onRestart }: { data: FormData; onRestart: () => voi
         onClick={onRestart}
         className="mt-8 font-sans text-xs text-ink-light/50 hover:text-ink-light transition-colors"
       >
-        Start over
+        Book another visit
       </button>
     </div>
   )
@@ -323,9 +342,24 @@ export default function BookingFlow() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [savedTrees, setSavedTrees] = useState<VisitItem[]>([])
+  const [returning, setReturning] = useState(false)
 
   useEffect(() => {
     setSavedTrees(getVisitList())
+    // Restore confirm step if user navigated to Calendar and pressed back
+    try {
+      const stored = sessionStorage.getItem(SESSION_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as FormData
+        setData(parsed)
+        setStep('confirm')
+        if (sessionStorage.getItem(CALENDAR_VISITED_KEY)) {
+          setReturning(true)
+        }
+      }
+    } catch {
+      // ignore corrupt storage
+    }
   }, [])
 
   function change(k: keyof FormData, v: string) {
@@ -360,6 +394,7 @@ export default function BookingFlow() {
         }),
       })
       if (!res.ok) throw new Error()
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(data))
       setStep('confirm')
     } catch {
       setError('Something went wrong. Please try again or text us directly.')
@@ -389,7 +424,17 @@ export default function BookingFlow() {
       )}
 
       {step === 'confirm' && (
-        <ConfirmStep data={data} onRestart={() => { setData(EMPTY); setStep('reason') }} />
+        <ConfirmStep
+          data={data}
+          returning={returning}
+          onRestart={() => {
+            sessionStorage.removeItem(SESSION_KEY)
+            sessionStorage.removeItem(CALENDAR_VISITED_KEY)
+            setData(EMPTY)
+            setReturning(false)
+            setStep('reason')
+          }}
+        />
       )}
     </div>
   )
