@@ -6,11 +6,10 @@
 
 import nodemailer from 'nodemailer'
 
-const GMAIL_USER  = process.env.GMAIL_USER          // bonsaifloridausa@gmail.com
+const GMAIL_USER  = process.env.GMAIL_USER          // nathanvan10@gmail.com
 const GMAIL_PASS  = process.env.GMAIL_APP_PASSWORD  // 16-char App Password
 const ADMIN_EMAIL = process.env.BOOKING_ADMIN_EMAIL ?? 'nathanvan10@gmail.com'
-const ADMIN_EMAIL_2 = 'bonsaifloridausa@gmail.com'
-const FROM = `Bonsai Florida <${GMAIL_USER ?? 'bonsaifloridausa@gmail.com'}>`
+const FROM = `Bonsai Florida <${GMAIL_USER ?? 'nathanvan10@gmail.com'}>`
 
 const DRY_RUN = process.env.EMAIL_DRY_RUN === 'true'
 
@@ -138,6 +137,5 @@ export async function sendAdminNotification(b: BookingEmailData): Promise<void> 
   `
 
   const subject = `New Bonsai Florida booking — ${b.full_name} — ${dateStr}`
-  const recipients = [ADMIN_EMAIL, ADMIN_EMAIL_2].filter((v, i, a) => a.indexOf(v) === i)
-  await Promise.all(recipients.map(to => send(to, subject, html)))
+  await send(ADMIN_EMAIL, subject, html)
 }
