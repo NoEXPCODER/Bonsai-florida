@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONTACT } from '@/config/contact'
+import BookGardenVisitButton from '@/components/BookGardenVisitButton'
 import { useMessages } from '@/lib/i18n'
 import { InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
 import type { DbTree } from '@/lib/supabase'
@@ -38,7 +39,10 @@ function PhotoSwiper({ photos, t }: { photos: Photo[]; t: { localCollection: str
   function onTouchEnd(e: React.TouchEvent) {
     if (touchStartX.current === null) return
     const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(dx) > 40) { dx < 0 ? next() : prev() }
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) next()
+      else prev()
+    }
     touchStartX.current = null
   }
 
@@ -149,9 +153,7 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
             </p>
 
             <div className="flex flex-wrap gap-3 mb-5">
-              <a href="/book" className="btn-primary text-base py-3.5 px-7 min-h-[52px]">
-                {t.bookVisit}
-              </a>
+              <BookGardenVisitButton />
               <a href="/trees" className="btn-secondary text-base py-3.5 px-7 min-h-[52px]">
                 {t.viewTrees}
               </a>
