@@ -34,6 +34,33 @@ const VISIT_GOAL_OPTIONS = [
   'I am just browsing',
 ]
 
+// ── Draft persistence ─────────────────────────────────────────────────────────
+
+const DRAFT_KEY = 'bf_booking_draft'
+const DRAFT_TTL = 4 * 60 * 60 * 1000 // 4 hours
+
+interface Draft { data: FormState; step: Step; savedAt: number }
+
+function saveDraft(data: FormState, step: Step) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ data, step, savedAt: Date.now() }))
+  } catch {}
+}
+
+function loadDraft(): Draft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const parsed: Draft = JSON.parse(raw)
+    if (Date.now() - parsed.savedAt > DRAFT_TTL) { localStorage.removeItem(DRAFT_KEY); return null }
+    return parsed
+  } catch { return null }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY) } catch {}
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type Step = 'purpose' | 'details' | 'time' | 'confirm'
@@ -308,11 +335,12 @@ function DetailsStep({
 interface TimeSlot { start: string; end: string }
 
 function TimeStep({
-  data, onBack, onSlotSelect,
+  data, onBack, onSlotSelect, onBrowseTrees,
 }: {
   data: FormState
   onBack: () => void
   onSlotSelect: (slot: TimeSlot) => void
+  onBrowseTrees: () => void
 }) {
   const dates = getAvailableDates(14)
   const [selectedDate, setSelectedDate] = useState(dates[0])
@@ -357,12 +385,12 @@ function TimeStep({
               Browse the collection and save up to 5 trees — we&apos;ll have them ready when you arrive.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
-              <a
-                href="/trees"
+              <button
+                onClick={onBrowseTrees}
                 className="font-sans text-xs font-bold text-white bg-forest px-3 py-1.5 rounded-xl hover:bg-forest/90 transition-colors"
               >
                 Browse Trees →
-              </a>
+              </button>
               <span className="font-sans text-xs text-ink-light/60 py-1.5">or pick a time below and we&apos;ll help you choose</span>
             </div>
           </div>
@@ -419,11 +447,12 @@ function TimeStep({
 // ── Step 4: Confirm ───────────────────────────────────────────────────────────
 
 function ConfirmStep({
-  data, onBack, onSubmit, submitting, error,
+  data, onBack, onSubmit, onBrowseTrees, submitting, error,
 }: {
   data: FormState
   onBack: () => void
   onSubmit: () => void
+  onBrowseTrees: () => void
   submitting: boolean
   error: string
 }) {
@@ -474,12 +503,12 @@ function ConfirmStep({
               You haven&apos;t saved any trees yet. Browse the collection and we&apos;ll have your picks ready — or book now and choose when you visit.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
-              <a
-                href="/trees"
+              <button
+                onClick={onBrowseTrees}
                 className="font-sans text-xs font-bold text-white bg-forest px-3 py-1.5 rounded-xl hover:bg-forest/90 transition-colors"
               >
                 Browse Trees →
-              </a>
+              </button>
               <span className="font-sans text-xs text-ink-light/60 py-1.5">or confirm below — we&apos;ll help you choose in person</span>
             </div>
           </div>
@@ -516,13 +545,39 @@ export default function VisitBookingFlow() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [detailsError, setDetailsError] = useState('')
+  const [draftRestored, setDraftRestored] = useState(false)
 
-  // Load saved tree IDs from visit list on mount
+  // On mount: restore draft if present, always refresh tree IDs from visit list
   useEffect(() => {
     const list = getVisitList()
     const ids = list.map(item => item.treeCode).filter(Boolean) as string[]
-    setData(prev => ({ ...prev, selected_tree_ids: ids }))
+    const draft = loadDraft()
+
+    if (draft && draft.data.full_name) {
+      // If saved slot is in the past, drop back to time picker
+      const restoredStep: Step =
+        draft.step === 'confirm' && draft.data.appointment_start && new Date(draft.data.appointment_start) <= new Date()
+          ? 'time'
+          : draft.step
+      setData({ ...draft.data, selected_tree_ids: ids })
+      setStep(restoredStep)
+      setDraftRestored(true)
+    } else {
+      setData(prev => ({ ...prev, selected_tree_ids: ids }))
+    }
   }, [])
+
+  function handleBrowseTrees(currentStep: Step) {
+    saveDraft(data, currentStep)
+    router.push('/trees')
+  }
+
+  function handleStartOver() {
+    clearDraft()
+    setData(EMPTY)
+    setStep('purpose')
+    setDraftRestored(false)
+  }
 
   function change(k: keyof FormState, v: string | number) {
     setData(prev => ({ ...prev, [k]: v }))
@@ -576,6 +631,7 @@ export default function VisitBookingFlow() {
         setSubmitError(json.error ?? 'Something went wrong. Please try again.')
         return
       }
+      clearDraft()
       router.push(`/visit/confirm?id=${json.id}&name=${encodeURIComponent(data.full_name)}&start=${encodeURIComponent(data.appointment_start)}&end=${encodeURIComponent(data.appointment_end)}&purpose=${encodeURIComponent(data.purposeLabel)}`)
     } catch {
       setSubmitError('Something went wrong. Please try again or text us directly.')
@@ -586,6 +642,21 @@ export default function VisitBookingFlow() {
 
   return (
     <div className="section-wrap py-14 sm:py-20">
+      {/* Resume banner */}
+      {draftRestored && (
+        <div className="max-w-lg mx-auto mb-6 bg-sage-pale border border-forest/15 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+          <p className="font-sans text-sm text-forest">
+            <span className="font-semibold">Welcome back!</span> Your booking details are saved.
+          </p>
+          <button
+            onClick={handleStartOver}
+            className="font-sans text-xs text-ink-light hover:text-forest underline underline-offset-2 flex-shrink-0 transition-colors"
+          >
+            Start over
+          </button>
+        </div>
+      )}
+
       <Progress step={step} />
 
       {step === 'purpose' && <PurposeStep onSelect={selectPurpose} />}
@@ -605,6 +676,7 @@ export default function VisitBookingFlow() {
           data={data}
           onBack={() => setStep('details')}
           onSlotSelect={onSlotSelect}
+          onBrowseTrees={() => handleBrowseTrees('time')}
         />
       )}
 
@@ -613,6 +685,7 @@ export default function VisitBookingFlow() {
           data={data}
           onBack={() => setStep('time')}
           onSubmit={handleSubmit}
+          onBrowseTrees={() => handleBrowseTrees('confirm')}
           submitting={submitting}
           error={submitError}
         />
