@@ -3,25 +3,22 @@
  * Silently skips if RESEND_API_KEY is not set.
  */
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 const ADMIN_EMAIL = process.env.BOOKING_ADMIN_EMAIL
-const FROM = 'Bonsai Florida <bookings@bonsaiflorida.com>'
+// Using Resend's shared sending domain — no custom domain verification needed.
+// Switch to 'bookings@bonsaiflorida.com' once that domain is verified in Resend.
+const FROM = 'Bonsai Florida <onboarding@resend.dev>'
 
 function configured(): boolean {
-  return !!(RESEND_API_KEY && ADMIN_EMAIL)
+  return !!(process.env.RESEND_API_KEY && ADMIN_EMAIL)
 }
 
 async function send(to: string, subject: string, html: string): Promise<void> {
   if (!configured()) return
   try {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ from: FROM, to, subject, html }),
-    })
+    await resend.emails.send({ from: FROM, to, subject, html })
   } catch (err) {
     console.error('Email send failed:', err)
   }
