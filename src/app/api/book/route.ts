@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
+import { notifyOwnerNewBooking, confirmCustomer } from '@/lib/sms'
 
 const RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
@@ -71,6 +72,26 @@ export async function POST(req: NextRequest) {
     console.error('Booking insert error:', error)
     return NextResponse.json({ error: 'Could not save booking.' }, { status: 500 })
   }
+
+  // Fire SMS notifications — non-blocking, booking succeeds regardless
+  const trees = Array.isArray(saved_trees)
+    ? (saved_trees as Array<{ name: string; price: number }>)
+    : null
+
+  void Promise.all([
+    notifyOwnerNewBooking({
+      customerName: (name as string).trim(),
+      customerPhone: (phone as string).trim(),
+      reason: (reason as string).trim(),
+      savedTrees: trees,
+      notes: typeof notes === 'string' ? notes.trim() || null : null,
+      treeName: typeof tree_name === 'string' ? tree_name.trim() || null : null,
+    }),
+    confirmCustomer({
+      customerPhone: (phone as string).trim(),
+      customerName: (name as string).trim(),
+    }),
+  ])
 
   return NextResponse.json({ ok: true })
 }
