@@ -1,38 +1,40 @@
 /**
- * Resend email helper — server only.
- * Silently skips if RESEND_API_KEY is not set.
+ * Email helper — server only.
+ * Sends via Gmail SMTP using an App Password (no custom domain needed).
+ * Set EMAIL_DRY_RUN=true locally to log instead of sending.
  */
 
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const ADMIN_EMAIL = process.env.BOOKING_ADMIN_EMAIL        // primary admin
-const ADMIN_EMAIL_2 = 'bonsaifloridausa@gmail.com'         // second admin always receives
-// Using Resend's shared sending domain — no custom domain verification needed.
-// Switch to 'bookings@bonsaiflorida.com' once that domain is verified in Resend.
-const FROM = 'Bonsai Florida <onboarding@resend.dev>'
+const GMAIL_USER  = process.env.GMAIL_USER          // bonsaifloridausa@gmail.com
+const GMAIL_PASS  = process.env.GMAIL_APP_PASSWORD  // 16-char App Password
+const ADMIN_EMAIL = process.env.BOOKING_ADMIN_EMAIL ?? 'nathanvan10@gmail.com'
+const ADMIN_EMAIL_2 = 'bonsaifloridausa@gmail.com'
+const FROM = `Bonsai Florida <${GMAIL_USER ?? 'bonsaifloridausa@gmail.com'}>`
 
-// Set EMAIL_DRY_RUN=true to log emails instead of sending (useful for local testing)
 const DRY_RUN = process.env.EMAIL_DRY_RUN === 'true'
+
+function getTransport() {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: GMAIL_USER, pass: GMAIL_PASS },
+  })
+}
 
 async function send(to: string, subject: string, html: string): Promise<void> {
   if (DRY_RUN) {
     console.log(`[EMAIL DRY RUN] to=${to} subject="${subject}"`)
     return
   }
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('[EMAIL] Skipped — RESEND_API_KEY not set')
+  if (!GMAIL_USER || !GMAIL_PASS) {
+    console.warn('[EMAIL] Skipped — GMAIL_USER or GMAIL_APP_PASSWORD not set')
     return
   }
   try {
-    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html })
-    if (error) {
-      console.error('[EMAIL] Resend error:', JSON.stringify(error))
-    } else {
-      console.log(`[EMAIL] Sent id=${data?.id} to=${to}`)
-    }
+    const info = await getTransport().sendMail({ from: FROM, to, subject, html })
+    console.log(`[EMAIL] Sent to=${to} messageId=${info.messageId}`)
   } catch (err) {
-    console.error('[EMAIL] Exception:', err)
+    console.error('[EMAIL] Send failed:', err)
   }
 }
 
@@ -82,7 +84,7 @@ export async function sendCustomerConfirmation(b: BookingEmailData): Promise<voi
 
   const html = `
     <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#1a2e1a">
-      <h2 style="color:#2d5a27">Bonsai Florida — Your visit is confirmed 🌿</h2>
+      <h2 style="color:#2d5a27">Bonsai Florida — Your visit is confirmed</h2>
       <p>Hi ${firstName},</p>
       <p>Your Bonsai Florida garden visit is confirmed.</p>
       <hr style="border:none;border-top:1px solid #e8e4d9;margin:20px 0">
@@ -95,7 +97,7 @@ export async function sendCustomerConfirmation(b: BookingEmailData): Promise<voi
       <hr style="border:none;border-top:1px solid #e8e4d9;margin:20px 0">
       <p>Before you arrive, please text us with:</p>
       <ol>
-        <li>Any tree codes/photos you like</li>
+        <li>Any tree codes or photos you like</li>
         <li>Your budget range</li>
         <li>Beginner or experienced?</li>
         <li>Whether this is for yourself or a gift</li>
@@ -105,16 +107,14 @@ export async function sendCustomerConfirmation(b: BookingEmailData): Promise<voi
         A specific tree can be held until your appointment time.
         Premium or high-demand trees may require a small deposit.
       </p>
-      <p>Text is preferred so we can send photos, care info, pricing, and visit details clearly.</p>
       <p>— Bonsai Florida, Palm Beach, Florida</p>
     </div>
   `
 
-  await send(b.email, 'Your Bonsai Florida garden visit is confirmed 🌿', html)
+  await send(b.email, 'Your Bonsai Florida garden visit is confirmed', html)
 }
 
 export async function sendAdminNotification(b: BookingEmailData): Promise<void> {
-  if (!ADMIN_EMAIL && !ADMIN_EMAIL_2) return
   const dateStr = formatDateET(b.appointment_start)
   const timeStr = `${formatTimeET(b.appointment_start)} – ${formatTimeET(b.appointment_end)}`
 
@@ -133,12 +133,11 @@ export async function sendAdminNotification(b: BookingEmailData): Promise<void> 
       <p><strong>Visitors:</strong> ${b.visitor_count}</p>
       <p><strong>Selected trees:</strong> ${b.selected_tree_ids?.join(', ') || 'None'}</p>
       <p><strong>Notes:</strong> ${b.notes || 'None'}</p>
-      <p><strong>Source:</strong> website</p>
       <p><strong>Booking ID:</strong> ${b.id}</p>
     </div>
   `
 
   const subject = `New Bonsai Florida booking — ${b.full_name} — ${dateStr}`
-  const recipients = [ADMIN_EMAIL, ADMIN_EMAIL_2].filter(Boolean) as string[]
+  const recipients = [ADMIN_EMAIL, ADMIN_EMAIL_2].filter((v, i, a) => a.indexOf(v) === i)
   await Promise.all(recipients.map(to => send(to, subject, html)))
 }
