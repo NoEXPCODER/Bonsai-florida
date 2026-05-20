@@ -54,6 +54,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
       sold_image_url: body.sold_image_url || null,
       sold_note: body.sold_note || null,
       sold_at: new Date().toISOString(),
+      buyer_booking_id: body.buyer_booking_id || null,
+      buyer_name: body.buyer_name || null,
+      buyer_phone: body.buyer_phone || null,
+      buyer_email: body.buyer_email || null,
     })
     .eq('id', id)
 

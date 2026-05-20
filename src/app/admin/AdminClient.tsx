@@ -1034,17 +1034,54 @@ function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
   )
 }
 
+interface BuyerBooking {
+  id: string
+  name: string
+  phone: string
+  email: string | null
+  reason: string
+  created_at: string
+}
+
+interface BuyerInfo {
+  buyer_booking_id: string | null
+  buyer_name: string | null
+  buyer_phone: string | null
+  buyer_email: string | null
+}
+
 function MarkSoldModal({ tree, t, onClose, onSold }: {
   tree: DbTree
   t: ReturnType<typeof useMessages>['admin']
   onClose: () => void
-  onSold: (tree: DbTree, soldImageUrl: string | null, soldNote: string) => Promise<void>
+  onSold: (tree: DbTree, soldImageUrl: string | null, soldNote: string, buyer: BuyerInfo) => Promise<void>
 }) {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [buyerQuery, setBuyerQuery] = useState('')
+  const [buyerResults, setBuyerResults] = useState<BuyerBooking[]>([])
+  const [buyerSearching, setBuyerSearching] = useState(false)
+  const [selectedBuyer, setSelectedBuyer] = useState<BuyerBooking | null>(null)
+
+  useEffect(() => {
+    if (buyerQuery.length < 2 || selectedBuyer) { setBuyerResults([]); return }
+    setBuyerSearching(true)
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/bookings/search?q=${encodeURIComponent(buyerQuery)}`)
+        const data = res.ok ? await res.json() : []
+        setBuyerResults(Array.isArray(data) ? data : [])
+      } catch {
+        setBuyerResults([])
+      } finally {
+        setBuyerSearching(false)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [buyerQuery, selectedBuyer])
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0] ?? null
@@ -1074,7 +1111,10 @@ function MarkSoldModal({ tree, t, onClose, onSold }: {
 
     try {
       const soldImageUrl = await uploadSoldPhoto()
-      await onSold(tree, soldImageUrl, note)
+      const buyer: BuyerInfo = selectedBuyer
+        ? { buyer_booking_id: selectedBuyer.id, buyer_name: selectedBuyer.name, buyer_phone: selectedBuyer.phone, buyer_email: selectedBuyer.email }
+        : { buyer_booking_id: null, buyer_name: null, buyer_phone: null, buyer_email: null }
+      await onSold(tree, soldImageUrl, note, buyer)
       onClose()
     } catch {
       setError(t.soldSaveError)
@@ -1088,7 +1128,7 @@ function MarkSoldModal({ tree, t, onClose, onSold }: {
       <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-cream-light rounded-3xl shadow-card-lg overflow-hidden">
         <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <div>
               <p className="section-label mb-1">{t.soldModalLabel}</p>
@@ -1121,6 +1161,62 @@ function MarkSoldModal({ tree, t, onClose, onSold }: {
               className={inputCls + ' resize-none'}
             />
           </label>
+
+          {/* Buyer search */}
+          <div>
+            <span className="block font-sans text-sm font-semibold text-forest mb-2">{t.soldBuyerLabel}</span>
+            {selectedBuyer ? (
+              <div className="flex items-start justify-between gap-3 bg-sage-pale rounded-2xl px-4 py-3">
+                <div>
+                  <p className="font-sans text-xs font-semibold text-forest mb-0.5">{t.soldBuyerLinked}</p>
+                  <p className="font-sans text-sm text-ink font-bold">{selectedBuyer.name}</p>
+                  <p className="font-sans text-xs text-ink-light">{selectedBuyer.phone}</p>
+                  {selectedBuyer.email && <p className="font-sans text-xs text-ink-light">{selectedBuyer.email}</p>}
+                  <p className="font-sans text-[10px] text-ink-light/60 mt-0.5 italic">{selectedBuyer.reason}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedBuyer(null); setBuyerQuery('') }}
+                  className="font-sans text-xs text-ink-light hover:text-forest flex-shrink-0 mt-0.5"
+                >
+                  {t.soldBuyerClear}
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={t.soldBuyerSearch}
+                  value={buyerQuery}
+                  onChange={e => setBuyerQuery(e.target.value)}
+                  className={inputCls}
+                  autoComplete="off"
+                />
+                {buyerSearching && (
+                  <p className="font-sans text-xs text-ink-light/60 mt-1.5 px-1">{t.soldBuyerSearching}</p>
+                )}
+                {!buyerSearching && buyerQuery.length >= 2 && buyerResults.length === 0 && (
+                  <p className="font-sans text-xs text-ink-light/60 mt-1.5 px-1">{t.soldBuyerNone}</p>
+                )}
+                {buyerResults.length > 0 && (
+                  <div className="mt-1 bg-white rounded-2xl border border-forest/10 shadow-card-lg overflow-hidden">
+                    {buyerResults.map(b => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onMouseDown={() => { setSelectedBuyer(b); setBuyerQuery(''); setBuyerResults([]) }}
+                        className="w-full text-left px-4 py-3 hover:bg-sage-pale transition-colors border-b border-forest/5 last:border-0"
+                      >
+                        <p className="font-sans text-sm font-semibold text-forest">{b.name}</p>
+                        <p className="font-sans text-xs text-ink-light">{b.phone}{b.email ? ` \u00b7 ${b.email}` : ''}</p>
+                        <p className="font-sans text-[10px] text-ink-light/60 italic">{b.reason}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {error && <p className="font-sans text-sm text-bonsai-pink text-center">{error}</p>}
 
@@ -1191,6 +1287,14 @@ function SoldTreeList({ trees, t }: {
                         </p>
                       )}
                     </div>
+                    {tree.buyer_name && (
+                      <div className="mt-2 bg-sage-pale/60 rounded-xl px-3 py-2">
+                        <p className="font-sans text-[10px] font-semibold text-forest/60 uppercase tracking-wide mb-0.5">Buyer</p>
+                        <p className="font-sans text-xs font-bold text-forest">{tree.buyer_name}</p>
+                        {tree.buyer_phone && <p className="font-sans text-xs text-ink-light">{tree.buyer_phone}</p>}
+                        {tree.buyer_email && <p className="font-sans text-xs text-ink-light">{tree.buyer_email}</p>}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1233,16 +1337,16 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
     setSoldTree(tree)
   }
 
-  async function markTreeSold(tree: DbTree, soldImageUrl: string | null, soldNote: string) {
+  async function markTreeSold(tree: DbTree, soldImageUrl: string | null, soldNote: string, buyer: BuyerInfo) {
     const res = await fetch(`/api/admin/trees/${tree.id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sold_image_url: soldImageUrl, sold_note: soldNote }),
+      body: JSON.stringify({ sold_image_url: soldImageUrl, sold_note: soldNote, ...buyer }),
     })
     if (!res.ok) return
     const soldAt = new Date().toISOString()
     setTrees(p => p.map(item => item.id === tree.id
-      ? { ...item, is_active: false, sold_image_url: soldImageUrl, sold_note: soldNote || null, sold_at: soldAt }
+      ? { ...item, is_active: false, sold_image_url: soldImageUrl, sold_note: soldNote || null, sold_at: soldAt, ...buyer }
       : item
     ))
   }

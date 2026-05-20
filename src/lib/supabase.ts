@@ -66,4 +66,8 @@ export interface DbTree {
   is_active: boolean
   status: string
   created_at: string
+  buyer_booking_id: string | null
+  buyer_name: string | null
+  buyer_phone: string | null
+  buyer_email: string | null
 }
