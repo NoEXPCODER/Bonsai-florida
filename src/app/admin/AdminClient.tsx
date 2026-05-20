@@ -1402,6 +1402,7 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
           {[
             { label: '🌿 Collection', path: '/trees', newTab: true },
             { label: '🏠 Public Site', path: '/', newTab: true },
+            { label: '📅 Bookings', path: '/admin/bookings', newTab: false },
             { label: `📱 ${t.devicesLink}`, path: '/admin/devices', newTab: false },
           ].map(({ label, path, newTab }) => (
             <a key={path} href={path}

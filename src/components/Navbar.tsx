@@ -81,14 +81,16 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
               {locale === 'en' ? '🇻🇳 VI' : '🇺🇸 EN'}
             </button>
 
-            {/* Text CTA */}
             <a
               href={CONTACT.phone.sms}
-              className="btn-primary text-sm px-6 py-3 min-h-[48px]"
+              className="font-sans text-xs font-semibold text-ink-light hover:text-forest transition-colors"
               aria-label="Text Bonsai Florida"
             >
-              <MessageIcon className="w-4 h-4" />
+              <MessageIcon className="w-4 h-4 inline mr-1" />
               {m.nav.textUs}
+            </a>
+            <a href="/visit" className="btn-primary text-sm px-6 py-3 min-h-[48px]">
+              Book a Visit
             </a>
           </div>
 
@@ -134,8 +136,15 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
                 {m.nav.login}
               </Link>
               <a
-                href={CONTACT.phone.sms}
+                href="/visit"
                 className="btn-primary justify-center text-sm"
+                onClick={() => setMenuOpen(false)}
+              >
+                Book a Garden Visit
+              </a>
+              <a
+                href={CONTACT.phone.sms}
+                className="btn-secondary justify-center text-sm"
                 aria-label="Text Bonsai Florida"
                 onClick={() => setMenuOpen(false)}
               >

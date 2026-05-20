@@ -149,7 +149,7 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
             </p>
 
             <div className="flex flex-wrap gap-3 mb-5">
-              <a href="/book" className="btn-primary text-base py-3.5 px-7 min-h-[52px]">
+              <a href="/visit" className="btn-primary text-base py-3.5 px-7 min-h-[52px]">
                 {t.bookVisit}
               </a>
               <a href="/trees" className="btn-secondary text-base py-3.5 px-7 min-h-[52px]">
