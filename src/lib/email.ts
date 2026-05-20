@@ -15,20 +15,24 @@ const FROM = 'Bonsai Florida <onboarding@resend.dev>'
 // Set EMAIL_DRY_RUN=true to log emails instead of sending (useful for local testing)
 const DRY_RUN = process.env.EMAIL_DRY_RUN === 'true'
 
-function configured(): boolean {
-  return !!(process.env.RESEND_API_KEY && ADMIN_EMAIL)
-}
-
 async function send(to: string, subject: string, html: string): Promise<void> {
   if (DRY_RUN) {
     console.log(`[EMAIL DRY RUN] to=${to} subject="${subject}"`)
     return
   }
-  if (!configured()) return
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[EMAIL] Skipped — RESEND_API_KEY not set')
+    return
+  }
   try {
-    await resend.emails.send({ from: FROM, to, subject, html })
+    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html })
+    if (error) {
+      console.error('[EMAIL] Resend error:', JSON.stringify(error))
+    } else {
+      console.log(`[EMAIL] Sent id=${data?.id} to=${to}`)
+    }
   } catch (err) {
-    console.error('Email send failed:', err)
+    console.error('[EMAIL] Exception:', err)
   }
 }
 
