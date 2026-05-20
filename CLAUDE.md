@@ -116,6 +116,8 @@ Do not dump many unrelated files into one folder. Keep modules isolated and easy
 
 ## Development Rules
 
+- Always sync from GitHub before starting work: fetch the remote, check the active branch, and pull/rebase the latest target branch before editing files.
+- After finishing, always tell the user exactly what was done, what changed, what was tested, and what remains.
 - Plan before coding.
 - Build one feature per PR.
 - Keep PRs small and reviewable.
