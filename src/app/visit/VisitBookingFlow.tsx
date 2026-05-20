@@ -36,7 +36,7 @@ const VISIT_GOAL_OPTIONS = [
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Step = 'purpose' | 'details' | 'time' | 'confirm'
+type Step = 'purpose' | 'browse-prompt' | 'details' | 'time' | 'confirm'
 
 interface FormState {
   purpose: string
@@ -114,8 +114,12 @@ const STEP_LABELS: { key: Step; label: string }[] = [
   { key: 'confirm', label: 'Confirm' },
 ]
 
+// browse-prompt sits between purpose and details — show it at the details index
+const PROGRESS_STEP_MAP: Partial<Record<Step, Step>> = { 'browse-prompt': 'details' }
+
 function Progress({ step }: { step: Step }) {
-  const idx = STEP_LABELS.findIndex(s => s.key === step)
+  const displayStep = PROGRESS_STEP_MAP[step] ?? step
+  const idx = STEP_LABELS.findIndex(s => s.key === displayStep)
   return (
     <div className="flex items-center justify-center gap-0 mb-10">
       {STEP_LABELS.map((s, i) => (
@@ -167,6 +171,64 @@ function PurposeStep({ onSelect }: { onSelect: (id: string, label: string) => vo
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ── Step 1b: Browse Prompt (shown when no trees saved) ───────────────────────
+
+function BrowsePromptStep({
+  purposeLabel, purposeEmoji, onContinue, onBack,
+}: {
+  purposeLabel: string
+  purposeEmoji: string
+  onContinue: () => void
+  onBack: () => void
+}) {
+  return (
+    <div className="max-w-md mx-auto text-center">
+      <button onClick={onBack} className="flex items-center gap-1.5 font-sans text-xs text-ink-light hover:text-forest mb-8 transition-colors">
+        ← Back
+      </button>
+
+      {/* Purpose echo */}
+      <div className="bg-sage-pale rounded-2xl px-4 py-3 flex items-center justify-center gap-3 mb-8">
+        <span className="text-xl">{purposeEmoji}</span>
+        <p className="font-serif text-sm text-forest font-bold">{purposeLabel}</p>
+      </div>
+
+      {/* Tree illustration area */}
+      <div className="mb-6">
+        <div className="w-20 h-20 rounded-full bg-forest/10 flex items-center justify-center mx-auto mb-4 text-4xl">
+          🌿
+        </div>
+        <h2 className="font-serif text-2xl sm:text-3xl text-forest mb-3">
+          Want to pick trees before you visit?
+        </h2>
+        <p className="font-sans text-sm text-ink-light leading-relaxed max-w-xs mx-auto">
+          Browse our collection, save up to 5 trees, and we&apos;ll have them ready when you arrive.
+          Or skip this and book your time now.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <a
+          href="/trees"
+          className="btn-primary w-full justify-center text-base py-4 min-h-[52px]"
+        >
+          Browse the Tree Collection →
+        </a>
+        <button
+          onClick={onContinue}
+          className="btn-secondary w-full justify-center text-sm py-3 min-h-[48px]"
+        >
+          Skip — Book Without Choosing Trees
+        </button>
+      </div>
+
+      <p className="font-sans text-xs text-ink-light/50 mt-5 leading-relaxed">
+        No trees saved yet. You can still tell us your budget and preferences on the next step — we&apos;ll prepare options that match.
+      </p>
     </div>
   )
 }
@@ -481,7 +543,8 @@ export default function VisitBookingFlow() {
 
   function selectPurpose(id: string, label: string) {
     setData(prev => ({ ...prev, purpose: id, purposeLabel: label }))
-    setStep('details')
+    // If no trees saved, nudge them to browse first (they can still skip)
+    setStep(data.selected_tree_ids.length === 0 ? 'browse-prompt' : 'details')
   }
 
   function validateDetails(): boolean {
@@ -539,6 +602,15 @@ export default function VisitBookingFlow() {
       <Progress step={step} />
 
       {step === 'purpose' && <PurposeStep onSelect={selectPurpose} />}
+
+      {step === 'browse-prompt' && (
+        <BrowsePromptStep
+          purposeLabel={data.purposeLabel}
+          purposeEmoji={PURPOSES.find(p => p.id === data.purpose)?.emoji ?? '🌿'}
+          onContinue={() => setStep('details')}
+          onBack={() => setStep('purpose')}
+        />
+      )}
 
       {step === 'details' && (
         <DetailsStep
