@@ -36,7 +36,7 @@ const VISIT_GOAL_OPTIONS = [
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Step = 'purpose' | 'browse-prompt' | 'details' | 'time' | 'confirm'
+type Step = 'purpose' | 'details' | 'time' | 'confirm'
 
 interface FormState {
   purpose: string
@@ -114,12 +114,8 @@ const STEP_LABELS: { key: Step; label: string }[] = [
   { key: 'confirm', label: 'Confirm' },
 ]
 
-// browse-prompt sits between purpose and details — show it at the details index
-const PROGRESS_STEP_MAP: Partial<Record<Step, Step>> = { 'browse-prompt': 'details' }
-
 function Progress({ step }: { step: Step }) {
-  const displayStep = PROGRESS_STEP_MAP[step] ?? step
-  const idx = STEP_LABELS.findIndex(s => s.key === displayStep)
+  const idx = STEP_LABELS.findIndex(s => s.key === step)
   return (
     <div className="flex items-center justify-center gap-0 mb-10">
       {STEP_LABELS.map((s, i) => (
@@ -171,64 +167,6 @@ function PurposeStep({ onSelect }: { onSelect: (id: string, label: string) => vo
           </button>
         ))}
       </div>
-    </div>
-  )
-}
-
-// ── Step 1b: Browse Prompt (shown when no trees saved) ───────────────────────
-
-function BrowsePromptStep({
-  purposeLabel, purposeEmoji, onContinue, onBack,
-}: {
-  purposeLabel: string
-  purposeEmoji: string
-  onContinue: () => void
-  onBack: () => void
-}) {
-  return (
-    <div className="max-w-md mx-auto text-center">
-      <button onClick={onBack} className="flex items-center gap-1.5 font-sans text-xs text-ink-light hover:text-forest mb-8 transition-colors">
-        ← Back
-      </button>
-
-      {/* Purpose echo */}
-      <div className="bg-sage-pale rounded-2xl px-4 py-3 flex items-center justify-center gap-3 mb-8">
-        <span className="text-xl">{purposeEmoji}</span>
-        <p className="font-serif text-sm text-forest font-bold">{purposeLabel}</p>
-      </div>
-
-      {/* Tree illustration area */}
-      <div className="mb-6">
-        <div className="w-20 h-20 rounded-full bg-forest/10 flex items-center justify-center mx-auto mb-4 text-4xl">
-          🌿
-        </div>
-        <h2 className="font-serif text-2xl sm:text-3xl text-forest mb-3">
-          Want to pick trees before you visit?
-        </h2>
-        <p className="font-sans text-sm text-ink-light leading-relaxed max-w-xs mx-auto">
-          Browse our collection, save up to 5 trees, and we&apos;ll have them ready when you arrive.
-          Or skip this and book your time now.
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        <a
-          href="/trees"
-          className="btn-primary w-full justify-center text-base py-4 min-h-[52px]"
-        >
-          Browse the Tree Collection →
-        </a>
-        <button
-          onClick={onContinue}
-          className="btn-secondary w-full justify-center text-sm py-3 min-h-[48px]"
-        >
-          Skip — Book Without Choosing Trees
-        </button>
-      </div>
-
-      <p className="font-sans text-xs text-ink-light/50 mt-5 leading-relaxed">
-        No trees saved yet. You can still tell us your budget and preferences on the next step — we&apos;ll prepare options that match.
-      </p>
     </div>
   )
 }
@@ -392,6 +330,8 @@ function TimeStep({
       .finally(() => setLoadingSlots(false))
   }, [selectedDate, data.purposeLabel])
 
+  const noTreesSaved = data.selected_tree_ids.length === 0
+
   return (
     <div className="max-w-lg mx-auto">
       <button onClick={onBack} className="flex items-center gap-1.5 font-sans text-xs text-ink-light hover:text-forest mb-8 transition-colors">
@@ -401,9 +341,33 @@ function TimeStep({
       <p className="section-label mb-2 text-center">Step 3 — Choose a Time</p>
       <h2 className="font-serif text-3xl sm:text-4xl text-forest text-center mb-2">When would you like to visit?</h2>
       <div className="pink-divider mb-6" />
-      <p className="font-sans text-sm text-ink-light text-center mb-8">
+      <p className="font-sans text-sm text-ink-light text-center mb-6">
         We&apos;re open Wednesday – Sunday, 10 AM – 5 PM
       </p>
+
+      {/* Tree nudge — only when no trees saved */}
+      {noTreesSaved && (
+        <div className="bg-cream-warm border border-forest/15 rounded-2xl px-4 py-4 mb-6 flex items-start gap-3">
+          <span className="text-2xl flex-shrink-0 mt-0.5">🌿</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-sans text-sm font-semibold text-forest leading-snug">
+              Want us to prepare specific trees?
+            </p>
+            <p className="font-sans text-xs text-ink-light mt-1 leading-relaxed">
+              Browse the collection and save up to 5 trees — we&apos;ll have them ready when you arrive.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <a
+                href="/trees"
+                className="font-sans text-xs font-bold text-white bg-forest px-3 py-1.5 rounded-xl hover:bg-forest/90 transition-colors"
+              >
+                Browse Trees →
+              </a>
+              <span className="font-sans text-xs text-ink-light/60 py-1.5">or pick a time below and we&apos;ll help you choose</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Date picker */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
@@ -543,8 +507,7 @@ export default function VisitBookingFlow() {
 
   function selectPurpose(id: string, label: string) {
     setData(prev => ({ ...prev, purpose: id, purposeLabel: label }))
-    // If no trees saved, nudge them to browse first (they can still skip)
-    setStep(data.selected_tree_ids.length === 0 ? 'browse-prompt' : 'details')
+    setStep('details')
   }
 
   function validateDetails(): boolean {
@@ -602,15 +565,6 @@ export default function VisitBookingFlow() {
       <Progress step={step} />
 
       {step === 'purpose' && <PurposeStep onSelect={selectPurpose} />}
-
-      {step === 'browse-prompt' && (
-        <BrowsePromptStep
-          purposeLabel={data.purposeLabel}
-          purposeEmoji={PURPOSES.find(p => p.id === data.purpose)?.emoji ?? '🌿'}
-          onContinue={() => setStep('details')}
-          onBack={() => setStep('purpose')}
-        />
-      )}
 
       {step === 'details' && (
         <DetailsStep
