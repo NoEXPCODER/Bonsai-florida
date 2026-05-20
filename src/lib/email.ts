@@ -6,7 +6,8 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const ADMIN_EMAIL = process.env.BOOKING_ADMIN_EMAIL
+const ADMIN_EMAIL = process.env.BOOKING_ADMIN_EMAIL        // primary admin
+const ADMIN_EMAIL_2 = 'bonsaifloridausa@gmail.com'         // second admin always receives
 // Using Resend's shared sending domain — no custom domain verification needed.
 // Switch to 'bookings@bonsaiflorida.com' once that domain is verified in Resend.
 const FROM = 'Bonsai Florida <onboarding@resend.dev>'
@@ -102,7 +103,7 @@ export async function sendCustomerConfirmation(b: BookingEmailData): Promise<voi
 }
 
 export async function sendAdminNotification(b: BookingEmailData): Promise<void> {
-  if (!ADMIN_EMAIL) return
+  if (!ADMIN_EMAIL && !ADMIN_EMAIL_2) return
   const dateStr = formatDateET(b.appointment_start)
   const timeStr = `${formatTimeET(b.appointment_start)} – ${formatTimeET(b.appointment_end)}`
 
@@ -126,9 +127,7 @@ export async function sendAdminNotification(b: BookingEmailData): Promise<void> 
     </div>
   `
 
-  await send(
-    ADMIN_EMAIL,
-    `New Bonsai Florida booking — ${b.full_name} — ${dateStr}`,
-    html,
-  )
+  const subject = `New Bonsai Florida booking — ${b.full_name} — ${dateStr}`
+  const recipients = [ADMIN_EMAIL, ADMIN_EMAIL_2].filter(Boolean) as string[]
+  await Promise.all(recipients.map(to => send(to, subject, html)))
 }
