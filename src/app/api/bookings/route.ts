@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     .eq('email', email.trim().toLowerCase())
     .gte('created_at', dayAgo)
 
-  if ((count ?? 0) >= 3)
+  if ((count ?? 0) >= 10)
     return NextResponse.json({ error: 'Too many bookings from this email.' }, { status: 429 })
 
   // Insert
