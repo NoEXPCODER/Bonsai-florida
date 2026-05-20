@@ -6,7 +6,7 @@ import { useMessages } from '@/lib/i18n'
 import { getSpeciesDifficulty, getSpeciesLatin, makeSpeciesSlug } from '@/lib/species'
 import { SunIcon, WaterIcon } from '@/components/Icons'
 
-const PREVIEW_COUNT = 4
+const PREVIEW_COUNT = 3
 
 export default function CareGuidePreview({ species }: { species: DbSpecies[] }) {
   const t = useMessages().carePreview
@@ -40,11 +40,7 @@ export default function CareGuidePreview({ species }: { species: DbSpecies[] }) 
               <h3 className="font-serif text-xl text-forest leading-snug mb-0.5">{guide.name_en}</h3>
               <p className="font-sans text-xs italic text-ink-light mb-3">{getSpeciesLatin(guide)}</p>
 
-              <p className="font-sans text-sm text-ink-light leading-relaxed mb-4 line-clamp-3 flex-1">
-                {guide.care_en || guide.quick_facts_en || t.description}
-              </p>
-
-              <div className="space-y-1.5 mb-5">
+              <div className="space-y-1.5 flex-1 mb-5">
                 <div className="flex items-start gap-2">
                   <SunIcon className="w-3.5 h-3.5 text-sage flex-shrink-0 mt-0.5" />
                   <p className="font-sans text-xs text-ink-light line-clamp-1">{guide.light_en || guide.sun_en}</p>

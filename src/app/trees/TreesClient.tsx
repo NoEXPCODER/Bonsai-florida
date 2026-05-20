@@ -9,7 +9,7 @@ import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
 import { siteConfig } from '@/lib/siteConfig'
-import { MessageIcon, PhoneIcon, SunIcon, WaterIcon } from '@/components/Icons'
+import { MessageIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 
 // ─── Photo card (grid view — default) ────────────────────────────────────────
@@ -224,7 +224,7 @@ type Filter = 'all' | 'beginner' | 'intermediate'
 const VIEW_ICONS: Record<View, string> = { grid: '⊞', list: '≡', care: '✿' }
 const VIEW_LABELS: Record<View, string> = { grid: 'Photos', list: 'List', care: 'Care' }
 
-export default function TreesClient({ trees }: { trees: DbTree[] }) {
+export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]; logoUrl?: string | null }) {
   const router = useRouter()
   const m = useMessages()
   const t = m.collection
@@ -257,7 +257,7 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
 
   return (
     <div className="min-h-screen bg-cream">
-      <Navbar />
+      <Navbar logoUrl={logoUrl} />
 
       {/* Header */}
       <div className="bg-cream-light border-b border-forest/10 px-4 py-10 text-center">
@@ -268,10 +268,10 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
         <p className="font-sans text-sm text-ink-light max-w-2xl mx-auto mt-4">
           Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
         </p>
-        <div className="flex flex-col items-center justify-center gap-3 mt-5 sm:flex-row">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
           <BookGardenVisitButton />
-          <a href={CONTACT.phone.tel} className="btn-primary text-sm py-2.5">
-            <PhoneIcon className="w-4 h-4" /> Call Now
+          <a href={CONTACT.phone.sms} className="btn-primary text-sm py-2.5">
+            <MessageIcon className="w-4 h-4" /> Text Us
           </a>
         </div>
       </div>
@@ -368,11 +368,36 @@ export default function TreesClient({ trees }: { trees: DbTree[] }) {
           </div>
         )}
 
+        {/* Book a visit banner */}
+        {displayed.length > 0 && (
+          <div className="mt-14 rounded-3xl bg-forest px-6 py-10 text-center">
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mb-8" />
+            <p className="font-serif text-2xl sm:text-3xl text-white mb-3">
+              {t.bookBannerHeading}
+            </p>
+            <p className="font-sans text-base text-white/70 leading-relaxed max-w-sm mx-auto mb-7">
+              {t.bookBannerDesc}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <BookGardenVisitButton />
+              <a
+                href={CONTACT.phone.sms}
+                className="inline-flex items-center gap-2 border-2 border-white/40 text-white rounded-full px-6 py-3 font-sans text-sm font-bold hover:bg-white/10 transition-colors min-h-[48px]"
+              >
+                <MessageIcon className="w-4 h-4" /> Text Us Instead
+              </a>
+            </div>
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-8" />
+          </div>
+        )}
+
         {/* Footer CTA */}
         {displayed.length > 0 && (
-          <div className="mt-16 text-center">
+          <div className="mt-10 text-center">
             <p className="font-serif italic text-ink-light text-lg mb-5">{t.footerNote}</p>
-            <a href={CONTACT.phone.tel} className="btn-secondary inline-flex">{t.footerCta}</a>
+            <a href={CONTACT.phone.sms} className="btn-secondary inline-flex">
+              <MessageIcon className="w-4 h-4" /> Text to Ask About More Trees
+            </a>
           </div>
         )}
       </div>

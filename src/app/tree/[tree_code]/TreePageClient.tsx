@@ -9,7 +9,7 @@ import { getTreeImageUrls } from '@/lib/tree-images'
 import { makeSpeciesSlug } from '@/lib/species'
 import { siteConfig } from '@/lib/siteConfig'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
-import { PhoneIcon, MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
+import { MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
@@ -687,12 +687,8 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
 
             {/* CTA buttons — near top */}
             <div className="flex gap-3 mt-5">
-              <a href={CONTACT.phone.tel}
-                className="btn-primary flex-1 justify-center text-base py-3.5" aria-label="Call Bonsai Florida">
-                <PhoneIcon className="w-5 h-5" /> Call Now
-              </a>
               <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code ?? ''})`}
-                className="btn-secondary flex-1 justify-center text-base py-3.5" aria-label="Text Bonsai Florida">
+                className="btn-primary flex-1 justify-center text-base py-3.5" aria-label="Text Bonsai Florida">
                 <MessageIcon className="w-5 h-5" /> Text Us
               </a>
             </div>
@@ -726,12 +722,9 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
             </p>
             <div className="flex flex-col gap-3">
               <BookGardenVisitButton />
-              <a href={CONTACT.phone.tel} className="btn-primary w-full justify-center" aria-label="Call Bonsai Florida">
-                <PhoneIcon className="w-5 h-5" /> Call {CONTACT.phone.display}
-              </a>
               <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code ?? ''})`}
-                className="btn-secondary w-full justify-center" aria-label="Text Bonsai Florida">
-                <MessageIcon className="w-5 h-5" /> Text Us
+                className="btn-primary w-full justify-center" aria-label="Text Bonsai Florida">
+                <MessageIcon className="w-5 h-5" /> Text Us — {CONTACT.phone.display}
               </a>
             </div>
           </div>

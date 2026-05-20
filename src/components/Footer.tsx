@@ -3,7 +3,6 @@
 import { CONTACT } from '@/config/contact'
 import { useMessages } from '@/lib/i18n'
 import {
-  PhoneIcon,
   MessageIcon,
   EmailIcon,
   InstagramIcon,
@@ -50,13 +49,6 @@ export default function Footer() {
             </h3>
             <ul className="space-y-4">
               {[
-                {
-                  label: t.callLabel,
-                  sub: CONTACT.phone.display,
-                  href: CONTACT.phone.tel,
-                  icon: <PhoneIcon className="w-4 h-4" />,
-                  ariaLabel: `Call us at ${CONTACT.phone.display}`,
-                },
                 {
                   label: t.textLabel,
                   sub: CONTACT.phone.display,
@@ -150,24 +142,14 @@ export default function Footer() {
           <p className="font-sans text-white/50 text-sm text-center sm:text-left">
             {t.copyright} &copy; {CONTACT.year} &mdash; {CONTACT.location}
           </p>
-          <div className="flex gap-3">
-            <a
-              href={CONTACT.phone.tel}
-              className="inline-flex items-center gap-2 bg-white text-forest rounded-full px-5 py-2.5 font-sans font-bold text-xs tracking-wide hover:bg-cream transition-colors min-h-[40px]"
-              aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
-            >
-              <PhoneIcon className="w-3.5 h-3.5" />
-              {t.callNow}
-            </a>
-            <a
-              href={CONTACT.phone.sms}
-              className="inline-flex items-center gap-2 border border-white/30 text-white rounded-full px-5 py-2.5 font-sans font-bold text-xs tracking-wide hover:bg-white/10 transition-colors min-h-[40px]"
-              aria-label="Send a text to Bonsai Florida"
-            >
-              <MessageIcon className="w-3.5 h-3.5" />
-              {t.textUs}
-            </a>
-          </div>
+          <a
+            href={CONTACT.phone.sms}
+            className="inline-flex items-center gap-2 bg-white text-forest rounded-full px-5 py-2.5 font-sans font-bold text-xs tracking-wide hover:bg-cream transition-colors min-h-[40px]"
+            aria-label="Send a text to Bonsai Florida"
+          >
+            <MessageIcon className="w-3.5 h-3.5" />
+            {t.textUs}
+          </a>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import { useAuth, useMessages } from '@/lib/i18n'
-import { PhoneIcon } from '@/components/Icons'
+import { MessageIcon } from '@/components/Icons'
 
 export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -69,7 +69,7 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
               href="/admin"
               className="font-sans text-xs font-semibold tracking-wider uppercase px-3.5 py-2 rounded-full border border-forest/20 text-ink-light hover:border-forest hover:text-forest transition-colors"
             >
-              {m.nav.adminLogin}
+              {m.nav.login}
             </Link>
 
             {/* EN / VI language toggle */}
@@ -81,14 +81,14 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
               {locale === 'en' ? '🇻🇳 VI' : '🇺🇸 EN'}
             </button>
 
-            {/* Call CTA */}
+            {/* Text CTA */}
             <a
-              href={CONTACT.phone.tel}
+              href={CONTACT.phone.sms}
               className="btn-primary text-sm px-6 py-3 min-h-[48px]"
-              aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
+              aria-label="Text Bonsai Florida"
             >
-              <PhoneIcon className="w-4 h-4" />
-              {m.nav.callNow}
+              <MessageIcon className="w-4 h-4" />
+              {m.nav.textUs}
             </a>
           </div>
 
@@ -131,16 +131,16 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
                 className="btn-secondary justify-center text-sm"
                 onClick={() => setMenuOpen(false)}
               >
-                {m.nav.adminLogin}
+                {m.nav.login}
               </Link>
               <a
-                href={CONTACT.phone.tel}
+                href={CONTACT.phone.sms}
                 className="btn-primary justify-center text-sm"
-                aria-label={`Call us at ${CONTACT.phone.display}`}
+                aria-label="Text Bonsai Florida"
                 onClick={() => setMenuOpen(false)}
               >
-                <PhoneIcon className="w-4 h-4" />
-                {m.nav.callNow} — {CONTACT.phone.display}
+                <MessageIcon className="w-4 h-4" />
+                Text Us — {CONTACT.phone.display}
               </a>
             </div>
           </div>

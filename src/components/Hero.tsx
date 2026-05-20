@@ -1,153 +1,196 @@
 'use client'
 
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONTACT } from '@/config/contact'
+import BookGardenVisitButton from '@/components/BookGardenVisitButton'
+import { useMessages } from '@/lib/i18n'
+import { InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
-import { useMessages } from '@/lib/i18n'
-import { FacebookIcon, InstagramIcon, MessageIcon, PhoneIcon, TikTokIcon } from '@/components/Icons'
+import DistanceBadge from '@/components/DistanceBadge'
+
+const SOCIALS = [
+  { href: CONTACT.social.instagram.url, icon: InstagramIcon, label: 'Instagram' },
+  { href: CONTACT.social.facebook.url,  icon: FacebookIcon,  label: 'Facebook'  },
+  { href: CONTACT.social.tiktok.url,    icon: TikTokIcon,    label: 'TikTok'    },
+]
+
+// ── Photo swiper ──────────────────────────────────────────────────────────────
+
+interface Photo { url: string; name: string }
+
+function PhotoSwiper({ photos, t }: { photos: Photo[]; t: { localCollection: string; careGuideCard: string; careGuideCardSub: string } }) {
+  const [idx, setIdx] = useState(0)
+  const touchStartX = useRef<number | null>(null)
+  const total = photos.length
+
+  const next = useCallback(() => setIdx(i => (i + 1) % total), [total])
+  const prev = useCallback(() => setIdx(i => (i - 1 + total) % total), [total])
+
+  useEffect(() => {
+    if (total <= 1) return
+    const timer = setInterval(next, 4500)
+    return () => clearInterval(timer)
+  }, [next, total])
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) next()
+      else prev()
+    }
+    touchStartX.current = null
+  }
+
+  if (photos.length === 0) {
+    return (
+      <div className="relative rounded-3xl overflow-hidden aspect-[4/5] bg-sage-pale shadow-card-lg flex items-center justify-center">
+        <span className="text-6xl opacity-20">🌿</span>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="relative rounded-3xl overflow-hidden aspect-[4/5] bg-sage-pale shadow-card-lg select-none"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Photo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={idx}
+        src={photos[idx].url}
+        alt={photos[idx].name}
+        className="w-full h-full object-cover transition-opacity duration-500"
+      />
+
+      {/* LOCAL COLLECTION badge */}
+      <span className="absolute top-4 left-4 font-sans text-[10px] font-bold tracking-[0.2em] uppercase bg-white/90 text-forest px-3 py-1.5 rounded-full shadow-soft">
+        {t.localCollection}
+      </span>
+
+      {/* Dot indicators — visible only when multiple photos */}
+      {total > 1 && (
+        <div className="absolute top-4 right-4 flex gap-1.5 items-center">
+          {photos.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              aria-label={`Photo ${i + 1}`}
+              className={`rounded-full transition-all duration-300 ${
+                i === idx ? 'w-5 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Frosted care-guide card — hidden on small mobile so it doesn't cover the photo */}
+      <div className="hidden sm:block absolute bottom-4 right-4 bg-white/80 backdrop-blur-md rounded-2xl p-4 max-w-[180px] shadow-card">
+        <p className="font-serif text-forest text-sm leading-snug mb-1">
+          {t.careGuideCard}
+        </p>
+        <p className="font-sans text-xs text-ink-light leading-relaxed">
+          {t.careGuideCardSub}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
 
 interface HeroProps {
   trees?: DbTree[]
   logoUrl?: string | null
 }
 
-function HeroImage({ tree, logoSrc }: { tree: DbTree | null; logoSrc: string }) {
-  const m = useMessages()
-  const t = m.hero
-  const image = tree ? getPrimaryTreeImageUrl(tree) : null
-  const imageAlt = tree?.name ? `${tree.name} bonsai` : 'Bonsai Florida tree'
-
-  return (
-    <div className="relative mx-auto w-full max-w-[520px] lg:max-w-none">
-      <div className="absolute -inset-3 rounded-[2rem] bg-bonsai-pink-pale/35 blur-2xl lg:-inset-5" aria-hidden="true" />
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-forest/10 bg-cream-light shadow-card-lg">
-        <div className="relative aspect-[4/5] min-h-[390px] bg-gradient-to-br from-sage-pale via-cream-light to-cream-warm lg:min-h-[520px] xl:min-h-[560px]">
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={image}
-              alt={imageAlt}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_32%,rgba(200,101,138,0.18),transparent_34%),linear-gradient(145deg,#fffdf8,#e8f0e8)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoSrc}
-                alt=""
-                aria-hidden
-                className="h-60 w-72 object-contain opacity-90"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png' }}
-              />
-            </div>
-          )}
-          <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-forest/45 to-transparent" aria-hidden="true" />
-          <div className="absolute left-5 top-5 rounded-full bg-cream-light/92 px-4 py-2 font-sans text-[10px] font-bold uppercase tracking-[0.18em] text-forest shadow-soft">
-            {t.localCollection}
-          </div>
-          <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/55 bg-cream-light/94 p-4 shadow-card backdrop-blur-sm sm:left-auto sm:w-72">
-            <p className="font-serif text-lg leading-tight text-forest">{t.careIncluded}</p>
-            <p className="mt-1 font-sans text-xs leading-relaxed text-ink-light">{t.careIncludedSub}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
-  const m = useMessages()
-  const t = m.hero
-  const logoSrc = logoUrl ?? '/logo.png'
-  const heroTree = trees.find(tree => getPrimaryTreeImageUrl(tree)) ?? null
-  const socialLinks = [
-    CONTACT.social.instagram,
-    CONTACT.social.facebook,
-    CONTACT.social.tiktok,
-  ]
-  const socialIcons = [InstagramIcon, FacebookIcon, TikTokIcon]
+  const t = useMessages().hero
+  const logoSrc = logoUrl ?? '/logo.svg'
+
+  const photos: Photo[] = trees
+    .map(tree => ({ url: getPrimaryTreeImageUrl(tree) ?? '', name: tree.name }))
+    .filter(p => p.url)
 
   return (
-    <section id="top" className="bg-gradient-to-b from-cream-light to-cream">
-      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink-lt to-transparent" />
+    <section id="top" className="bg-cream-light">
+      <div className="section-wrap py-14 sm:py-20 lg:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
-      <div className="mx-auto grid max-w-[1200px] items-center gap-9 px-5 py-10 sm:px-6 sm:py-14 lg:min-h-[calc(100vh-5.5rem)] lg:grid-cols-[0.96fr_1fr] lg:gap-12 lg:px-8 lg:py-8">
-        <div className="mx-auto max-w-xl text-center lg:mx-0 lg:max-w-none lg:text-left">
-          <div className="mb-5 inline-flex flex-col items-center gap-4 rounded-2xl bg-white/55 px-5 py-4 ring-1 ring-forest/8 lg:mb-7 lg:flex-row lg:items-center lg:bg-transparent lg:px-0 lg:py-0 lg:ring-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={logoSrc}
-              alt="Bonsai Florida"
-              width={96}
-              height={120}
-              className="h-20 w-24 object-contain sm:h-24 sm:w-28 lg:h-[86px] lg:w-[104px]"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/logo.png' }}
-            />
-            <div className="lg:border-l lg:border-forest/12 lg:pl-5">
-              <p className="section-label mb-2">{t.location}</p>
-              <p className="font-sans text-xs font-semibold uppercase tracking-[0.26em] text-forest/55">
-                {t.premiumTag}
-              </p>
+          {/* ── Left: text ─────────────────────────────────────── */}
+          <div>
+            {/* Brand row */}
+            <div className="flex items-center gap-4 mb-8 sm:mb-10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoSrc} alt="Bonsai Florida" className="w-14 h-14 object-contain flex-shrink-0" />
+              <div className="w-px h-12 bg-forest/20 flex-shrink-0" />
+              <div>
+                <p className="font-sans text-[11px] font-bold tracking-[0.22em] uppercase text-bonsai-pink leading-tight">
+                  {t.location}
+                </p>
+                <p className="font-sans text-[11px] font-semibold tracking-[0.18em] uppercase text-ink-light leading-tight mt-0.5">
+                  {t.nursery}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <h1 className="font-serif text-[clamp(2.85rem,11vw,4.1rem)] leading-[0.98] text-forest sm:text-[4.4rem] lg:max-w-[620px] lg:text-[4.05rem] xl:text-[4.55rem]">
-            {t.tagline}
-          </h1>
+            <DistanceBadge className="font-sans text-[11px] font-semibold text-bonsai-pink mb-5 block" />
 
-          <div className="mx-auto my-5 h-px w-24 bg-bonsai-pink-lt lg:mx-0 lg:my-6" />
+            <h1 className="font-serif text-[clamp(2.6rem,6vw,4.2rem)] text-forest leading-[1.07] mb-5">
+              {t.tagline}
+            </h1>
 
-          <p className="mx-auto max-w-md font-sans text-lg leading-relaxed text-ink-light sm:text-xl lg:mx-0 lg:max-w-[540px] xl:text-[1.35rem]">
-            {t.description}
-          </p>
+            <div className="w-16 h-0.5 bg-bonsai-pink mb-6" />
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-            <a
-              href={CONTACT.phone.tel}
-              className="btn-primary justify-center px-7 py-3.5 text-base lg:px-8"
-              aria-label={`Call Bonsai Florida at ${CONTACT.phone.display}`}
-            >
-              <PhoneIcon className="h-5 w-5" /> {t.callNow}
-            </a>
+            <p className="font-sans text-lg text-ink-light leading-relaxed mb-8 max-w-md">
+              {t.description}
+            </p>
+
+            <div className="flex flex-wrap gap-3 mb-5">
+              <BookGardenVisitButton />
+              <a href="/trees" className="btn-secondary text-base py-3.5 px-7 min-h-[52px]">
+                {t.viewTrees}
+              </a>
+            </div>
             <a
               href={CONTACT.phone.sms}
-              className="btn-secondary justify-center px-7 py-3.5 text-base lg:px-8"
-              aria-label="Text Bonsai Florida"
+              className="font-sans text-sm text-ink-light hover:text-forest transition-colors underline underline-offset-2"
             >
-              <MessageIcon className="h-5 w-5" /> {t.textUs}
+              {t.textInterest} →
             </a>
-            <a
-              href="/trees"
-              className="btn-secondary justify-center px-7 py-3.5 text-base lg:px-8"
-            >
-              {t.viewTrees}
-            </a>
+
+            <div className="flex items-center gap-4">
+              <span className="font-sans text-[11px] font-bold tracking-[0.2em] uppercase text-ink-light/50">
+                {t.alsoOn}
+              </span>
+              <div className="flex items-center gap-3">
+                {SOCIALS.map(({ href, icon: Icon, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="w-9 h-9 rounded-full border border-forest/20 flex items-center justify-center text-ink-light hover:text-forest hover:border-forest transition-colors"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-forest/55 lg:justify-start">
-            <span>{t.alsoOn}</span>
-            {socialLinks.map((social, index) => {
-              const Icon = socialIcons[index]
-              return (
-                <a
-                  key={social.label}
-                  href={social.url}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-forest/15 bg-white/70 text-forest transition-colors hover:border-bonsai-pink hover:text-bonsai-pink"
-                  aria-label={social.label}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              )
-            })}
-          </div>
+          {/* ── Right: swipeable photo carousel ────────────────── */}
+          <PhotoSwiper photos={photos} t={t} />
+
         </div>
-
-        <HeroImage tree={heroTree} logoSrc={logoSrc} />
       </div>
-
-      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink-lt to-transparent" />
     </section>
   )
 }
