@@ -230,20 +230,20 @@ function ConfirmStep({ data, onRestart }: { data: FormData; onRestart: () => voi
         ✓
       </div>
       <h2 className="font-serif text-3xl sm:text-4xl text-forest mb-3">
-        You&rsquo;re all set, {data.name.split(' ')[0]}!
+        Almost done, {data.name.split(' ')[0]}!
       </h2>
       <p className="font-sans text-sm text-ink-light mb-8">
-        Your request is in. Google Calendar should have opened — pick your visit time there to lock it in.
+        Your info is saved. One last step — pick your visit time below.
       </p>
 
-      {/* Fallback if popup was blocked */}
+      {/* Primary CTA — user taps → Calendar opens → back button returns here */}
       <a
         href={CALENDAR_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="btn-secondary w-full justify-center text-sm py-3 mb-3"
+        className="btn-primary w-full justify-center text-base py-4 min-h-[52px] mb-3"
       >
-        Calendar didn&apos;t open? Tap here →
+        Pick Your Visit Time →
       </a>
 
       {/* Secondary — text us */}
@@ -360,7 +360,6 @@ export default function BookingFlow() {
         }),
       })
       if (!res.ok) throw new Error()
-      window.open(CALENDAR_URL, '_blank')
       setStep('confirm')
     } catch {
       setError('Something went wrong. Please try again or text us directly.')

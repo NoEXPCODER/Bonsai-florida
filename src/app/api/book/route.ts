@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     .eq('email', email.trim().toLowerCase())
     .gte('created_at', since)
 
-  if ((count ?? 0) >= 3) {
+  if ((count ?? 0) >= 5) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again later or text us directly.' },
       { status: 429 },
