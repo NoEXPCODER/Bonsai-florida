@@ -462,6 +462,30 @@ function ConfirmStep({
         ))}
       </div>
 
+      {/* No-tree nudge */}
+      {data.selected_tree_ids.length === 0 && (
+        <div className="bg-cream-warm border border-bonsai-pink/30 rounded-2xl px-4 py-4 mb-6 flex items-start gap-3">
+          <span className="text-2xl flex-shrink-0 mt-0.5">🌿</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-sans text-sm font-semibold text-forest leading-snug">
+              Want to pick trees before you arrive?
+            </p>
+            <p className="font-sans text-xs text-ink-light mt-1 leading-relaxed">
+              You haven&apos;t saved any trees yet. Browse the collection and we&apos;ll have your picks ready — or book now and choose when you visit.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <a
+                href="/trees"
+                className="font-sans text-xs font-bold text-white bg-forest px-3 py-1.5 rounded-xl hover:bg-forest/90 transition-colors"
+              >
+                Browse Trees →
+              </a>
+              <span className="font-sans text-xs text-ink-light/60 py-1.5">or confirm below — we&apos;ll help you choose in person</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hold policy */}
       <p className="font-sans text-xs text-ink-light/70 bg-sage-pale/60 rounded-2xl px-4 py-4 leading-relaxed mb-6">
         Saved trees are prepared for your visit but are not fully reserved until confirmed. A specific tree can be held until your appointment time. Premium or high-demand trees may require a small deposit.
