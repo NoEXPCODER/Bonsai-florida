@@ -25,6 +25,8 @@ function isUpcoming(iso: string): boolean {
 export default function BookingsClient({ initialBookings }: { initialBookings: VisitBooking[] }) {
   const [bookings, setBookings] = useState<VisitBooking[]>(initialBookings)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [resendingId, setResendingId] = useState<string | null>(null)
+  const [resendResult, setResendResult] = useState<Record<string, 'sent' | 'error'>>({})
   const [filter, setFilter] = useState<'upcoming' | 'all' | 'past'>('upcoming')
 
   const filtered = bookings.filter(b => {
@@ -32,6 +34,19 @@ export default function BookingsClient({ initialBookings }: { initialBookings: V
     if (filter === 'past') return !isUpcoming(b.appointment_start)
     return true
   })
+
+  async function resendEmail(id: string) {
+    setResendingId(id)
+    try {
+      const res = await fetch(`/api/bookings/${id}/resend`, { method: 'POST' })
+      setResendResult(prev => ({ ...prev, [id]: res.ok ? 'sent' : 'error' }))
+      setTimeout(() => setResendResult(prev => { const n = { ...prev }; delete n[id]; return n }), 4000)
+    } catch {
+      setResendResult(prev => ({ ...prev, [id]: 'error' }))
+    } finally {
+      setResendingId(null)
+    }
+  }
 
   async function updateStatus(id: string, status: VisitBooking['status']) {
     setUpdatingId(id)
@@ -151,8 +166,8 @@ export default function BookingsClient({ initialBookings }: { initialBookings: V
                   )}
                 </div>
 
-                {/* Status actions */}
-                <div className="flex flex-wrap gap-2">
+                {/* Status actions + resend */}
+                <div className="flex flex-wrap gap-2 items-center">
                   {(['confirmed', 'completed', 'cancelled', 'no_show'] as const)
                     .filter(s => s !== b.status)
                     .map(s => (
@@ -165,6 +180,20 @@ export default function BookingsClient({ initialBookings }: { initialBookings: V
                         {updatingId === b.id ? '…' : STATUS_LABELS[s]?.label ?? s}
                       </button>
                     ))}
+
+                  <button
+                    onClick={() => resendEmail(b.id)}
+                    disabled={resendingId === b.id}
+                    className="font-sans text-xs font-semibold border border-forest/20 px-3 py-1.5 rounded-xl hover:bg-sage-pale transition-colors disabled:opacity-50 ml-auto"
+                  >
+                    {resendingId === b.id
+                      ? 'Sending…'
+                      : resendResult[b.id] === 'sent'
+                        ? 'Sent ✓'
+                        : resendResult[b.id] === 'error'
+                          ? 'Failed — retry'
+                          : 'Resend Email'}
+                  </button>
                 </div>
               </div>
             )
