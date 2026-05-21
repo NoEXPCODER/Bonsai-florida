@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1100" viewBox="0 0 1400 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Bonsai workshop hero placeholder</title>
+  <desc id="desc">A luxury Japanese minimal bonsai scene with cream paper, green bonsai foliage, and warm wood tones.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset="1" stop-color="#f5efe0"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" x2="1">
+      <stop offset="0" stop-color="#caa878"/>
+      <stop offset="1" stop-color="#8f6840"/>
+    </linearGradient>
+    <radialGradient id="leaf" cx="50%" cy="45%" r="60%">
+      <stop offset="0" stop-color="#7a9b7a"/>
+      <stop offset="1" stop-color="#1a3c28"/>
+    </radialGradient>
+  </defs>
+  <rect width="1400" height="1100" fill="url(#paper)"/>
+  <circle cx="1080" cy="230" r="220" fill="#e8f0e8"/>
+  <rect x="130" y="780" width="1140" height="80" rx="10" fill="url(#wood)"/>
+  <rect x="205" y="820" width="990" height="18" fill="#6e4d2e" opacity=".25"/>
+  <path d="M702 693c-64-46-85-117-35-205 47-82 5-149-65-191" fill="none" stroke="#5d3f26" stroke-width="36" stroke-linecap="round"/>
+  <path d="M683 522c82-42 154-84 229-173" fill="none" stroke="#5d3f26" stroke-width="30" stroke-linecap="round"/>
+  <path d="M642 555c-77-39-150-87-223-164" fill="none" stroke="#5d3f26" stroke-width="26" stroke-linecap="round"/>
+  <ellipse cx="463" cy="369" rx="220" ry="120" fill="url(#leaf)"/>
+  <ellipse cx="850" cy="331" rx="260" ry="135" fill="url(#leaf)"/>
+  <ellipse cx="660" cy="254" rx="230" ry="115" fill="url(#leaf)"/>
+  <ellipse cx="733" cy="452" rx="230" ry="118" fill="url(#leaf)"/>
+  <rect x="500" y="670" width="390" height="120" rx="18" fill="#1a3c28"/>
+  <path d="M535 790h320l-46 110H581z" fill="#0f2418"/>
+  <rect x="470" y="648" width="450" height="48" rx="20" fill="#2d5a3d"/>
+  <path d="M185 190h275" stroke="#c8658a" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+  <path d="M185 222h185" stroke="#7a9b7a" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  <text x="185" y="150" fill="#1a3c28" font-family="Georgia, serif" font-size="56" letter-spacing="8">BONSAI</text>
+  <text x="185" y="255" fill="#4a6050" font-family="Arial, sans-serif" font-size="22" letter-spacing="5">WORKSHOP IMAGE PLACEHOLDER</text>
+</svg>

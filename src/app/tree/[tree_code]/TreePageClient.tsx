@@ -138,6 +138,143 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
   in_work:     { label: 'In Work',     bg: '#F5F3FF', color: '#6D28D9' },
 }
 
+type SocialFormat = 'group' | 'marketplace' | 'reel'
+
+const SOCIAL_FORMAT_LABELS: Record<SocialFormat, string> = {
+  group: 'Facebook Group',
+  marketplace: 'Marketplace',
+  reel: 'Reel Caption',
+}
+
+function displayPrice(price: string): string {
+  const trimmed = price.trim()
+  return trimmed.startsWith('$') ? trimmed : `$${trimmed}`
+}
+
+function getTreeSpeciesLabel(tree: DbTree, species?: DbSpecies | null): string {
+  return species?.name_en || tree.species || 'Tropical bonsai'
+}
+
+function getTreeLatinLabel(tree: DbTree, species?: DbSpecies | null): string | null {
+  return species?.species_latin || species?.latin_name || tree.species || null
+}
+
+function getTreeLightLabel(tree: DbTree, species?: DbSpecies | null): string {
+  return species?.light_en || species?.sun_en || tree.sun || 'Bright outdoor light'
+}
+
+function getTreeWaterLabel(tree: DbTree, species?: DbSpecies | null): string {
+  return species?.watering_en || species?.water_en || tree.water || 'Water when the top soil begins to dry'
+}
+
+function buildSocialPost(tree: DbTree, species: DbSpecies | null | undefined, format: SocialFormat): string {
+  const price = displayPrice(tree.price)
+  const speciesName = getTreeSpeciesLabel(tree, species)
+  const latinName = getTreeLatinLabel(tree, species)
+  const light = getTreeLightLabel(tree, species)
+  const water = getTreeWaterLabel(tree, species)
+  const careLevel = species?.difficulty || species?.level || tree.level
+  const code = tree.tree_code ? `\nTree code: ${tree.tree_code}` : ''
+  const publicLocation = `${siteConfig.publicArea}, ${siteConfig.publicZip}`
+  const treeUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const linkLine = treeUrl ? `\nTree details: ${treeUrl}` : ''
+
+  if (format === 'marketplace') {
+    return `${tree.name} Bonsai - ${careLevel}
+
+Price: ${price}
+Species: ${speciesName}${latinName ? ` (${latinName})` : ''}
+Care level: ${careLevel}
+Light: ${light}
+Water: ${water}${code}
+
+Available in the ${publicLocation} area.
+Message me to reserve or schedule a garden visit.
+Exact address is sent after appointment confirmation.${linkLine}`
+  }
+
+  if (format === 'reel') {
+    return `${tree.name} bonsai is available.
+
+${price} - ${careLevel}
+Located in the ${publicLocation} area.
+Message me to reserve or book a garden visit.
+Exact address is sent after appointment confirmation.${linkLine}
+
+#bonsai #floridabonsai #westpalmbeach #tropicalbonsai #bonsaitree #ficusbonsai`
+  }
+
+  return `Available Bonsai: ${tree.name}
+
+Price: ${price}
+Species: ${speciesName}${latinName ? ` (${latinName})` : ''}
+Care level: ${careLevel}
+Light: ${light}
+Water: ${water}${code}
+
+Available by appointment in the ${publicLocation} area.
+Message me to reserve this tree or schedule a garden visit.
+Exact address is sent privately after appointment confirmation.${linkLine}
+
+#bonsai #floridabonsai #westpalmbeach #tropicalbonsai`
+}
+
+function SocialPostGenerator({ tree, species }: { tree: DbTree; species?: DbSpecies | null }) {
+  const [format, setFormat] = useState<SocialFormat>('group')
+  const [copied, setCopied] = useState(false)
+  const post = buildSocialPost(tree, species, format)
+
+  async function copyPost() {
+    await navigator.clipboard.writeText(post)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
+  }
+
+  return (
+    <div className="card p-5 mb-4">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Social Media</p>
+          <h2 className="font-serif text-2xl text-forest">Post Generator</h2>
+        </div>
+        <button
+          type="button"
+          onClick={copyPost}
+          className="btn-primary text-xs px-4 py-2.5 flex-shrink-0"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-1.5 mb-3 rounded-2xl bg-sage-pale/70 p-1">
+        {(['group', 'marketplace', 'reel'] as SocialFormat[]).map(option => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setFormat(option)}
+            className={`min-h-[42px] rounded-xl px-2 font-sans text-[11px] font-bold transition-colors ${
+              format === option ? 'bg-forest text-white shadow-sm' : 'text-forest hover:bg-white/70'
+            }`}
+          >
+            {SOCIAL_FORMAT_LABELS[option]}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        readOnly
+        value={post}
+        rows={13}
+        className="w-full resize-none rounded-2xl border border-forest/15 bg-white px-4 py-3 font-sans text-sm leading-6 text-ink focus:outline-none focus:ring-2 focus:ring-forest/30"
+        aria-label={`${SOCIAL_FORMAT_LABELS[format]} post text`}
+      />
+      <p className="mt-3 font-sans text-xs leading-5 text-ink-light">
+        Uses only the public area and ZIP. Send the exact address privately after the appointment is confirmed.
+      </p>
+    </div>
+  )
+}
+
 function firstSentence(text: string): string {
   const m = text.match(/^[^.!?]+[.!?]/)
   return m ? m[0] : text.slice(0, 90)
@@ -868,6 +1005,8 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
               <p className="font-sans text-sm italic text-ink-light leading-relaxed">{tree.notes}</p>
             </div>
           )}
+
+          {isStaff && <SocialPostGenerator tree={tree} species={species} />}
 
           {/* Species care guide */}
           {species

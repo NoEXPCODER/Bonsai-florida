@@ -7,9 +7,9 @@
 
 export const CONTACT = {
   phone: {
-    display: '561-312-9576',
-    tel: 'tel:5613129576',
-    sms: 'sms:5613129576',
+    display: '561-331-6316',
+    tel: 'tel:5613316316',
+    sms: 'sms:5613316316',
   },
   email: {
     address: 'nathanvan10@gmail.com',
