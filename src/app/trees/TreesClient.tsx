@@ -3,33 +3,83 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { CONTACT } from '@/config/contact'
+import BookGardenVisitButton from '@/components/BookGardenVisitButton'
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl, getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
 import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
+import { siteConfig } from '@/lib/siteConfig'
+import { useVisitList } from '@/hooks/useVisitList'
+import type { VisitItem } from '@/lib/visit-list'
 import { MessageIcon, SunIcon, WaterIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
-import BookAppointment from '@/components/BookAppointment'
-import { useVisitList } from '@/hooks/useVisitList'
-import { MAX_VISIT_LIST } from '@/lib/visit-list'
 
 // ─── Photo card (grid view — default) ────────────────────────────────────────
 
-function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const { list, toggle } = useVisitList()
+function parseVisitPrice(price: string): number {
+  const value = Number.parseFloat(price.replace(/[^0-9.]/g, ''))
+  return Number.isFinite(value) ? value : 0
+}
+
+function toVisitItem(tree: DbTree): VisitItem {
+  return {
+    id: tree.id,
+    name: tree.name,
+    price: parseVisitPrice(tree.price),
+    imageUrl: getPrimaryTreeImageUrl(tree) ?? undefined,
+    treeCode: tree.tree_code ?? undefined,
+  }
+}
+
+function VisitListButton({
+  tree,
+  isSaved,
+  onToggle,
+  className = '',
+}: {
+  tree: DbTree
+  isSaved: boolean
+  onToggle: (tree: DbTree) => void
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={event => {
+        event.stopPropagation()
+        onToggle(tree)
+      }}
+      className={`inline-flex min-h-[38px] items-center justify-center rounded-full border px-3 py-2 font-sans text-xs font-bold transition-all active:scale-95 ${
+        isSaved
+          ? 'border-bonsai-pink bg-bonsai-pink text-white'
+          : 'border-forest/25 bg-white text-forest hover:border-forest'
+      } ${className}`}
+      aria-pressed={isSaved}
+      aria-label={`${isSaved ? 'Remove' : 'Add'} ${tree.name} ${isSaved ? 'from' : 'to'} your visit list`}
+    >
+      <span aria-hidden="true" className="mr-1.5">{isSaved ? '✓' : '+'}</span>
+      {isSaved ? 'In Your List' : 'Add to Your List'}
+    </button>
+  )
+}
+
+function PhotoCard({
+  tree,
+  isSaved,
+  onToggleVisitList,
+  onClick,
+}: {
+  tree: DbTree
+  isSaved: boolean
+  onToggleVisitList: (tree: DbTree) => void
+  onClick: () => void
+}) {
+  const t = useMessages().collection
   const primary = getPrimaryTreeImageUrl(tree)
   const count = getTreeImageUrls(tree).length
   const species = tree.tree_species
   const difficulty = species ? getSpeciesDifficulty(species) : tree.level
   const isBeginner = difficulty === 'Beginner Friendly'
-  const isSaved = list.some(i => i.id === tree.id)
-  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
-
-  function handleSave(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (listFull) return
-    toggle({ id: tree.id, name: tree.name, price: parseFloat(tree.price), imageUrl: primary ?? undefined, treeCode: tree.tree_code ?? undefined })
-  }
 
   return (
     <article className="cursor-pointer group select-none" onClick={onClick}>
@@ -51,17 +101,6 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         }`}>
           {isBeginner ? 'Easy' : 'Inter.'}
         </span>
-        {/* Save heart button */}
-        <button
-          onClick={handleSave}
-          disabled={listFull}
-          aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
-          className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all ${
-            isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-white/60 text-ink-light/40' : 'bg-white/80 text-forest hover:bg-white'
-          }`}
-        >
-          <span className="text-sm leading-none">{isSaved ? '♥' : '♡'}</span>
-        </button>
         {/* Extra photos */}
         {count > 1 && (
           <span className="absolute bottom-2.5 right-2.5 bg-black/50 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
@@ -92,9 +131,23 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
             </p>
           </div>
         )}
-        <div className="mt-2">
+        <div className="flex items-center justify-between gap-2 mt-2">
           <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
+          <a
+            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light active:scale-95 transition-all flex-shrink-0"
+            aria-label={`Ask about ${tree.name}`}
+          >
+            <MessageIcon className="w-3 h-3" /> {t.askButton}
+          </a>
         </div>
+        <VisitListButton
+          tree={tree}
+          isSaved={isSaved}
+          onToggle={onToggleVisitList}
+          className="mt-2 w-full"
+        />
       </div>
     </article>
   )
@@ -102,21 +155,23 @@ function PhotoCard({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
 // ─── List row ─────────────────────────────────────────────────────────────────
 
-function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const { list, toggle } = useVisitList()
+function ListRow({
+  tree,
+  isSaved,
+  onToggleVisitList,
+  onClick,
+}: {
+  tree: DbTree
+  isSaved: boolean
+  onToggleVisitList: (tree: DbTree) => void
+  onClick: () => void
+}) {
+  const t = useMessages().collection
   const primary = getPrimaryTreeImageUrl(tree)
   const species = tree.tree_species
   const difficulty = species ? getSpeciesDifficulty(species) : tree.level
   const isBeginner = difficulty === 'Beginner Friendly'
   const lightText = species?.light_en || species?.sun_en || tree.sun
-  const isSaved = list.some(i => i.id === tree.id)
-  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
-
-  function handleSave(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (listFull) return
-    toggle({ id: tree.id, name: tree.name, price: parseFloat(tree.price), imageUrl: primary ?? undefined, treeCode: tree.tree_code ?? undefined })
-  }
 
   return (
     <article
@@ -148,19 +203,23 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
         </div>
       </div>
 
-      {/* Price + Save */}
+      {/* Price + Ask */}
       <div className="flex-shrink-0 flex flex-col items-end gap-2 pr-4 py-3">
         <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
-        <button
-          onClick={handleSave}
-          disabled={listFull}
-          aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
-          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-            isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-forest/10 text-ink-light/30' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
-          }`}
+        <VisitListButton
+          tree={tree}
+          isSaved={isSaved}
+          onToggle={onToggleVisitList}
+          className="min-h-[32px] px-2.5 py-1.5 text-[10px]"
+        />
+        <a
+          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+          onClick={e => e.stopPropagation()}
+          className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
+          aria-label={`Ask about ${tree.name}`}
         >
-          <span className="text-sm leading-none">{isSaved ? '♥' : '♡'}</span>
-        </button>
+          <MessageIcon className="w-3 h-3" /> {t.askButton}
+        </a>
       </div>
     </article>
   )
@@ -168,18 +227,20 @@ function ListRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
 // ─── Care row ─────────────────────────────────────────────────────────────────
 
-function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
-  const { list, toggle } = useVisitList()
+function CareRow({
+  tree,
+  isSaved,
+  onToggleVisitList,
+  onClick,
+}: {
+  tree: DbTree
+  isSaved: boolean
+  onToggleVisitList: (tree: DbTree) => void
+  onClick: () => void
+}) {
+  const t = useMessages().collection
   const species = tree.tree_species
   const image = getPrimaryTreeImageUrl(tree)
-  const isSaved = list.some(i => i.id === tree.id)
-  const listFull = list.length >= MAX_VISIT_LIST && !isSaved
-
-  function handleSave(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (listFull) return
-    toggle({ id: tree.id, name: tree.name, price: parseFloat(tree.price), imageUrl: image ?? undefined, treeCode: tree.tree_code ?? undefined })
-  }
 
   const displaySpecies = species?.name_en || tree.species || 'Care guide not linked'
   const lightText = species?.light_en || species?.sun_en || 'Ask Bonsai Florida'
@@ -233,18 +294,20 @@ function CareRow({ tree, onClick }: { tree: DbTree; onClick: () => void }) {
 
       <div className="flex gap-2 px-4 pb-4">
         <button type="button" onClick={onClick} className="btn-primary flex-1 justify-center text-xs py-2.5">
-          {species ? 'Tree Care Guide →' : 'View Tree'}
+          {species ? 'Tree Care Guide →' : 'Ask for Care Guide'}
         </button>
-        <button
-          onClick={handleSave}
-          disabled={listFull}
-          aria-label={isSaved ? `Remove ${tree.name} from visit list` : `Save ${tree.name} to visit list`}
-          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-            isSaved ? 'bg-bonsai-pink text-white' : listFull ? 'bg-forest/10 text-ink-light/30' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'
-          }`}
+        <VisitListButton
+          tree={tree}
+          isSaved={isSaved}
+          onToggle={onToggleVisitList}
+          className="flex-1 text-xs"
+        />
+        <a
+          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+          className="btn-secondary flex-1 justify-center text-xs py-2.5"
         >
-          <span className="text-sm leading-none">{isSaved ? '♥' : '♡'}</span>
-        </button>
+          <MessageIcon className="w-3 h-3" /> {t.askButton}
+        </a>
       </div>
     </article>
   )
@@ -262,6 +325,8 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
   const router = useRouter()
   const m = useMessages()
   const t = m.collection
+  const { list, toggle } = useVisitList()
+  const savedIds = useMemo(() => new Set(list.map(item => item.id)), [list])
 
   const [view, setView] = useState<View>('grid')
   const [filter, setFilter] = useState<Filter>('all')
@@ -289,6 +354,10 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
     if (tree.tree_code) router.push(`/tree/${tree.tree_code}`)
   }
 
+  function toggleVisitList(tree: DbTree) {
+    toggle(toVisitItem(tree))
+  }
+
   return (
     <div className="min-h-screen bg-cream">
       <Navbar logoUrl={logoUrl} />
@@ -299,11 +368,14 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         <h1 className="font-serif text-4xl sm:text-5xl text-forest mb-2">{t.heading}</h1>
         <div className="pink-divider mb-4" />
         <p className="font-sans text-sm text-ink-light max-w-sm mx-auto">{t.description}</p>
+        <p className="font-sans text-sm text-ink-light max-w-2xl mx-auto mt-4">
+          Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
+        </p>
         <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
+          <BookGardenVisitButton />
           <a href={CONTACT.phone.sms} className="btn-primary text-sm py-2.5">
             <MessageIcon className="w-4 h-4" /> Text Us
           </a>
-          <BookAppointment label={t.bookBannerButton} />
         </div>
       </div>
 
@@ -376,7 +448,13 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         {view === 'grid' && displayed.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8">
             {displayed.map(tree => (
-              <PhotoCard key={tree.id} tree={tree} onClick={() => goToTree(tree)} />
+              <PhotoCard
+                key={tree.id}
+                tree={tree}
+                isSaved={savedIds.has(tree.id)}
+                onToggleVisitList={toggleVisitList}
+                onClick={() => goToTree(tree)}
+              />
             ))}
           </div>
         )}
@@ -385,7 +463,13 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         {view === 'list' && displayed.length > 0 && (
           <div className="space-y-2">
             {displayed.map(tree => (
-              <ListRow key={tree.id} tree={tree} onClick={() => goToTree(tree)} />
+              <ListRow
+                key={tree.id}
+                tree={tree}
+                isSaved={savedIds.has(tree.id)}
+                onToggleVisitList={toggleVisitList}
+                onClick={() => goToTree(tree)}
+              />
             ))}
           </div>
         )}
@@ -394,7 +478,13 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         {view === 'care' && displayed.length > 0 && (
           <div className="space-y-4">
             {displayed.map(tree => (
-              <CareRow key={tree.id} tree={tree} onClick={() => goToTree(tree)} />
+              <CareRow
+                key={tree.id}
+                tree={tree}
+                isSaved={savedIds.has(tree.id)}
+                onToggleVisitList={toggleVisitList}
+                onClick={() => goToTree(tree)}
+              />
             ))}
           </div>
         )}
@@ -410,7 +500,7 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
               {t.bookBannerDesc}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <BookAppointment label={t.bookBannerButton} />
+              <BookGardenVisitButton />
               <a
                 href={CONTACT.phone.sms}
                 className="inline-flex items-center gap-2 border-2 border-white/40 text-white rounded-full px-6 py-3 font-sans text-sm font-bold hover:bg-white/10 transition-colors min-h-[48px]"
@@ -434,8 +524,6 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
       </div>
 
       <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-10" />
-      {/* bottom padding so sticky bar doesn't overlap footer on mobile */}
-      <div className="h-20 md:hidden" />
     </div>
   )
 }

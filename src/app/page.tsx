@@ -6,6 +6,7 @@ import FeaturedTrees from '@/components/FeaturedTrees'
 import HowItWorks from '@/components/HowItWorks'
 import WhyBonsaiFlorida from '@/components/WhyBonsaiFlorida'
 import CareGuidePreview from '@/components/CareGuidePreview'
+import AppointmentSection from '@/components/AppointmentSection'
 import FinalCTA from '@/components/FinalCTA'
 import ConnectSimple from '@/components/ConnectSimple'
 import Footer from '@/components/Footer'
@@ -52,6 +53,7 @@ export default async function HomePage() {
         <HowItWorks />
         <WhyBonsaiFlorida />
         <CareGuidePreview species={featuredSpecies} />
+        <AppointmentSection />
         <FinalCTA />
         <ConnectSimple />
       </main>

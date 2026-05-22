@@ -1,6 +1,7 @@
 'use client'
 
 import { useMessages } from '@/lib/i18n'
+import BookGardenVisitButton from '@/components/BookGardenVisitButton'
 
 export default function FinalCTA() {
   const t = useMessages().finalCTA
@@ -13,9 +14,7 @@ export default function FinalCTA() {
         <div className="pink-divider mb-6" />
         <p className="font-sans text-lg text-ink-light leading-relaxed mb-10">{t.description}</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/visit" className="btn-primary text-base px-10 py-4 min-h-[56px] justify-center">
-            {t.book}
-          </a>
+          <BookGardenVisitButton />
           <a href="/trees" className="btn-secondary text-base px-10 py-4 min-h-[56px] justify-center">
             {t.browse}
           </a>
