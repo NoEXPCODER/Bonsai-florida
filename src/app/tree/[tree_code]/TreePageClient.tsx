@@ -199,9 +199,11 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
   const treeUrl = pageUrl || `https://bonsaiflorida.com/tree/${tree.tree_code}`
   const origin = pageUrl ? new URL(pageUrl).origin : 'https://bonsaiflorida.com'
   const careGuideUrl = species ? `${origin}/care-guides/${makeSpeciesSlug(species)}` : null
-  const speciesTag = species?.name_en
-    ? '#' + species.name_en.split(' ')[0].replace(/[^a-zA-Z]/g, '') + 'Bonsai'
-    : ''
+  const speciesTag = tree.species
+    ? '#' + tree.species.split(' ')[0].replace(/[^a-zA-Z]/g, '') + 'Bonsai'
+    : species?.name_en
+      ? '#' + species.name_en.split(' ')[0].replace(/[^a-zA-Z]/g, '') + 'Bonsai'
+      : ''
   const levelBlurb = tree.level === 'Beginner Friendly'
     ? 'A perfect starter bonsai — low-maintenance and thrives in South Florida.'
     : 'A beautiful piece for the experienced collector.'
