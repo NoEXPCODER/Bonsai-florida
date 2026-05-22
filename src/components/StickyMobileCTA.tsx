@@ -14,8 +14,6 @@ export default function StickyMobileCTA() {
       <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-white/95 backdrop-blur-md border-t border-forest/10 px-4 py-3 flex gap-2.5 safe-area-bottom">
         <a
           href={siteConfig.bookingUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           className="btn-primary flex-1 justify-center text-sm py-3 min-h-[48px]"
         >
           Book Garden Visit

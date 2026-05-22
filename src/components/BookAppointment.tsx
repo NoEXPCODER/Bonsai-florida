@@ -12,8 +12,6 @@ export default function BookAppointment({
   return (
     <a
       href={siteConfig.bookingUrl}
-      target="_blank"
-      rel="noopener noreferrer"
       className={className ?? 'btn-primary text-sm py-2.5 px-6 min-h-[44px]'}
     >
       {label}

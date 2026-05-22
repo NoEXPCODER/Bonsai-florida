@@ -75,7 +75,7 @@ export default function VisitListDrawer({ open, onClose }: Props) {
               <p className="font-sans text-sm text-ink-light mb-4">
                 Not sure what to pick? Tell us your budget and experience level, and we&apos;ll prepare beginner-friendly options.
               </p>
-              <a href={siteConfig.bookingUrl} target="_blank" rel="noopener noreferrer" onClick={onClose} className="btn-secondary text-sm justify-center w-full">
+              <a href={siteConfig.bookingUrl} onClick={onClose} className="btn-secondary text-sm justify-center w-full">
                 Help Me Choose
               </a>
             </div>
@@ -145,7 +145,7 @@ export default function VisitListDrawer({ open, onClose }: Props) {
           <div className="space-y-2.5">
             {count > 0 && (
               <>
-                <a href={siteConfig.bookingUrl} target="_blank" rel="noopener noreferrer" onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
+                <a href={siteConfig.bookingUrl} onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
                   Book Garden Visit
                 </a>
                 <a
@@ -157,7 +157,7 @@ export default function VisitListDrawer({ open, onClose }: Props) {
                 </a>
               </>
             )}
-            <a href={siteConfig.bookingUrl} target="_blank" rel="noopener noreferrer" onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
+            <a href={siteConfig.bookingUrl} onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
               Help Me Choose
             </a>
             <button onClick={onClose} className="w-full text-center font-sans text-sm text-ink-light hover:text-forest transition-colors py-2">
