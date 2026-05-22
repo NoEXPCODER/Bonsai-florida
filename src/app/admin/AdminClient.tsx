@@ -7,6 +7,7 @@ import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { getSpeciesLatin } from '@/lib/species'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { useMessages, useAuth } from '@/lib/i18n'
+import SpeciesCombobox from '@/components/SpeciesCombobox'
 
 // ─── Login Screen ─────────────────────────────────────────────────────────────
 
@@ -123,122 +124,7 @@ const DEFAULT_FORM: FormData = {
   location_row: '', location_tree: '', species_id: '',
 }
 
-// ─── Species combobox ─────────────────────────────────────────────────────────
 
-function SpeciesCombobox({ allSpecies, locale, onSelect }: {
-  allSpecies: DbSpecies[]
-  locale: string
-  onSelect: (s: DbSpecies | null, customName: string) => void
-}) {
-  const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<DbSpecies | null>(null)
-  const ref = useRef<HTMLDivElement>(null)
-
-  const filtered = query.trim()
-    ? allSpecies.filter(s =>
-        s.name_en.toLowerCase().includes(query.toLowerCase()) ||
-        s.name_vi.toLowerCase().includes(query.toLowerCase()) ||
-        getSpeciesLatin(s).toLowerCase().includes(query.toLowerCase())
-      )
-    : allSpecies
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  function pick(s: DbSpecies) {
-    setSelected(s)
-    setQuery(locale === 'vi' ? s.name_vi || s.name_en : s.name_en)
-    setOpen(false)
-    onSelect(s, locale === 'vi' ? s.name_vi || s.name_en : s.name_en)
-  }
-
-  function clear() {
-    setSelected(null)
-    setQuery('')
-    onSelect(null, '')
-  }
-
-  return (
-    <div ref={ref} className="relative">
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Search species (EN or Vietnamese)…"
-          value={query}
-          onChange={e => { setQuery(e.target.value); setOpen(true); if (!e.target.value) { setSelected(null); onSelect(null, '') } }}
-          onFocus={() => setOpen(true)}
-          className="w-full px-4 py-3.5 pr-10 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
-        />
-        {selected && (
-          <button type="button" onClick={clear} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light hover:text-ink text-lg">✕</button>
-        )}
-      </div>
-
-      {/* Selected species card */}
-      {selected && (
-        <div className="mt-2 px-4 py-3 bg-sage-pale rounded-2xl border border-forest/10">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="font-sans text-sm font-bold text-forest">{selected.name_en}</p>
-              <p className="font-sans text-sm text-ink-light">{selected.name_vi}</p>
-              <p className="font-sans text-xs italic text-ink-light/60">{getSpeciesLatin(selected)}</p>
-            </div>
-            <span className={`font-sans text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${
-              selected.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage text-white'
-            }`}>{selected.level}</span>
-          </div>
-          <div className="mt-2 space-y-1 rounded-xl bg-white/70 px-3 py-2">
-            <p className="font-sans text-xs text-ink-light">
-              <strong className="text-forest">Light:</strong> {locale === 'vi' ? selected.light_vi || selected.light_en || selected.sun_vi || selected.sun_en : selected.light_en || selected.sun_en}
-            </p>
-            <p className="font-sans text-xs text-ink-light">
-              <strong className="text-forest">Water:</strong> {locale === 'vi' ? selected.watering_vi || selected.watering_en || selected.water_vi || selected.water_en : selected.watering_en || selected.water_en}
-            </p>
-          </div>
-          <p className="font-sans text-xs text-ink-light mt-2 italic">Care guide stays linked by species. Staff notes stay tree-specific.</p>
-        </div>
-      )}
-
-      {/* Dropdown */}
-      {open && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-2xl border border-forest/10 shadow-card-lg max-h-64 overflow-y-auto">
-          {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-center">
-              <p className="font-sans text-sm text-ink-light mb-2">No species found for &quot;{query}&quot;</p>
-              <p className="font-sans text-xs text-ink-light/60">Save tree first, then add species from the species manager.</p>
-            </div>
-          ) : (
-            filtered.map(s => (
-              <button
-                key={s.id}
-                type="button"
-                onMouseDown={() => pick(s)}
-                className="w-full text-left px-4 py-3 hover:bg-sage-pale transition-colors border-b border-forest/5 last:border-0"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <span className="font-sans text-sm font-semibold text-forest">{s.name_en}</span>
-                    <span className="font-sans text-sm text-ink-light ml-2">· {s.name_vi}</span>
-                    <p className="font-sans text-xs italic text-ink-light/50">{getSpeciesLatin(s)}</p>
-                  </div>
-                  <span className={`font-sans text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                    s.level === 'Beginner Friendly' ? 'bg-bonsai-pink-pale text-bonsai-pink' : 'bg-sage-pale text-forest'
-                  }`}>{s.level === 'Beginner Friendly' ? 'Beginner' : 'Inter.'}</span>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
 const inputCls = 'w-full px-4 py-3.5 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink placeholder-ink-light/50 focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
@@ -782,6 +668,133 @@ function EditTreeModal({ tree, onClose, onSaved }: {
   )
 }
 
+// ─── Admin Share + Autopost Row ───────────────────────────────────────────────
+
+function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState<'link' | 'text' | null>(null)
+  const [autoposting, setAutoposting] = useState(false)
+  const [autopostStatus, setAutopostStatus] = useState<'idle' | 'ok' | 'fail'>('idle')
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [open])
+
+  const treeUrl = `${baseUrl}/tree/${tree.tree_code}`
+  const levelBlurb = tree.level === 'Beginner Friendly'
+    ? 'A perfect starter bonsai — low-maintenance and thrives in South Florida.'
+    : 'A beautiful piece for the experienced collector.'
+  const speciesTag = tree.species
+    ? '#' + (tree.species as string).split(' ')[0].replace(/[^a-zA-Z]/g, '') + 'Bonsai'
+    : ''
+
+  const postText = [
+    `🌿 ${tree.name} — $${tree.price}`,
+    ...(tree.species ? [tree.species] : []),
+    '',
+    `🌱 ${tree.level}`,
+    `☀️ Sun: ${tree.sun}`,
+    `💧 Water: ${tree.water}`,
+    '',
+    levelBlurb,
+    '',
+    `Available at Bonsai Florida · Palm Beach, FL`,
+    `Text to inquire: 561-312-9576`,
+    '',
+    `👉 View tree: ${treeUrl}`,
+    '',
+    `#BonsaiFlorida${speciesTag ? ' ' + speciesTag : ''} #Bonsai #TropicalBonsai #PalmBeach #Florida`,
+  ].join('\n')
+
+  async function copyText(text: string, type: 'link' | 'text') {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(type)
+      setTimeout(() => setCopied(null), 2500)
+    } catch { /* ignore */ }
+  }
+
+  async function handleAutopost() {
+    setAutoposting(true)
+    try {
+      const res = await fetch(`/api/admin/trees/${tree.id}/autopost`, { method: 'POST' })
+      setAutopostStatus(res.ok ? 'ok' : 'fail')
+      setTimeout(() => setAutopostStatus('idle'), 4000)
+    } catch {
+      setAutopostStatus('fail')
+      setTimeout(() => setAutopostStatus('idle'), 4000)
+    } finally {
+      setAutoposting(false)
+    }
+  }
+
+  if (!tree.tree_code) return null
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(p => !p)}
+        className={`font-sans text-xs font-bold px-3 py-2 rounded-xl border transition-colors ${
+          open ? 'bg-forest text-white border-forest' : 'bg-sage-pale border-forest/20 text-forest hover:bg-sage hover:text-white'
+        }`}
+      >
+        📤 Share
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-72 bg-white rounded-2xl border border-forest/10 shadow-card-lg z-30 overflow-hidden">
+          <div className="px-4 pt-3 pb-1">
+            <p className="font-sans text-[10px] font-bold text-forest tracking-widest uppercase">Share / Autopost</p>
+          </div>
+
+          <div className="px-4 py-2 border-t border-forest/5">
+            <div className="bg-sage-pale/60 rounded-xl px-3 py-2.5 max-h-36 overflow-y-auto mb-2">
+              <div className="font-sans text-xs text-ink leading-relaxed whitespace-pre-wrap break-words">{postText}</div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => copyText(postText, 'text')}
+                className="flex-1 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
+              >
+                {copied === 'text' ? '✓ Copied!' : 'Copy Text'}
+              </button>
+              <button
+                onClick={() => copyText(treeUrl, 'link')}
+                className="flex-1 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
+              >
+                {copied === 'link' ? '✓ Copied!' : 'Copy Link'}
+              </button>
+            </div>
+          </div>
+
+          <div className="px-4 pb-3.5 border-t border-forest/5 pt-2">
+            <button
+              onClick={handleAutopost}
+              disabled={autoposting}
+              className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-colors disabled:opacity-60 ${
+                autopostStatus === 'ok'
+                  ? 'bg-sage text-white'
+                  : autopostStatus === 'fail'
+                  ? 'bg-bonsai-pink text-white'
+                  : 'bg-forest text-white hover:bg-forest/90'
+              }`}
+            >
+              {autoposting ? 'Posting…' : autopostStatus === 'ok' ? '✓ Posted to n8n!' : autopostStatus === 'fail' ? '✕ Failed — check n8n' : '🤖 Autopost via n8n'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Tree List ────────────────────────────────────────────────────────────────
 
 function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
@@ -1003,6 +1016,7 @@ function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
                   >
                     ✏️ Edit
                   </button>
+                  <AdminShareRow tree={tree} baseUrl={baseUrl} />
                   <button
                     onClick={() => onDelete(tree)}
                     className="bg-bonsai-pink-pale border border-bonsai-pink/30 text-bonsai-pink font-sans text-xs font-bold px-3 py-2 rounded-xl hover:bg-bonsai-pink hover:text-white transition-colors"

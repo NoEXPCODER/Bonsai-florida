@@ -11,6 +11,7 @@ import { siteConfig } from '@/lib/siteConfig'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
+import SpeciesCombobox from '@/components/SpeciesCombobox'
 
 const inputCls = 'w-full px-4 py-3 rounded-2xl border border-forest/20 bg-white font-sans text-base text-ink focus:outline-none focus:ring-2 focus:ring-forest/30 transition'
 
@@ -467,7 +468,16 @@ function EditModal({ tree, onClose, onSaved }: {
     sun: tree.sun,
     water: tree.water,
     notes: tree.notes ?? '',
+    species: tree.species ?? '',
+    species_id: tree.species_id ?? '',
   })
+  const [allSpecies, setAllSpecies] = useState<DbSpecies[]>([])
+
+  useEffect(() => {
+    fetch('/api/admin/species').then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setAllSpecies(data)
+    }).catch(() => {})
+  }, [])
   // Image state — track current URLs separately from newly added files
   const [imageUrl, setImageUrl] = useState<string | null>(tree.image_url ?? null)
   const [imageUrls, setImageUrls] = useState<string[]>(tree.image_urls ?? [])
@@ -572,12 +582,13 @@ function EditModal({ tree, onClose, onSaved }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          species_id: form.species_id || null,
           image_url: finalMainUrl,
           image_urls: finalGalleryUrls,
         }),
       })
       if (res.ok) {
-        onSaved({ ...form, image_url: finalMainUrl, image_urls: finalGalleryUrls })
+        onSaved({ ...form, species_id: form.species_id || null, image_url: finalMainUrl, image_urls: finalGalleryUrls })
         onClose()
       } else {
         setError('Save failed — are you still logged in?')
@@ -707,6 +718,24 @@ function EditModal({ tree, onClose, onSaved }: {
           <div>
             <label className="block font-sans text-sm font-semibold text-forest mb-1">Notes</label>
             <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={2} className={inputCls + ' resize-none'} />
+          </div>
+
+          <div>
+            <label className="block font-sans text-sm font-semibold text-forest mb-1">Species (links care guide)</label>
+            <SpeciesCombobox
+              allSpecies={allSpecies}
+              locale="en"
+              onSelect={(s, customName) => {
+                if (s) {
+                  setForm(p => ({ ...p, species: customName || s.name_en, species_id: s.id }))
+                } else {
+                  setForm(p => ({ ...p, species: '', species_id: '' }))
+                }
+              }}
+            />
+            {form.species_id && (
+              <p className="font-sans text-xs text-forest mt-1">Linked: {form.species}</p>
+            )}
           </div>
 
           {uploading && <p className="font-sans text-sm text-forest text-center">Compressing &amp; uploading photos…</p>}

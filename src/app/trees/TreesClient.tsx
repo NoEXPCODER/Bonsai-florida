@@ -11,7 +11,7 @@ import { getSpeciesDifficulty, getSpeciesLatin } from '@/lib/species'
 import { siteConfig } from '@/lib/siteConfig'
 import { useVisitList } from '@/hooks/useVisitList'
 import type { VisitItem } from '@/lib/visit-list'
-import { MessageIcon, SunIcon, WaterIcon } from '@/components/Icons'
+import { MessageIcon, SunIcon, WaterIcon, ShareIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 
 // ─── Photo card (grid view — default) ────────────────────────────────────────
@@ -59,6 +59,29 @@ function VisitListButton({
     >
       <span aria-hidden="true" className="mr-1.5">{isSaved ? '✓' : '+'}</span>
       {isSaved ? 'In Your List' : 'Add to Your List'}
+    </button>
+  )
+}
+
+function CopyLinkButton({ treeCode, className = '' }: { treeCode: string; className?: string }) {
+  const [copied, setCopied] = useState(false)
+  function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation()
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/tree/${treeCode}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }).catch(() => {})
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className={`inline-flex items-center justify-center gap-1 rounded-full border border-forest/20 bg-white/80 px-2.5 py-1.5 font-sans text-[10px] font-semibold text-forest transition-all hover:border-forest active:scale-95 ${className}`}
+      aria-label="Copy link to tree"
+    >
+      <ShareIcon className="w-3 h-3" />
+      {copied ? 'Copied!' : 'Share'}
     </button>
   )
 }
@@ -133,14 +156,17 @@ function PhotoCard({
         )}
         <div className="flex items-center justify-between gap-2 mt-2">
           <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
-          <a
-            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light active:scale-95 transition-all flex-shrink-0"
-            aria-label={`Ask about ${tree.name}`}
-          >
-            <MessageIcon className="w-3 h-3" /> {t.askButton}
-          </a>
+          <div className="flex items-center gap-1.5">
+            {tree.tree_code && <CopyLinkButton treeCode={tree.tree_code} />}
+            <a
+              href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light active:scale-95 transition-all flex-shrink-0"
+              aria-label={`Ask about ${tree.name}`}
+            >
+              <MessageIcon className="w-3 h-3" /> {t.askButton}
+            </a>
+          </div>
         </div>
         <VisitListButton
           tree={tree}
@@ -212,14 +238,17 @@ function ListRow({
           onToggle={onToggleVisitList}
           className="min-h-[32px] px-2.5 py-1.5 text-[10px]"
         />
-        <a
-          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-          onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
-          aria-label={`Ask about ${tree.name}`}
-        >
-          <MessageIcon className="w-3 h-3" /> {t.askButton}
-        </a>
+        <div className="flex items-center gap-1.5">
+          {tree.tree_code && <CopyLinkButton treeCode={tree.tree_code} />}
+          <a
+            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
+            aria-label={`Ask about ${tree.name}`}
+          >
+            <MessageIcon className="w-3 h-3" /> {t.askButton}
+          </a>
+        </div>
       </div>
     </article>
   )
