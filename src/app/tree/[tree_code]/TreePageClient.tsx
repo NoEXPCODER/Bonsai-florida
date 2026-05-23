@@ -185,9 +185,11 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState<'link' | 'text' | null>(null)
   const [pageUrl, setPageUrl] = useState('')
+  const [canNativeShare, setCanNativeShare] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setPageUrl(window.location.href) }, [])
+  useEffect(() => { setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share) }, [])
 
   useEffect(() => {
     if (!open) return
@@ -237,12 +239,22 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
     } catch { /* silently fail */ }
   }
 
+  async function handleShareClick() {
+    if (canNativeShare) {
+      try {
+        await navigator.share({ title: tree.name, text: postText, url: treeUrl })
+      } catch { /* user dismissed */ }
+      return
+    }
+    setOpen(p => !p)
+  }
+
   const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(treeUrl)}`
 
   return (
     <div ref={panelRef} className="relative">
       <button
-        onClick={() => setOpen(p => !p)}
+        onClick={handleShareClick}
         aria-label="Share this tree"
         className={`flex items-center gap-2 border px-4 py-3.5 rounded-2xl font-sans text-base font-semibold transition-colors ${
           open ? 'bg-forest text-white border-forest' : 'border-forest/20 text-forest hover:bg-sage-pale'
@@ -264,7 +276,6 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 px-4 py-3 hover:bg-sage-pale transition-colors border-t border-forest/5"
-            onClick={() => setOpen(false)}
           >
             <FacebookIcon className="w-5 h-5 text-[#1877F2] flex-shrink-0" />
             <div className="flex-1 min-w-0">
