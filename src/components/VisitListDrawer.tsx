@@ -145,20 +145,13 @@ export default function VisitListDrawer({ open, onClose }: Props) {
           <div className="space-y-2.5">
             {count > 0 && (
               <>
-                <a href={siteConfig.bookingUrl} onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
-                  Book Garden Visit
-                </a>
-                <a
-                  href={`${CONTACT.phone.sms}&body=${smsBody}`}
-                  className="btn-secondary w-full justify-center text-sm py-3"
-                  onClick={onClose}
-                >
-                  Text Us My List
+                <a href={`sms:5613011586&body=${smsBody}`} onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
+                  Text to Book a Visit
                 </a>
               </>
             )}
-            <a href={siteConfig.bookingUrl} onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
-              Help Me Choose
+            <a href="sms:5613011586" onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
+              Text Us to Book
             </a>
             <button onClick={onClose} className="w-full text-center font-sans text-sm text-ink-light hover:text-forest transition-colors py-2">
               Keep Browsing

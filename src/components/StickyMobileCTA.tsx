@@ -16,7 +16,7 @@ export default function StickyMobileCTA() {
           href={siteConfig.bookingUrl}
           className="btn-primary flex-1 justify-center text-sm py-3 min-h-[48px]"
         >
-          Book Garden Visit
+          Text to Book
         </a>
         <button
           onClick={() => setDrawerOpen(true)}

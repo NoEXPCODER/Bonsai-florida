@@ -89,8 +89,8 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
               <MessageIcon className="w-4 h-4 inline mr-1" />
               {m.nav.textUs}
             </a>
-            <a href="/visit" className="btn-primary text-sm px-6 py-3 min-h-[48px]">
-              Book a Visit
+            <a href="sms:5613011586" className="btn-primary text-sm px-6 py-3 min-h-[48px]">
+              Text to Book
             </a>
           </div>
 
@@ -136,11 +136,11 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
                 {m.nav.login}
               </Link>
               <a
-                href="/visit"
+                href="sms:5613011586"
                 className="btn-primary justify-center text-sm"
                 onClick={() => setMenuOpen(false)}
               >
-                Book a Garden Visit
+                Text to Book a Visit
               </a>
               <a
                 href={CONTACT.phone.sms}
