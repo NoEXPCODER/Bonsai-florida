@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 
-const TAGS_PER_PAGE = 8  // 2 cols × 4 rows
+const TAGS_PER_PAGE = 6  // 2 cols × 3 rows
 
 interface TagTree {
   id: string
@@ -67,7 +67,7 @@ function PunchHole() {
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
 function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: string | null; logoSize: number }) {
   if (!tree) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.4in' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '3.2in' }} />
   }
   const rightPct = 100 - logoSize
   const isNarrow = rightPct < 45
@@ -77,7 +77,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
   const speciesFontSize = isNarrow ? '7.5px' : '9px'
   const subFontSize     = isNarrow ? '6px'   : '7.5px'
   const taglineFontSize = isNarrow ? '5px'   : '6.5px'
-  const rightPad        = isNarrow ? '16px 6px 8px' : '20px 14px 10px'
+  const rightPad        = isNarrow ? '20px 6px 12px' : '28px 14px 16px'
   const logoSrc = logoUrl ?? '/logo.png'
 
   return (
@@ -86,7 +86,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
       border: '1px dashed #999',
       boxSizing: 'border-box', padding: '0',
       display: 'flex', flexDirection: 'row', alignItems: 'stretch',
-      overflow: 'hidden', width: '100%', height: '2.4in',
+      overflow: 'hidden', width: '100%', height: '3.2in',
     }}>
       <PunchHole />
 
@@ -148,7 +148,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
 // ─── Tag BACK (landscape) — matches reference ─────────────────────────────────
 function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
   if (!tree || !tree.tree_code) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.4in' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '3.2in' }} />
   }
   const qrUrl = `${origin}/tree/${tree.tree_code}`
 
@@ -163,9 +163,9 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
     <div style={{
       position: 'relative', backgroundColor: 'white',
       border: '1px dashed #999',
-      boxSizing: 'border-box', padding: '18px 16px 8px',
+      boxSizing: 'border-box', padding: '26px 16px 14px',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      gap: '4px', overflow: 'hidden', width: '100%', height: '2.4in',
+      gap: '6px', overflow: 'hidden', width: '100%', height: '3.2in',
     }}>
       <PunchHole />
 
@@ -242,7 +242,7 @@ const PRINT_STYLES = `
     .tag-page {
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
-      grid-template-rows: repeat(4, 2.4in) !important;
+      grid-template-rows: repeat(3, 3.2in) !important;
       gap: 0 !important;
       width: 100% !important;
       margin: 0 !important;
@@ -265,11 +265,11 @@ const PRINT_STYLES = `
       border-radius: 4px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: repeat(4, 2.4in);
+      grid-template-rows: repeat(3, 3.2in);
       gap: 0;
     }
     .tag-page > * {
-      height: 2.4in;
+      height: 3.2in;
       box-sizing: border-box;
       overflow: hidden;
     }
