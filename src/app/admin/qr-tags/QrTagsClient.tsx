@@ -67,7 +67,7 @@ function PunchHole() {
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
 function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: string | null; logoSize: number }) {
   if (!tree) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.4in' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.2in' }} />
   }
   const rightPct = 100 - logoSize
   const isNarrow = rightPct < 45
@@ -77,7 +77,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
   const speciesFontSize = isNarrow ? '7.5px' : '9px'
   const subFontSize     = isNarrow ? '6px'   : '7.5px'
   const taglineFontSize = isNarrow ? '5px'   : '6.5px'
-  const rightPad        = isNarrow ? '14px 6px 8px' : '18px 14px 10px'
+  const rightPad        = isNarrow ? '10px 6px 6px' : '14px 14px 8px'
   const logoSrc = logoUrl ?? '/logo.png'
 
   return (
@@ -86,7 +86,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
       border: '1px dashed #999',
       boxSizing: 'border-box', padding: '0',
       display: 'flex', flexDirection: 'row', alignItems: 'stretch',
-      overflow: 'hidden', width: '100%', height: '2.4in',
+      overflow: 'hidden', width: '100%', height: '2.2in',
     }}>
       <PunchHole />
 
@@ -148,7 +148,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
 // ─── Tag BACK (landscape) — matches reference ─────────────────────────────────
 function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
   if (!tree || !tree.tree_code) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.4in' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.2in' }} />
   }
   const qrUrl = `${origin}/tree/${tree.tree_code}`
 
@@ -163,9 +163,9 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
     <div style={{
       position: 'relative', backgroundColor: 'white',
       border: '1px dashed #999',
-      boxSizing: 'border-box', padding: '18px 16px 8px',
+      boxSizing: 'border-box', padding: '14px 16px 6px',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      gap: '4px', overflow: 'hidden', width: '100%', height: '2.4in',
+      gap: '3px', overflow: 'hidden', width: '100%', height: '2.2in',
     }}>
       <PunchHole />
 
@@ -242,7 +242,7 @@ const PRINT_STYLES = `
     .tag-page {
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
-      grid-template-rows: repeat(4, 2.4in) !important;
+      grid-template-rows: repeat(4, 2.2in) !important;
       gap: 0 !important;
       width: 100% !important;
       margin: 0 !important;
@@ -265,7 +265,7 @@ const PRINT_STYLES = `
       border-radius: 4px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: repeat(4, 2.4in);
+      grid-template-rows: repeat(4, 2.2in);
       gap: 0;
     }
     .tag-page > * {
@@ -338,10 +338,13 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
         </div>
       </div>
 
-      {/* Duplex instructions */}
-      <div className="no-print" style={{ background: '#F5F3EE', borderBottom: `1px solid ${G}18`, padding: '10px 20px', textAlign: 'center' }}>
+      {/* Print instructions */}
+      <div className="no-print" style={{ background: '#FFF8E7', borderBottom: `1px solid #E8C84020`, padding: '10px 20px' }}>
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#7A5800', margin: '0 0 4px', fontWeight: 'bold' }}>
+          📱 iPhone/iPad: Turn off &quot;Print Headers and Footers&quot; in the print dialog (scroll down past the page previews) — required for all 8 tags to fit.
+        </p>
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#666', margin: 0 }}>
-          <strong>For double-sided tags:</strong> Print fronts (pages 1–{totalSheets}), flip paper on long edge, then print backs (pages {totalSheets + 1}–{totalSheets * 2})
+          <strong>Double-sided:</strong> Print fronts (pages 1–{totalSheets}), flip paper on long edge, then print backs (pages {totalSheets + 1}–{totalSheets * 2})
         </p>
       </div>
 
