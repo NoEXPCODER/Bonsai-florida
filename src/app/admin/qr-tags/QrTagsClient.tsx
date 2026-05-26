@@ -235,7 +235,7 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
 // ─── Print CSS ────────────────────────────────────────────────────────────────
 const PRINT_STYLES = `
   @media print {
-    @page { size: letter portrait; margin: 0.5in; }
+    @page { size: letter portrait; margin: 0.5in 0.5in 0.75in 0.5in; }
     body, body * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .no-print { display: none !important; }
     .preview-bg { background: white !important; padding: 0 !important; margin: 0 !important; }
@@ -338,13 +338,10 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
         </div>
       </div>
 
-      {/* Print instructions */}
-      <div className="no-print" style={{ background: '#FFF8E7', borderBottom: `1px solid #E8C84020`, padding: '10px 20px' }}>
-        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#7A5800', margin: '0 0 4px', fontWeight: 'bold' }}>
-          📱 iPhone/iPad: Turn off &quot;Print Headers and Footers&quot; in the print dialog (scroll down past the page previews) — required for all 8 tags to fit.
-        </p>
+      {/* Duplex instructions */}
+      <div className="no-print" style={{ background: '#F5F3EE', borderBottom: `1px solid ${G}18`, padding: '10px 20px', textAlign: 'center' }}>
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#666', margin: 0 }}>
-          <strong>Double-sided:</strong> Print fronts (pages 1–{totalSheets}), flip paper on long edge, then print backs (pages {totalSheets + 1}–{totalSheets * 2})
+          <strong>For double-sided tags:</strong> Print fronts (pages 1–{totalSheets}), flip paper on long edge, then print backs (pages {totalSheets + 1}–{totalSheets * 2})
         </p>
       </div>
 
