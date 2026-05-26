@@ -67,7 +67,7 @@ function PunchHole() {
 // ─── Tag FRONT (landscape) ────────────────────────────────────────────────────
 function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: string | null; logoSize: number }) {
   if (!tree) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.625in' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.4in' }} />
   }
   const rightPct = 100 - logoSize
   const isNarrow = rightPct < 45
@@ -77,7 +77,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
   const speciesFontSize = isNarrow ? '7.5px' : '9px'
   const subFontSize     = isNarrow ? '6px'   : '7.5px'
   const taglineFontSize = isNarrow ? '5px'   : '6.5px'
-  const rightPad        = isNarrow ? '20px 6px 10px' : '24px 14px 12px'
+  const rightPad        = isNarrow ? '16px 6px 8px' : '20px 14px 10px'
   const logoSrc = logoUrl ?? '/logo.png'
 
   return (
@@ -86,7 +86,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
       border: '1px dashed #999',
       boxSizing: 'border-box', padding: '0',
       display: 'flex', flexDirection: 'row', alignItems: 'stretch',
-      overflow: 'hidden', width: '100%', height: '2.625in',
+      overflow: 'hidden', width: '100%', height: '2.4in',
     }}>
       <PunchHole />
 
@@ -148,7 +148,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
 // ─── Tag BACK (landscape) — matches reference ─────────────────────────────────
 function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
   if (!tree || !tree.tree_code) {
-    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.625in' }} />
+    return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.4in' }} />
   }
   const qrUrl = `${origin}/tree/${tree.tree_code}`
 
@@ -163,9 +163,9 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
     <div style={{
       position: 'relative', backgroundColor: 'white',
       border: '1px dashed #999',
-      boxSizing: 'border-box', padding: '22px 16px 10px',
+      boxSizing: 'border-box', padding: '18px 16px 8px',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      gap: '5px', overflow: 'hidden', width: '100%', height: '2.625in',
+      gap: '4px', overflow: 'hidden', width: '100%', height: '2.4in',
     }}>
       <PunchHole />
 
@@ -235,14 +235,14 @@ function TagBack({ tree, origin }: { tree: TagTree | null; origin: string }) {
 // ─── Print CSS ────────────────────────────────────────────────────────────────
 const PRINT_STYLES = `
   @media print {
-    @page { size: letter portrait; margin: 0.25in; }
+    @page { size: letter portrait; margin: 0.5in; }
     body, body * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .no-print { display: none !important; }
     .preview-bg { background: white !important; padding: 0 !important; margin: 0 !important; }
     .tag-page {
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
-      grid-template-rows: repeat(4, 2.625in) !important;
+      grid-template-rows: repeat(4, 2.4in) !important;
       gap: 0 !important;
       width: 100% !important;
       margin: 0 !important;
@@ -258,18 +258,18 @@ const PRINT_STYLES = `
   }
   @media screen {
     .tag-page {
-      width: 8in;
+      width: 7.5in;
       margin: 0 auto 0.5in;
       background: white;
       box-shadow: 0 6px 32px rgba(0,0,0,0.12);
       border-radius: 4px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: repeat(4, 2.625in);
+      grid-template-rows: repeat(4, 2.4in);
       gap: 0;
     }
     .tag-page > * {
-      height: 2.625in;
+      height: 2.4in;
       box-sizing: border-box;
       overflow: hidden;
     }
