@@ -69,6 +69,7 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
   if (!tree) {
     return <div style={{ border: '1px dashed #CCC', backgroundColor: 'white', boxSizing: 'border-box', height: '2.2in' }} />
   }
+  const treeCode = tree.tree_code
   const rightPct = 100 - logoSize
   const isNarrow = rightPct < 45
   const nameFontSize = isNarrow
@@ -140,6 +141,18 @@ function TagFront({ tree, logoUrl, logoSize }: { tree: TagTree | null; logoUrl: 
         </div>
 
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: taglineFontSize, color: `${G}60`, letterSpacing: '0.12em', margin: 0 }}>TROPICAL BEAUTY. TIMELESS ART.</p>
+
+        {/* Tree code on front */}
+        {treeCode && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '90%', marginTop: '2px' }}>
+            <div style={{ flex: 1, height: '0.5px', backgroundColor: `${G}30` }} />
+            <p style={{
+              fontFamily: '"Courier New",Courier,monospace', fontSize: isNarrow ? '7px' : '8.5px',
+              fontWeight: 'bold', color: `${G}70`, letterSpacing: '0.06em', margin: 0, whiteSpace: 'nowrap',
+            }}>{treeCode}</p>
+            <div style={{ flex: 1, height: '0.5px', backgroundColor: `${G}30` }} />
+          </div>
+        )}
       </div>
     </div>
   )
