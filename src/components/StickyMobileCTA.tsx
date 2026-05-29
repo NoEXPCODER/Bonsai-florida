@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { siteConfig } from '@/lib/siteConfig'
 import { useVisitList } from '@/hooks/useVisitList'
 import VisitListDrawer from '@/components/VisitListDrawer'
@@ -8,6 +9,11 @@ import VisitListDrawer from '@/components/VisitListDrawer'
 export default function StickyMobileCTA() {
   const { count } = useVisitList()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const pathname = usePathname()
+
+  if (pathname === '/visit' || pathname.startsWith('/visit/')) {
+    return null
+  }
 
   return (
     <>
@@ -16,7 +22,7 @@ export default function StickyMobileCTA() {
           href={siteConfig.bookingUrl}
           className="btn-primary flex-1 justify-center text-sm py-3 min-h-[48px]"
         >
-          Text to Book
+          Book Visit
         </a>
         <button
           onClick={() => setDrawerOpen(true)}

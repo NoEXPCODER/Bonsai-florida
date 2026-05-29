@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { sendCustomerConfirmation, sendAdminNotification } from '@/lib/email'
-import { PURPOSE_DURATION } from '@/lib/booking-types'
+import { notifyOwnerNewBooking, confirmCustomer } from '@/lib/sms'
+import { getVisitDuration, isValidAppointmentWindow, OPEN_DAYS_LABEL, OPEN_HOURS_LABEL } from '@/lib/booking-types'
 
 function isValidEmail(e: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
@@ -66,7 +67,10 @@ export async function POST(req: NextRequest) {
   if (isNaN(startDate.getTime()) || startDate <= new Date())
     return NextResponse.json({ error: 'Appointment must be in the future.' }, { status: 400 })
 
-  const duration = PURPOSE_DURATION[purpose as string] ?? 30
+  const duration = getVisitDuration(purpose as string)
+  if (!isValidAppointmentWindow(startDate, duration))
+    return NextResponse.json({ error: `Please choose a visit time during ${OPEN_DAYS_LABEL}, ${OPEN_HOURS_LABEL}.` }, { status: 400 })
+
   const endDate = new Date(startDate.getTime() + duration * 60_000)
 
   const db = createServerClient()
@@ -149,6 +153,8 @@ export async function POST(req: NextRequest) {
   void Promise.all([
     sendCustomerConfirmation(emailData),
     sendAdminNotification(emailData),
+    notifyOwnerNewBooking(emailData),
+    confirmCustomer({ customerPhone: emailData.phone, customerName: emailData.full_name }),
   ])
 
   return NextResponse.json({ ok: true, id: inserted.id })

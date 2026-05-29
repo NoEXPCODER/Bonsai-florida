@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getVisitList } from '@/lib/visit-list'
+import { OPEN_DAYS, OPEN_DAYS_LABEL, OPEN_HOURS_LABEL } from '@/lib/booking-types'
+import { siteConfig } from '@/lib/siteConfig'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -69,8 +71,6 @@ interface FormState {
   purpose: string
   purposeLabel: string
   full_name: string
-  email: string
-  phone: string
   budget_range: string
   experience_level: string
   visit_goal: string
@@ -84,7 +84,7 @@ interface FormState {
 
 const EMPTY: FormState = {
   purpose: '', purposeLabel: '',
-  full_name: '', email: '', phone: '',
+  full_name: '',
   budget_range: '', experience_level: '', visit_goal: '',
   visitor_count: 1, notes: '',
   selected_tree_ids: [],
@@ -108,9 +108,8 @@ function formatTimeET(iso: string): string {
   })
 }
 
-// Get next N available days (Wed–Sun) starting from tomorrow
+// Get next N available days starting from tomorrow
 function getAvailableDates(count = 14): string[] {
-  const OPEN_DAYS = new Set([0, 3, 4, 5, 6])
   const dates: string[] = []
   const d = new Date()
   d.setDate(d.getDate() + 1)
@@ -130,6 +129,32 @@ function formatDateLabel(dateStr: string): string {
   return new Date(`${dateStr}T12:00:00Z`).toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
   })
+}
+
+function buildVisitTextMessage(data: FormState): string {
+  const lines = [
+    'Hi, I want to request a Bonsai Florida garden visit.',
+    '',
+    `Date: ${formatDateET(data.appointment_start)}`,
+    `Time: ${formatTimeET(data.appointment_start)} - ${formatTimeET(data.appointment_end)} ET`,
+    `Name: ${data.full_name}`,
+    `Purpose: ${data.purposeLabel}`,
+  ]
+
+  if (data.budget_range) lines.push(`Budget: ${data.budget_range}`)
+  if (data.experience_level) lines.push(`Experience: ${data.experience_level}`)
+  if (data.visit_goal) lines.push(`Visit goal: ${data.visit_goal}`)
+  lines.push(`Visitors: ${data.visitor_count}`)
+  if (data.selected_tree_ids.length) lines.push(`Saved trees: ${data.selected_tree_ids.join(', ')}`)
+  if (data.notes.trim()) lines.push(`Notes: ${data.notes.trim()}`)
+  lines.push('', 'Please text me back to confirm this visit time.')
+
+  return lines.join('\n')
+}
+
+function buildVisitTextUrl(data: FormState): string {
+  const smsBase = siteConfig.textBookingUrl.split('?')[0]
+  return `${smsBase}?&body=${encodeURIComponent(buildVisitTextMessage(data))}`
 }
 
 // ── Progress bar ──────────────────────────────────────────────────────────────
@@ -245,14 +270,6 @@ function DetailsStep({
           <label className="block font-sans text-xs font-semibold text-forest tracking-wide uppercase mb-1.5">Full Name *</label>
           <input type="text" value={data.full_name} onChange={e => onChange('full_name', e.target.value)} placeholder="e.g. Maria Nguyen" className={inputCls} />
         </div>
-        <div>
-          <label className="block font-sans text-xs font-semibold text-forest tracking-wide uppercase mb-1.5">Email *</label>
-          <input type="email" value={data.email} onChange={e => onChange('email', e.target.value)} placeholder="e.g. maria@email.com" className={inputCls} />
-        </div>
-        <div>
-          <label className="block font-sans text-xs font-semibold text-forest tracking-wide uppercase mb-1.5">Phone *</label>
-          <input type="tel" value={data.phone} onChange={e => onChange('phone', e.target.value)} placeholder="e.g. 561-555-0100" className={inputCls} />
-        </div>
 
         <div>
           <label className="block font-sans text-xs font-semibold text-forest tracking-wide uppercase mb-1.5">Budget Range</label>
@@ -346,15 +363,23 @@ function TimeStep({
   const [selectedDate, setSelectedDate] = useState(dates[0])
   const [slots, setSlots] = useState<TimeSlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [availabilityLimited, setAvailabilityLimited] = useState(false)
 
   useEffect(() => {
     if (!selectedDate) return
     setLoadingSlots(true)
+    setAvailabilityLimited(false)
     setSlots([])
     fetch(`/api/booking-slots?date=${selectedDate}&purpose=${encodeURIComponent(data.purposeLabel)}`)
       .then(r => r.json())
-      .then(d => setSlots(Array.isArray(d.slots) ? d.slots : []))
-      .catch(() => setSlots([]))
+      .then(d => {
+        setSlots(Array.isArray(d.slots) ? d.slots : [])
+        setAvailabilityLimited(Boolean(d.availabilityLimited))
+      })
+      .catch(() => {
+        setSlots([])
+        setAvailabilityLimited(false)
+      })
       .finally(() => setLoadingSlots(false))
   }, [selectedDate, data.purposeLabel])
 
@@ -370,7 +395,7 @@ function TimeStep({
       <h2 className="font-serif text-3xl sm:text-4xl text-forest text-center mb-2">When would you like to visit?</h2>
       <div className="pink-divider mb-6" />
       <p className="font-sans text-sm text-ink-light text-center mb-6">
-        We&apos;re open Wednesday – Sunday, 10 AM – 5 PM
+        We&apos;re open {OPEN_DAYS_LABEL}, {OPEN_HOURS_LABEL}
       </p>
 
       {/* Tree nudge — only when no trees saved */}
@@ -412,6 +437,9 @@ function TimeStep({
             {formatDateLabel(d).split(', ').map((part, i) => (
               <span key={i} className={i === 0 ? 'text-[10px] font-bold tracking-wide uppercase' : 'text-sm mt-0.5'}>{part}</span>
             ))}
+            <span className={selectedDate === d ? 'mt-1 text-[10px] text-white/75' : 'mt-1 text-[10px] text-ink-light/60'}>
+              {OPEN_HOURS_LABEL}
+            </span>
           </button>
         ))}
       </div>
@@ -428,17 +456,24 @@ function TimeStep({
       )}
 
       {!loadingSlots && slots.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {slots.map(slot => (
-            <button
-              key={slot.start}
-              onClick={() => onSlotSelect(slot)}
-              className="bg-white rounded-xl border border-forest/20 hover:border-forest hover:bg-sage-pale/40 py-3 font-sans text-sm font-semibold text-forest transition-all active:scale-[0.97]"
-            >
-              {formatTimeET(slot.start)}
-            </button>
-          ))}
-        </div>
+        <>
+          {availabilityLimited && (
+            <p className="font-sans text-xs text-ink-light text-center mb-3">
+              Showing regular visit times. Final availability is confirmed when you book.
+            </p>
+          )}
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {slots.map(slot => (
+              <button
+                key={slot.start}
+                onClick={() => onSlotSelect(slot)}
+                className="bg-white rounded-xl border border-forest/20 hover:border-forest hover:bg-sage-pale/40 py-3 font-sans text-sm font-semibold text-forest transition-all active:scale-[0.97]"
+              >
+                {formatTimeET(slot.start)}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
@@ -447,13 +482,12 @@ function TimeStep({
 // ── Step 4: Confirm ───────────────────────────────────────────────────────────
 
 function ConfirmStep({
-  data, onBack, onSubmit, onBrowseTrees, submitting, error,
+  data, onBack, onSubmit, onBrowseTrees, error,
 }: {
   data: FormState
   onBack: () => void
   onSubmit: () => void
   onBrowseTrees: () => void
-  submitting: boolean
   error: string
 }) {
   const rows: { label: string; value: string }[] = [
@@ -461,8 +495,6 @@ function ConfirmStep({
     { label: 'Date', value: formatDateET(data.appointment_start) },
     { label: 'Time', value: `${formatTimeET(data.appointment_start)} – ${formatTimeET(data.appointment_end)} ET` },
     { label: 'Name', value: data.full_name },
-    { label: 'Email', value: data.email },
-    { label: 'Phone', value: data.phone },
     ...(data.budget_range ? [{ label: 'Budget', value: data.budget_range }] : []),
     ...(data.experience_level ? [{ label: 'Experience', value: data.experience_level }] : []),
     ...(data.visit_goal ? [{ label: 'Visit Goal', value: data.visit_goal }] : []),
@@ -509,7 +541,7 @@ function ConfirmStep({
               >
                 Browse Trees →
               </button>
-              <span className="font-sans text-xs text-ink-light/60 py-1.5">or confirm below — we&apos;ll help you choose in person</span>
+              <span className="font-sans text-xs text-ink-light/60 py-1.5">or text your visit request below — we&apos;ll help you choose in person</span>
             </div>
           </div>
         </div>
@@ -520,17 +552,20 @@ function ConfirmStep({
         Saved trees are prepared for your visit but are not fully reserved until confirmed. A specific tree can be held until your appointment time. Premium or high-demand trees may require a small deposit.
       </p>
 
+      <p className="font-sans text-xs text-ink-light/70 bg-cream-warm border border-forest/10 rounded-2xl px-4 py-4 leading-relaxed mb-6">
+        The next button opens a text message with your visit details filled in. Send the text, then wait for us to text back and confirm your appointment.
+      </p>
+
       {error && <p className="font-sans text-xs text-red-500 mb-4 text-center">{error}</p>}
 
       <button
         onClick={onSubmit}
-        disabled={submitting}
-        className="btn-primary w-full justify-center text-base py-4 min-h-[52px] disabled:opacity-60"
+        className="btn-primary w-full justify-center text-base py-4 min-h-[52px]"
       >
-        {submitting ? 'Confirming…' : 'Confirm Garden Visit →'}
+        Text Visit Request →
       </button>
       <p className="font-sans text-xs text-ink-light/50 text-center mt-3">
-        You&apos;ll receive an email confirmation right away.
+        Your visit is not confirmed until we text you back.
       </p>
     </div>
   )
@@ -542,7 +577,6 @@ export default function VisitBookingFlow() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('purpose')
   const [data, setData] = useState<FormState>(EMPTY)
-  const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [detailsError, setDetailsError] = useState('')
   const [draftRestored, setDraftRestored] = useState(false)
@@ -591,10 +625,6 @@ export default function VisitBookingFlow() {
 
   function validateDetails(): boolean {
     if (!data.full_name.trim()) { setDetailsError('Please enter your name.'); return false }
-    if (!data.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
-      setDetailsError('Please enter a valid email address.'); return false
-    }
-    if (!data.phone.trim()) { setDetailsError('Please enter your phone number.'); return false }
     return true
   }
 
@@ -603,40 +633,13 @@ export default function VisitBookingFlow() {
     setStep('confirm')
   }
 
-  async function handleSubmit() {
-    setSubmitting(true)
+  function handleSubmit() {
     setSubmitError('')
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: data.full_name,
-          email: data.email,
-          phone: data.phone,
-          purpose: data.purposeLabel,
-          budget_range: data.budget_range || null,
-          experience_level: data.experience_level || null,
-          visit_goal: data.visit_goal || null,
-          visitor_count: data.visitor_count,
-          notes: data.notes || null,
-          selected_tree_ids: data.selected_tree_ids.length ? data.selected_tree_ids : null,
-          appointment_start: data.appointment_start,
-          _hp: '',
-        }),
-      })
-
-      const json = await res.json()
-      if (!res.ok) {
-        setSubmitError(json.error ?? 'Something went wrong. Please try again.')
-        return
-      }
+      window.location.href = buildVisitTextUrl(data)
       clearDraft()
-      router.push(`/visit/confirm?id=${json.id}&name=${encodeURIComponent(data.full_name)}&start=${encodeURIComponent(data.appointment_start)}&end=${encodeURIComponent(data.appointment_end)}&purpose=${encodeURIComponent(data.purposeLabel)}`)
     } catch {
-      setSubmitError('Something went wrong. Please try again or text us directly.')
-    } finally {
-      setSubmitting(false)
+      setSubmitError('Could not open your text app. Please text us directly with your visit details.')
     }
   }
 
@@ -686,7 +689,6 @@ export default function VisitBookingFlow() {
           onBack={() => setStep('time')}
           onSubmit={handleSubmit}
           onBrowseTrees={() => handleBrowseTrees('confirm')}
-          submitting={submitting}
           error={submitError}
         />
       )}

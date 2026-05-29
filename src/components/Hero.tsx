@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CONTACT } from '@/config/contact'
+import { siteConfig } from '@/lib/siteConfig'
 import BookGardenVisitButton from '@/components/BookGardenVisitButton'
 import { useMessages } from '@/lib/i18n'
 import { InstagramIcon, FacebookIcon, TikTokIcon } from '@/components/Icons'
@@ -159,7 +160,7 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
               </a>
             </div>
             <a
-              href={CONTACT.phone.sms}
+              href={siteConfig.textBookingUrl}
               className="font-sans text-sm text-ink-light hover:text-forest transition-colors underline underline-offset-2"
             >
               {t.textInterest} →

@@ -22,7 +22,12 @@ export default function AppointmentSection() {
             <p className="mb-5 font-sans text-base leading-7 text-forest/75">
               Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
             </p>
-            <BookGardenVisitButton />
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <BookGardenVisitButton />
+              <a href={siteConfig.textBookingUrl} className="btn-secondary justify-center text-base px-6 py-4 min-h-[56px]">
+                Text to Book
+              </a>
+            </div>
           </div>
         </div>
       </div>

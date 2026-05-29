@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useVisitList } from '@/hooks/useVisitList'
 import { MAX_VISIT_LIST } from '@/lib/visit-list'
-import { CONTACT } from '@/config/contact'
 import { siteConfig } from '@/lib/siteConfig'
 import { saveCustomer } from '@/lib/customer-session'
 import { useAuth } from '@/lib/i18n'
@@ -30,7 +29,9 @@ export default function VisitListDrawer({ open, onClose }: Props) {
   const needsContact = count >= 4 && !customer && !saved
 
   const smsBody = encodeURIComponent(
-    `Hi! My visit list:\n${list.map((t, i) => `${i + 1}. ${t.name}${t.treeCode ? ` (${t.treeCode})` : ''} — $${t.price}`).join('\n')}`
+    count > 0
+      ? `Hi! My visit list:\n${list.map((t, i) => `${i + 1}. ${t.name}${t.treeCode ? ` (${t.treeCode})` : ''} — $${t.price}`).join('\n')}`
+      : 'Hi, I want to book a Bonsai Florida garden visit.'
   )
 
   function handleSaveContact(e: React.FormEvent) {
@@ -144,13 +145,11 @@ export default function VisitListDrawer({ open, onClose }: Props) {
 
           <div className="space-y-2.5">
             {count > 0 && (
-              <>
-                <a href={`sms:5613011586&body=${smsBody}`} onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
-                  Text to Book a Visit
-                </a>
-              </>
+              <a href={siteConfig.bookingUrl} onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
+                Book Visit With These Trees
+              </a>
             )}
-            <a href="sms:5613011586" onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
+            <a href={`sms:5613011586?&body=${smsBody}`} onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
               Text Us to Book
             </a>
             <button onClick={onClose} className="w-full text-center font-sans text-sm text-ink-light hover:text-forest transition-colors py-2">
