@@ -9,7 +9,7 @@ import { getTreeImageUrls } from '@/lib/tree-images'
 import { makeSpeciesSlug } from '@/lib/species'
 import { siteConfig } from '@/lib/siteConfig'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
-import { MessageIcon, SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
+import { SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 import Navbar from '@/components/Navbar'
 import SpeciesCombobox from '@/components/SpeciesCombobox'
 
@@ -988,12 +988,8 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
               </li>
             </ul>
 
-            {/* CTA buttons — near top */}
+            {/* Share button — near top */}
             <div className="flex gap-3 mt-5">
-              <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code ?? ''})`}
-                className="btn-primary flex-1 justify-center text-base py-3.5" aria-label="Text Bonsai Florida">
-                <MessageIcon className="w-5 h-5" /> Text Us
-              </a>
               <SharePanel tree={tree} species={species} />
             </div>
           </div>
@@ -1028,10 +1024,6 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
             </p>
             <div className="flex flex-col gap-3">
               <BookGardenVisitButton />
-              <a href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)} (${tree.tree_code ?? ''})`}
-                className="btn-primary w-full justify-center" aria-label="Text Bonsai Florida">
-                <MessageIcon className="w-5 h-5" /> Text Us — {CONTACT.phone.display}
-              </a>
             </div>
           </div>
 

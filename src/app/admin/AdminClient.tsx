@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { DbTree, DbSpecies } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
-import { getSpeciesLatin } from '@/lib/species'
+import { getSpeciesLatin, makeSpeciesSlug } from '@/lib/species'
 import { optimizeTreeImage } from '@/lib/image-optimizer'
 import { useMessages, useAuth } from '@/lib/i18n'
 import SpeciesCombobox from '@/components/SpeciesCombobox'
@@ -412,7 +411,7 @@ function exportCSV(trees: DbTree[], baseUrl: string) {
 
 // ─── Edit Tree Modal ──────────────────────────────────────────────────────────
 
-function EditTreeModal({ tree, onClose, onSaved }: {
+export function EditTreeModal({ tree, onClose, onSaved }: {
   tree: DbTree
   onClose: () => void
   onSaved: (id: string, updates: Partial<DbTree>) => void
@@ -797,7 +796,7 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
 
 // ─── Tree List ────────────────────────────────────────────────────────────────
 
-function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
+export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
   trees: DbTree[]
   t: ReturnType<typeof useMessages>['admin']
   onDelete: (tree: DbTree) => void
@@ -1064,7 +1063,7 @@ interface BuyerInfo {
   buyer_email: string | null
 }
 
-function MarkSoldModal({ tree, t, onClose, onSold }: {
+export function MarkSoldModal({ tree, t, onClose, onSold }: {
   tree: DbTree
   t: ReturnType<typeof useMessages>['admin']
   onClose: () => void
@@ -1248,7 +1247,7 @@ function MarkSoldModal({ tree, t, onClose, onSold }: {
   )
 }
 
-function SoldTreeList({ trees, t }: {
+export function SoldTreeList({ trees, t }: {
   trees: DbTree[]
   t: ReturnType<typeof useMessages>['admin']
 }) {
@@ -1320,20 +1319,257 @@ function SoldTreeList({ trees, t }: {
   )
 }
 
+type StaffTask = 'lookup' | 'care' | 'add'
+
+function StaffDashboard({
+  trees,
+  loadingTrees,
+  t,
+  onSaved,
+  onLogout,
+}: {
+  trees: DbTree[]
+  loadingTrees: boolean
+  t: ReturnType<typeof useMessages>['admin']
+  onSaved: (tree: DbTree) => void
+  onLogout: () => void
+}) {
+  const [task, setTask] = useState<StaffTask>('lookup')
+  const [treeQuery, setTreeQuery] = useState('')
+  const [careQuery, setCareQuery] = useState('')
+  const [species, setSpecies] = useState<DbSpecies[]>([])
+  const [copied, setCopied] = useState('')
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+
+  useEffect(() => {
+    fetch('/api/admin/species')
+      .then(r => (r.ok ? r.json() : []))
+      .then(data => setSpecies(Array.isArray(data) ? data : []))
+      .catch(() => setSpecies([]))
+  }, [])
+
+  const activeTrees = trees.filter(tree => tree.is_active)
+  const lookupResults = activeTrees
+    .filter(tree => {
+      const q = treeQuery.trim().toLowerCase()
+      if (!q) return true
+      return (
+        tree.name.toLowerCase().includes(q) ||
+        (tree.tree_code ?? '').toLowerCase().includes(q) ||
+        (tree.species ?? '').toLowerCase().includes(q) ||
+        (tree.location_row ?? '').toLowerCase().includes(q) ||
+        (tree.location_tree ?? '').toLowerCase().includes(q)
+      )
+    })
+    .slice(0, treeQuery.trim() ? 12 : 6)
+
+  const careResults = species
+    .filter(item => {
+      const q = careQuery.trim().toLowerCase()
+      if (!q) return true
+      return (
+        item.name_en.toLowerCase().includes(q) ||
+        item.name_vi.toLowerCase().includes(q) ||
+        getSpeciesLatin(item).toLowerCase().includes(q)
+      )
+    })
+    .slice(0, careQuery.trim() ? 12 : 8)
+
+  function treeLocation(tree: DbTree) {
+    const parts = [
+      tree.location_row ? `Row ${tree.location_row}` : '',
+      tree.location_tree ? `#${tree.location_tree}` : '',
+    ].filter(Boolean)
+    return parts.length ? parts.join(' · ') : 'No location saved'
+  }
+
+  async function copyText(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(label)
+      window.setTimeout(() => setCopied(''), 2000)
+    } catch {
+      setCopied('')
+    }
+  }
+
+  async function shareCareGuide(item: DbSpecies) {
+    const url = `${window.location.origin}/care-guides/${makeSpeciesSlug(item)}`
+    const title = `${item.name_en} care guide`
+    if (navigator.share) {
+      await navigator.share({ title, url }).catch(() => {})
+      return
+    }
+    await copyText(url, item.id)
+  }
+
+  const taskButtons: { key: StaffTask; label: string; helper: string }[] = [
+    { key: 'lookup', label: 'Look Up Tree', helper: 'Find code, price, location' },
+    { key: 'care', label: 'Share Care Guide', helper: 'Send a guide link' },
+    { key: 'add', label: 'Add Tree', helper: 'Photo, price, care' },
+  ]
+
+  return (
+    <div className="min-h-screen bg-cream">
+      <header className="bg-forest text-white">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-4">
+          <div>
+            <p className="font-serif text-xl leading-tight">Bonsai Florida</p>
+            <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-white/60">Staff phone dashboard</p>
+          </div>
+          <button
+            onClick={onLogout}
+            className="rounded-full border border-white/20 bg-white/10 px-4 py-2 font-sans text-xs font-semibold text-white"
+          >
+            Log out
+          </button>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-2xl px-4 py-5">
+        <div className="grid grid-cols-3 gap-2">
+          {taskButtons.map(item => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setTask(item.key)}
+              className={`min-h-[76px] rounded-2xl border px-2 py-3 text-center transition-colors ${
+                task === item.key
+                  ? 'border-forest bg-forest text-white'
+                  : 'border-forest/15 bg-white text-forest'
+              }`}
+            >
+              <span className="block font-sans text-xs font-bold leading-tight">{item.label}</span>
+              <span className={`mt-1 block font-sans text-[10px] leading-tight ${task === item.key ? 'text-white/65' : 'text-ink-light'}`}>
+                {item.helper}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {task === 'lookup' && (
+          <section className="mt-5 space-y-4">
+            <input
+              type="search"
+              value={treeQuery}
+              onChange={event => setTreeQuery(event.target.value)}
+              placeholder="Search name, code, row..."
+              className={inputCls}
+            />
+            {loadingTrees && <p className="font-sans text-sm text-ink-light">Loading trees...</p>}
+            <div className="space-y-3">
+              {lookupResults.map(tree => {
+                const image = getPrimaryTreeImageUrl(tree)
+                const guide = species.find(item => item.id === tree.species_id)
+                const treeUrl = tree.tree_code && baseUrl ? `${baseUrl}/tree/${tree.tree_code}` : ''
+                return (
+                  <article key={tree.id} className="rounded-3xl border border-forest/10 bg-white p-3 shadow-sm">
+                    <div className="flex gap-3">
+                      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-sage-pale">
+                        {image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={image} alt={tree.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-3xl opacity-30">🌿</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h2 className="font-serif text-xl leading-tight text-forest">{tree.name}</h2>
+                            <p className="font-sans text-xs italic text-ink-light">{tree.species || 'No species saved'}</p>
+                          </div>
+                          <p className="font-serif text-lg font-bold text-bonsai-pink">${tree.price}</p>
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2 font-sans text-xs">
+                          {tree.tree_code && <span className="rounded-full bg-sage-pale px-2.5 py-1 font-mono text-forest">{tree.tree_code}</span>}
+                          <span className="rounded-full bg-cream px-2.5 py-1 text-ink-light">{treeLocation(tree)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      {tree.tree_code ? (
+                        <a href={`/tree/${tree.tree_code}`} className="btn-primary justify-center text-sm py-3">
+                          Open
+                        </a>
+                      ) : (
+                        <button type="button" disabled className="btn-primary justify-center text-sm py-3 opacity-50">
+                          No Page
+                        </button>
+                      )}
+                      {guide ? (
+                        <button type="button" onClick={() => shareCareGuide(guide)} className="btn-secondary justify-center text-sm py-3">
+                          {copied === guide.id ? 'Copied' : 'Share Care'}
+                        </button>
+                      ) : treeUrl ? (
+                        <button type="button" onClick={() => copyText(treeUrl, tree.id)} className="btn-secondary justify-center text-sm py-3">
+                          {copied === tree.id ? 'Copied' : 'Copy Link'}
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                )
+              })}
+              {!loadingTrees && lookupResults.length === 0 && (
+                <p className="rounded-2xl bg-white px-4 py-8 text-center font-sans text-sm text-ink-light">No tree found.</p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {task === 'care' && (
+          <section className="mt-5 space-y-4">
+            <input
+              type="search"
+              value={careQuery}
+              onChange={event => setCareQuery(event.target.value)}
+              placeholder="Search care guide..."
+              className={inputCls}
+            />
+            <div className="space-y-2">
+              {careResults.map(item => {
+                const slug = makeSpeciesSlug(item)
+                return (
+                  <article key={item.id} className="rounded-2xl border border-forest/10 bg-white p-4">
+                    <h2 className="font-serif text-xl leading-tight text-forest">{item.name_en}</h2>
+                    <p className="font-sans text-xs italic text-ink-light">{getSpeciesLatin(item)}</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <a href={`/care-guides/${slug}`} className="btn-primary justify-center text-sm py-3">
+                        Open
+                      </a>
+                      <button type="button" onClick={() => shareCareGuide(item)} className="btn-secondary justify-center text-sm py-3">
+                        {copied === item.id ? 'Copied' : 'Share'}
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+              {careResults.length === 0 && (
+                <p className="rounded-2xl bg-white px-4 py-8 text-center font-sans text-sm text-ink-light">No care guide found.</p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {task === 'add' && (
+          <section className="mt-5">
+            <UploadForm t={t} onSaved={onSaved} />
+          </section>
+        )}
+      </main>
+    </div>
+  )
+}
+
 // ─── Main Admin Client ────────────────────────────────────────────────────────
 
 export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
   const m = useMessages()
   const t = m.admin
-  const router = useRouter()
 
   const [isAuth, setIsAuth] = useState(initialAuth)
   const [trees, setTrees] = useState<DbTree[]>([])
-  const [soldTree, setSoldTree] = useState<DbTree | null>(null)
-  const [editTree, setEditTree] = useState<DbTree | null>(null)
   const [loadingTrees, setLoadingTrees] = useState(false)
-  const activeTrees = trees.filter(tree => tree.is_active)
-  const soldTrees = trees.filter(tree => !tree.is_active)
 
   useEffect(() => {
     if (isAuth) fetchTrees()
@@ -1347,39 +1583,6 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
     setLoadingTrees(false)
   }
 
-  async function handleDelete(tree: DbTree) {
-    setSoldTree(tree)
-  }
-
-  async function markTreeSold(tree: DbTree, soldImageUrl: string | null, soldNote: string, buyer: BuyerInfo) {
-    const res = await fetch(`/api/admin/trees/${tree.id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sold_image_url: soldImageUrl, sold_note: soldNote, ...buyer }),
-    })
-    if (!res.ok) return
-    const soldAt = new Date().toISOString()
-    setTrees(p => p.map(item => item.id === tree.id
-      ? { ...item, is_active: false, sold_image_url: soldImageUrl, sold_note: soldNote || null, sold_at: soldAt, ...buyer }
-      : item
-    ))
-  }
-
-  async function handleBulkDelete(ids: string[]) {
-    const results = await Promise.all(ids.map(id => fetch(`/api/admin/trees/${id}`, { method: 'DELETE' })))
-    const soldIds = new Set(ids.filter((_, i) => results[i]?.ok))
-    setTrees(p => p.map(tree => soldIds.has(tree.id) ? { ...tree, is_active: false } : tree))
-  }
-
-  function handleTreeSaved(id: string, updates: Partial<DbTree>) {
-    setTrees(p => p.map(t => t.id === id ? { ...t, ...updates } : t))
-  }
-
-  function handleBulkQrPrint(selectedTrees: DbTree[]) {
-    const ids = selectedTrees.map(t => t.id).join(',')
-    router.push(`/admin/qr-tags?ids=${ids}`)
-  }
-
   async function handleLogout() {
     await fetch('/api/admin/auth/logout', { method: 'POST' })
     setIsAuth(false)
@@ -1390,88 +1593,12 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
-
-      {/* Header */}
-      <header className="bg-forest text-white">
-        {/* Top row: brand + lock */}
-        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-xl">🌸</span>
-            <div>
-              <p className="font-serif font-bold tracking-wide text-sm">Bonsai Florida</p>
-              <p className="font-sans text-[10px] text-white/50 tracking-widest uppercase">{t.pageTitle}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="font-sans text-xs font-semibold bg-white/10 border border-white/20 text-white px-4 py-2 rounded-full hover:bg-white/20 transition-colors"
-          >
-            🔒 {t.logout}
-          </button>
-        </div>
-        {/* Nav strip */}
-        <div className="px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-none">
-          {[
-            { label: '🌿 Collection', path: '/trees', newTab: true },
-            { label: '🏠 Public Site', path: '/', newTab: true },
-            { label: '📅 Bookings', path: '/admin/bookings', newTab: false },
-            { label: `📱 ${t.devicesLink}`, path: '/admin/devices', newTab: false },
-          ].map(({ label, path, newTab }) => (
-            <a key={path} href={path}
-              target={newTab ? '_blank' : undefined}
-              rel={newTab ? 'noopener noreferrer' : undefined}
-              className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors">
-              {label}
-            </a>
-          ))}
-          <a href="/admin/settings"
-            className="flex-shrink-0 font-sans text-xs text-white/70 border border-white/20 px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors">
-            ⚙️ Settings
-          </a>
-        </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-10">
-        <p className="font-sans text-ink-light text-center">{t.pageSubtitle}</p>
-        <UploadForm t={t} onSaved={tree => setTrees(p => [tree, ...p])} />
-        <div className="flex items-center gap-4">
-          <div className="flex-1 h-px bg-forest/10" />
-          <span className="font-sans text-xs text-ink-light tracking-widest uppercase">
-            {loadingTrees ? '…' : `${activeTrees.length} active · ${soldTrees.length} sold`}
-          </span>
-          <div className="flex-1 h-px bg-forest/10" />
-        </div>
-        <TreeList
-          trees={activeTrees}
-          t={t}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onEdit={setEditTree}
-          onBulkQrPrint={handleBulkQrPrint}
-        />
-        <SoldTreeList trees={soldTrees} t={t} />
-      </main>
-
-      {soldTree && (
-        <MarkSoldModal
-          tree={soldTree}
-          t={t}
-          onClose={() => setSoldTree(null)}
-          onSold={markTreeSold}
-        />
-      )}
-
-      {editTree && (
-        <EditTreeModal
-          tree={editTree}
-          onClose={() => setEditTree(null)}
-          onSaved={handleTreeSaved}
-        />
-      )}
-
-      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent mt-10" />
-    </div>
+    <StaffDashboard
+      trees={trees}
+      loadingTrees={loadingTrees}
+      t={t}
+      onSaved={tree => setTrees(p => [tree, ...p])}
+      onLogout={handleLogout}
+    />
   )
 }

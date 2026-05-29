@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import type { DbTree } from '@/lib/supabase'
 import { getTreeImageUrls } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
-import { SunIcon, WaterIcon, LeafIcon, MessageIcon } from '@/components/Icons'
+import { SunIcon, WaterIcon, LeafIcon } from '@/components/Icons'
 
 // ─── Photo carousel (swipe + dots) ───────────────────────────────────────────
 
@@ -73,7 +73,7 @@ function PhotoCarousel({ urls, name }: { urls: string[]; name: string }) {
 
 // ─── Portfolio DB card ────────────────────────────────────────────────────────
 
-function DbCard({ tree, t }: { tree: DbTree; t: ReturnType<typeof useMessages>['collection'] }) {
+function DbCard({ tree }: { tree: DbTree }) {
   const router = useRouter()
   const photos = getTreeImageUrls(tree)
 
@@ -137,16 +137,6 @@ function DbCard({ tree, t }: { tree: DbTree; t: ReturnType<typeof useMessages>['
         {tree.notes && (
           <p className="font-sans text-xs text-ink-light italic mb-4 leading-relaxed line-clamp-2">{tree.notes}</p>
         )}
-        <div className="w-full h-px bg-bonsai-pink-lt/50 mb-4" />
-        <a
-          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-          onClick={e => e.stopPropagation()}
-          className="btn-primary w-full justify-center text-sm"
-          aria-label={`Ask about the ${tree.name}`}
-        >
-          <MessageIcon className="w-4 h-4" />
-          {t.askButton}
-        </a>
       </div>
     </article>
   )
@@ -154,7 +144,7 @@ function DbCard({ tree, t }: { tree: DbTree; t: ReturnType<typeof useMessages>['
 
 // ─── Static placeholder card ──────────────────────────────────────────────────
 
-function StaticCard({ tree, t }: { tree: typeof TREES[0]; t: ReturnType<typeof useMessages>['collection'] }) {
+function StaticCard({ tree }: { tree: typeof TREES[0] }) {
   return (
     <article className="card overflow-hidden hover:shadow-card-lg transition-shadow duration-200" aria-label={`${tree.name} — ${tree.price}`}>
       <div className="relative w-full aspect-[3/4] flex flex-col items-center justify-end pb-8 overflow-hidden"
@@ -185,10 +175,6 @@ function StaticCard({ tree, t }: { tree: typeof TREES[0]; t: ReturnType<typeof u
           <li className="flex items-center gap-2.5"><WaterIcon className="w-3.5 h-3.5 text-sage" /><span className="font-sans text-xs text-ink-light truncate">{tree.water}</span></li>
           <li className="flex items-center gap-2.5"><LeafIcon className="w-3.5 h-3.5 text-sage" /><span className="font-sans text-xs text-ink-light">{tree.level}</span></li>
         </ul>
-        <div className="w-full h-px bg-bonsai-pink-lt/50 mb-4" />
-        <a href={CONTACT.phone.sms} className="btn-primary w-full justify-center text-sm">
-          <MessageIcon className="w-4 h-4" />{t.askButton}
-        </a>
       </div>
     </article>
   )
@@ -238,14 +224,14 @@ export default function BonsaiCollection() {
         {/* Live DB portfolio grid */}
         {useLiveData && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {dbTrees.map(tree => <DbCard key={tree.id} tree={tree} t={t} />)}
+            {dbTrees.map(tree => <DbCard key={tree.id} tree={tree} />)}
           </div>
         )}
 
         {/* Static placeholders */}
         {dbTrees !== null && dbTrees.length === 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {TREES.map(tree => <StaticCard key={tree.id} tree={tree} t={t} />)}
+            {TREES.map(tree => <StaticCard key={tree.id} tree={tree} />)}
           </div>
         )}
 

@@ -157,6 +157,15 @@ function buildVisitTextUrl(data: FormState): string {
   return `${smsBase}?&body=${encodeURIComponent(buildVisitTextMessage(data))}`
 }
 
+function getTextNumber(): string {
+  const smsBase = siteConfig.textBookingUrl.split('?')[0]
+  const digits = smsBase.replace(/\D/g, '')
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  return digits || '561-301-1586'
+}
+
 // ── Progress bar ──────────────────────────────────────────────────────────────
 
 const STEP_LABELS: { key: Step; label: string }[] = [
@@ -490,6 +499,9 @@ function ConfirmStep({
   onBrowseTrees: () => void
   error: string
 }) {
+  const [copied, setCopied] = useState(false)
+  const textNumber = getTextNumber()
+  const visitMessage = buildVisitTextMessage(data)
   const rows: { label: string; value: string }[] = [
     { label: 'Purpose', value: data.purposeLabel },
     { label: 'Date', value: formatDateET(data.appointment_start) },
@@ -502,6 +514,28 @@ function ConfirmStep({
     ...(data.selected_tree_ids.length ? [{ label: 'Saved Trees', value: data.selected_tree_ids.join(', ') }] : []),
     ...(data.notes ? [{ label: 'Notes', value: data.notes }] : []),
   ]
+
+  async function copyVisitMessage() {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(visitMessage)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = visitMessage
+        textarea.setAttribute('readonly', '')
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2500)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   return (
     <div className="max-w-lg mx-auto">
@@ -553,17 +587,29 @@ function ConfirmStep({
       </p>
 
       <p className="font-sans text-xs text-ink-light/70 bg-cream-warm border border-forest/10 rounded-2xl px-4 py-4 leading-relaxed mb-6">
-        The next button opens a text message with your visit details filled in. Send the text, then wait for us to text back and confirm your appointment.
+        The next button opens a text message with your visit details filled in. Send the text to {textNumber}, then wait for us to text back and confirm your appointment.
       </p>
 
       {error && <p className="font-sans text-xs text-red-500 mb-4 text-center">{error}</p>}
 
-      <button
-        onClick={onSubmit}
-        className="btn-primary w-full justify-center text-base py-4 min-h-[52px]"
-      >
-        Text Visit Request →
-      </button>
+      <div className="space-y-3">
+        <button
+          onClick={onSubmit}
+          className="btn-primary w-full justify-center text-base py-4 min-h-[52px]"
+        >
+          Text Visit Request →
+        </button>
+        <button
+          type="button"
+          onClick={copyVisitMessage}
+          className="btn-secondary w-full justify-center text-base py-4 min-h-[52px]"
+        >
+          {copied ? 'Visit Message Copied' : 'Copy Visit Message'}
+        </button>
+      </div>
+      <p className="font-sans text-sm font-semibold text-forest text-center mt-4">
+        Text us: {textNumber}
+      </p>
       <p className="font-sans text-xs text-ink-light/50 text-center mt-3">
         Your visit is not confirmed until we text you back.
       </p>

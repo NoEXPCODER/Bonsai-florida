@@ -97,7 +97,6 @@ function PhotoCard({
   onToggleVisitList: (tree: DbTree) => void
   onClick: () => void
 }) {
-  const t = useMessages().collection
   const primary = getPrimaryTreeImageUrl(tree)
   const count = getTreeImageUrls(tree).length
   const species = tree.tree_species
@@ -156,17 +155,7 @@ function PhotoCard({
         )}
         <div className="flex items-center justify-between gap-2 mt-2">
           <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
-          <div className="flex items-center gap-1.5">
-            {tree.tree_code && <CopyLinkButton treeCode={tree.tree_code} />}
-            <a
-              href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-              onClick={e => e.stopPropagation()}
-              className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light active:scale-95 transition-all flex-shrink-0"
-              aria-label={`Ask about ${tree.name}`}
-            >
-              <MessageIcon className="w-3 h-3" /> {t.askButton}
-            </a>
-          </div>
+          {tree.tree_code && <CopyLinkButton treeCode={tree.tree_code} />}
         </div>
         <VisitListButton
           tree={tree}
@@ -192,7 +181,6 @@ function ListRow({
   onToggleVisitList: (tree: DbTree) => void
   onClick: () => void
 }) {
-  const t = useMessages().collection
   const primary = getPrimaryTreeImageUrl(tree)
   const species = tree.tree_species
   const difficulty = species ? getSpeciesDifficulty(species) : tree.level
@@ -229,8 +217,8 @@ function ListRow({
         </div>
       </div>
 
-      {/* Price + Ask */}
-      <div className="flex-shrink-0 flex flex-col items-end gap-2 pr-4 py-3">
+      {/* Price + actions */}
+      <div className="flex-shrink-0 flex flex-col items-end gap-2 pr-3 sm:pr-4 py-3">
         <span className="font-serif font-bold text-bonsai-pink text-base">${tree.price}</span>
         <VisitListButton
           tree={tree}
@@ -238,17 +226,7 @@ function ListRow({
           onToggle={onToggleVisitList}
           className="min-h-[32px] px-2.5 py-1.5 text-[10px]"
         />
-        <div className="flex items-center gap-1.5">
-          {tree.tree_code && <CopyLinkButton treeCode={tree.tree_code} />}
-          <a
-            href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1 bg-forest text-white font-sans text-[10px] font-bold px-2.5 py-1.5 rounded-full hover:bg-forest-light transition-colors"
-            aria-label={`Ask about ${tree.name}`}
-          >
-            <MessageIcon className="w-3 h-3" /> {t.askButton}
-          </a>
-        </div>
+        {tree.tree_code && <CopyLinkButton treeCode={tree.tree_code} />}
       </div>
     </article>
   )
@@ -267,7 +245,6 @@ function CareRow({
   onToggleVisitList: (tree: DbTree) => void
   onClick: () => void
 }) {
-  const t = useMessages().collection
   const species = tree.tree_species
   const image = getPrimaryTreeImageUrl(tree)
 
@@ -321,9 +298,9 @@ function CareRow({
         </div>
       </button>
 
-      <div className="flex gap-2 px-4 pb-4">
+      <div className="grid grid-cols-2 gap-2 px-4 pb-4">
         <button type="button" onClick={onClick} className="btn-primary flex-1 justify-center text-xs py-2.5">
-          {species ? 'Tree Care Guide →' : 'Ask for Care Guide'}
+          {species ? 'Tree Care Guide →' : 'View Tree Details'}
         </button>
         <VisitListButton
           tree={tree}
@@ -331,12 +308,6 @@ function CareRow({
           onToggle={onToggleVisitList}
           className="flex-1 text-xs"
         />
-        <a
-          href={`${CONTACT.phone.sms}&body=Hi! I'm interested in the ${encodeURIComponent(tree.name)}${tree.tree_code ? ` (${tree.tree_code})` : ''}`}
-          className="btn-secondary flex-1 justify-center text-xs py-2.5"
-        >
-          <MessageIcon className="w-3 h-3" /> {t.askButton}
-        </a>
       </div>
     </article>
   )
@@ -475,7 +446,7 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
 
         {/* Photo grid — default */}
         {view === 'grid' && displayed.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-2.5 gap-y-8 sm:gap-x-4">
             {displayed.map(tree => (
               <PhotoCard
                 key={tree.id}
@@ -546,7 +517,7 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
           <div className="mt-10 text-center">
             <p className="font-serif italic text-ink-light text-lg mb-5">{t.footerNote}</p>
             <a href={CONTACT.phone.sms} className="btn-secondary inline-flex">
-              <MessageIcon className="w-4 h-4" /> Text to Ask About More Trees
+              <MessageIcon className="w-4 h-4" /> Text Us About More Trees
             </a>
           </div>
         )}

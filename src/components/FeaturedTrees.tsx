@@ -3,14 +3,11 @@
 import type { DbTree } from '@/lib/supabase'
 import { getPrimaryTreeImageUrl } from '@/lib/tree-images'
 import { useMessages } from '@/lib/i18n'
-import { CONTACT } from '@/config/contact'
-import { MessageIcon } from '@/components/Icons'
 
 function TreeCard({ tree }: { tree: DbTree }) {
   const t = useMessages().featuredTrees
   const photo = getPrimaryTreeImageUrl(tree)
   const isBeginner = tree.level === 'Beginner Friendly'
-  const smsHref = `${CONTACT.phone.sms}&body=${encodeURIComponent(`Hi! I'm interested in the ${tree.name}${tree.tree_code ? ` (${tree.tree_code})` : ''}`)}`
 
   return (
     <article className="card overflow-hidden flex flex-col">
@@ -49,13 +46,6 @@ function TreeCard({ tree }: { tree: DbTree }) {
             className="btn-secondary w-full justify-center text-sm py-3"
           >
             {t.viewTree}
-          </a>
-          <a
-            href={smsHref}
-            className="w-full text-center font-sans text-xs text-forest hover:text-bonsai-pink transition-colors py-1.5 flex items-center justify-center gap-1.5"
-          >
-            <MessageIcon className="w-3 h-3" />
-            {t.askAboutTree}
           </a>
         </div>
       </div>
