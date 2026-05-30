@@ -153,7 +153,7 @@ export default function Hero({ trees = [], logoUrl = null }: HeroProps) {
               {t.description}
             </p>
 
-            <div className="flex flex-wrap gap-3 mb-5">
+            <div id="book-hero-cta" className="flex flex-wrap gap-3 mb-5">
               <BookGardenVisitButton />
               <a href="/trees" className="btn-secondary text-base py-3.5 px-7 min-h-[52px]">
                 {t.viewTrees}

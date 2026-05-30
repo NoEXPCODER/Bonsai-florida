@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { siteConfig } from '@/lib/siteConfig'
 import { useVisitList } from '@/hooks/useVisitList'
@@ -9,7 +9,23 @@ import VisitListDrawer from '@/components/VisitListDrawer'
 export default function StickyMobileCTA() {
   const { count } = useVisitList()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [heroBtnVisible, setHeroBtnVisible] = useState(true)
   const pathname = usePathname()
+
+  useEffect(() => {
+    const heroBtn = document.getElementById('book-hero-cta')
+    if (!heroBtn) {
+      setHeroBtnVisible(false)
+      return
+    }
+    setHeroBtnVisible(true)
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroBtnVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    )
+    observer.observe(heroBtn)
+    return () => observer.disconnect()
+  }, [pathname])
 
   if (pathname === '/visit' || pathname.startsWith('/visit/')) {
     return null
@@ -17,7 +33,11 @@ export default function StickyMobileCTA() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden bg-white/95 backdrop-blur-md border-t border-forest/10 px-4 py-3 flex gap-2.5 safe-area-bottom">
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-30 md:hidden bg-white/95 backdrop-blur-md border-t border-forest/10 px-4 py-3 flex gap-2.5 safe-area-bottom transition-transform duration-300 ${
+          heroBtnVisible ? 'translate-y-full' : 'translate-y-0'
+        }`}
+      >
         <a
           href={siteConfig.bookingUrl}
           className="btn-primary flex-1 justify-center text-sm py-3 min-h-[48px]"
