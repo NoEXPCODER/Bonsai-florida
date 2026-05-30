@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { sendCustomerConfirmation, sendAdminNotification } from '@/lib/email'
 import { notifyOwnerNewBooking, confirmCustomer } from '@/lib/sms'
-import { getVisitDuration, isValidAppointmentWindow, OPEN_DAYS_LABEL, OPEN_HOURS_LABEL } from '@/lib/booking-types'
+import { getVisitDuration, isValidAppointmentWindow, OPEN_DAYS_LABEL, OPEN_HOURS_LABEL, MAX_CONCURRENT_BOOKINGS } from '@/lib/booking-types'
 
 function isValidEmail(e: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
@@ -75,16 +75,16 @@ export async function POST(req: NextRequest) {
 
   const db = createServerClient()
 
-  // Double-booking check
+  // Concurrent booking check — allow up to MAX_CONCURRENT_BOOKINGS per slot
   const { data: conflicts } = await db
     .from('visit_bookings')
     .select('id')
     .eq('status', 'confirmed')
     .lt('appointment_start', endDate.toISOString())
     .gt('appointment_end', startDate.toISOString())
-    .limit(1)
+    .limit(MAX_CONCURRENT_BOOKINGS)
 
-  if (conflicts && conflicts.length > 0)
+  if (conflicts && conflicts.length >= MAX_CONCURRENT_BOOKINGS)
     return NextResponse.json({ error: 'That time slot is no longer available.' }, { status: 409 })
 
   // Unavailable slot check

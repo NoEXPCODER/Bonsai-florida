@@ -24,6 +24,8 @@ export interface TimeSlot {
   end: string   // ISO UTC
 }
 
+export const MAX_CONCURRENT_BOOKINGS = 3
+
 export const PURPOSE_DURATION: Record<string, number> = {
   'Buy a Bonsai': 30,
   'Just Browsing': 20,

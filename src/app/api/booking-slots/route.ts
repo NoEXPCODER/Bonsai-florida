@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import {
   buildRegularVisitSlots,
   toUtcFromEtDate,
+  MAX_CONCURRENT_BOOKINGS,
 } from '@/lib/booking-types'
 
 export async function GET(req: NextRequest) {
@@ -51,18 +52,18 @@ export async function GET(req: NextRequest) {
   const availableSlots = slots.filter(slot => {
     const slotStart = new Date(slot.start)
     const slotEnd = new Date(slot.end)
-    const overlapsBooked = booked.some(
+    const overlappingBookings = booked.filter(
       b =>
         slotStart < new Date(b.appointment_end) &&
         slotEnd > new Date(b.appointment_start),
-    )
+    ).length
     const overlapsBlocked = blocked.some(
       u =>
         slotStart < new Date(u.end_time) &&
         slotEnd > new Date(u.start_time),
     )
 
-    return !overlapsBooked && !overlapsBlocked
+    return overlappingBookings < MAX_CONCURRENT_BOOKINGS && !overlapsBlocked
   })
 
   return NextResponse.json({ slots: availableSlots })
