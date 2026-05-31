@@ -369,7 +369,7 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         <div className="pink-divider mb-4" />
         <p className="font-sans text-sm text-ink-light max-w-sm mx-auto">{t.description}</p>
         <p className="font-sans text-sm text-ink-light max-w-2xl mx-auto mt-4">
-          Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
+          Bonsai Florida is located in {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after we confirm your visit by text.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
           <BookGardenVisitButton />
@@ -436,11 +436,23 @@ export default function TreesClient({ trees, logoUrl = null }: { trees: DbTree[]
         {displayed.length === 0 && (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🌿</div>
-            <p className="font-serif text-xl text-forest mb-2">No trees found</p>
-            <p className="font-sans text-sm text-ink-light mb-6">Try a different search or filter</p>
-            <button onClick={() => { setSearch(''); setFilter('all') }} className="btn-secondary text-sm">
-              Clear filters
-            </button>
+            <p className="font-serif text-xl text-forest mb-2">
+              {trees.length === 0 ? 'Inventory is being updated' : 'No trees found'}
+            </p>
+            <p className="font-sans text-sm text-ink-light mb-6">
+              {trees.length === 0
+                ? 'Text us and we can share what is currently ready for a visit.'
+                : 'Try a different search or filter'}
+            </p>
+            {trees.length === 0 ? (
+              <a href={CONTACT.phone.sms} className="btn-primary text-sm inline-flex">
+                <MessageIcon className="w-4 h-4" /> Text Us
+              </a>
+            ) : (
+              <button onClick={() => { setSearch(''); setFilter('all') }} className="btn-secondary text-sm">
+                Clear filters
+              </button>
+            )}
           </div>
         )}
 

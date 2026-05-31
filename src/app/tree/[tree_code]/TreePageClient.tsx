@@ -198,7 +198,7 @@ Exact address is sent after appointment confirmation.${linkLine}`
 
 ${price} - ${careLevel}
 Located in the ${publicLocation} area.
-Message me to reserve or book a garden visit.
+Message me to reserve or request a garden visit.
 Exact address is sent after appointment confirmation.${linkLine}
 
 #bonsai #floridabonsai #westpalmbeach #tropicalbonsai #bonsaitree #ficusbonsai`
@@ -1020,7 +1020,7 @@ export default function TreePageClient({ tree: initialTree, isStaff, species }: 
             <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-2">Interested in this tree?</p>
             <h2 className="font-serif text-xl text-forest mb-5">Contact Bonsai Florida</h2>
             <p className="font-sans text-sm leading-6 text-ink-light mb-5">
-              Bonsai Florida is located in the {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after booking.
+              Bonsai Florida is located in {siteConfig.publicArea} near ZIP code {siteConfig.publicZip}. Garden visits are by appointment only. The exact address and Google Maps link are sent after we confirm your visit by text.
             </p>
             <div className="flex flex-col gap-3">
               <BookGardenVisitButton />

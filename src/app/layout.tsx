@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bonsaiflorida.com'),
   title: 'Bonsai Florida | Tropical Bonsai in Palm Beach, Florida',
   description:
-    'Beginner-friendly tropical bonsai, local guidance, and peaceful garden visits in Palm Beach, Florida. Call or text 561-331-6316.',
+    'Beginner-friendly tropical bonsai, local guidance, and peaceful garden visits in Palm Beach, Florida. Call or text 561-301-1586.',
   keywords: [
     'bonsai Florida',
     'tropical bonsai',

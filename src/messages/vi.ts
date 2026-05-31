@@ -110,7 +110,7 @@ export const vi: Messages = {
     savedHeading: 'Cây Đã Lưu',
     savedEmpty: 'Chưa lưu cây nào. Nhấn ♡ trên bất kỳ cây nào.',
     savedViewAll: 'Xem tất cả cây →',
-    bookText: 'Nhắn Tin Đặt Lịch Xem Cây',
+    bookText: 'Nhắn Tin Về Cây Này',
     bookCalendar: 'Mở Lịch',
   },
   auth: {
@@ -134,7 +134,7 @@ export const vi: Messages = {
     textUs: 'Nhắn Tin',
     viewTrees: 'Xem Cây Có Sẵn',
     bookAppointment: 'Đặt Lịch Hẹn',
-    bookVisit: 'Đặt Lịch Tham Quan Vườn',
+    bookVisit: 'Nhắn Tin Xin Lịch Tham Quan',
     textInterest: 'Nhắn Tin Về Sở Thích',
     alsoOn: 'Tìm chúng tôi trên',
     localCollection: 'Bộ Sưu Tập Địa Phương',
@@ -197,8 +197,8 @@ export const vi: Messages = {
     footerNote: 'Không thấy cây bạn tìm? Chúng tôi có thể có thêm cây khác.',
     footerCta: 'Gọi Về Cây Khác',
     bookBannerHeading: 'Muốn xem cây trực tiếp?',
-    bookBannerDesc: 'Đặt lịch tham quan miễn phí vườn bonsai Palm Beach — đi xem bộ sưu tập và tìm cây hoàn hảo cho bạn.',
-    bookBannerButton: 'Đặt Lịch Tham Quan',
+    bookBannerDesc: 'Nhắn tin xin lịch tham quan miễn phí vườn bonsai Palm Beach — đi xem bộ sưu tập và tìm cây hoàn hảo cho bạn.',
+    bookBannerButton: 'Xin Lịch Tham Quan',
   },
   care: {
     label: 'Hướng dẫn đơn giản',
@@ -275,7 +275,7 @@ export const vi: Messages = {
     steps: [
       { title: 'Xem Cây Có Sẵn', description: 'Duyệt bộ sưu tập trực tuyến. Mỗi cây có ảnh, thông tin loài, độ khó và giá.' },
       { title: 'Lưu Vào Danh Sách Tham Quan', description: 'Chọn 1–5 cây phù hợp với phong cách và ngân sách. Danh sách được lưu tự động — không cần tài khoản.' },
-      { title: 'Đặt Lịch Tham Quan Vườn', description: 'Chọn giờ tham quan trực tuyến hoặc nhắn tin cho chúng tôi. Chúng tôi sẽ chuẩn bị cây phù hợp với bạn.' },
+      { title: 'Xin Lịch Tham Quan Vườn', description: 'Chọn giờ tham quan trực tuyến hoặc nhắn tin cho chúng tôi. Chúng tôi sẽ chuẩn bị cây phù hợp và xác nhận lại bằng tin nhắn.' },
       { title: 'Tham Quan Tự Tin', description: 'Đi xem cây đã chuẩn bị, đặt câu hỏi và mang về cây bạn thích nhất. Kèm theo hướng dẫn chăm sóc.' },
     ],
   },
@@ -294,8 +294,8 @@ export const vi: Messages = {
   },
   visitList: {
     drawerTitle: 'Danh Sách Tham Quan',
-    subtitle: 'Lưu tối đa 5 cây trước khi đặt lịch. Điều này giúp chúng tôi chuẩn bị những lựa chọn tốt nhất.',
-    bookVisit: 'Đặt Lịch Tham Quan',
+    subtitle: 'Lưu tối đa 5 cây trước khi xin lịch tham quan. Điều này giúp chúng tôi chuẩn bị những lựa chọn tốt nhất.',
+    bookVisit: 'Xin Lịch Tham Quan',
     textMyList: 'Nhắn Tin Danh Sách',
     helpMe: 'Giúp Tôi Chọn',
     keepBrowsing: 'Tiếp Tục Xem',
@@ -316,9 +316,9 @@ export const vi: Messages = {
   },
   finalCTA: {
     label: 'Sẵn sàng tham quan?',
-    heading: 'Đặt Lịch Tham Quan Vườn Bonsai',
+    heading: 'Xin Lịch Tham Quan Vườn Bonsai',
     description: 'Chọn một vài cây hoặc cho chúng tôi biết bạn đang tìm gì. Chúng tôi sẽ chuẩn bị bonsai phù hợp trước khi bạn đến.',
-    book: 'Đặt Lịch Tham Quan',
+    book: 'Xin Lịch Tham Quan',
     browse: 'Xem Cây Có Sẵn',
   },
   carePreview: {

@@ -205,7 +205,7 @@ function Progress({ step }: { step: Step }) {
 function PurposeStep({ onSelect }: { onSelect: (id: string, label: string) => void }) {
   return (
     <div>
-      <p className="section-label mb-2 text-center">Book a Garden Visit</p>
+      <p className="section-label mb-2 text-center">Request a Garden Visit</p>
       <h1 className="font-serif text-3xl sm:text-4xl text-forest text-center mb-2">
         What brings you in?
       </h1>
@@ -468,7 +468,7 @@ function TimeStep({
         <>
           {availabilityLimited && (
             <p className="font-sans text-xs text-ink-light text-center mb-3">
-              Showing regular visit times. Final availability is confirmed when you book.
+              Showing regular visit times. Final availability is confirmed when we text you back.
             </p>
           )}
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -566,7 +566,7 @@ function ConfirmStep({
               Want to pick trees before you arrive?
             </p>
             <p className="font-sans text-xs text-ink-light mt-1 leading-relaxed">
-              You haven&apos;t saved any trees yet. Browse the collection and we&apos;ll have your picks ready — or book now and choose when you visit.
+              You haven&apos;t saved any trees yet. Browse the collection and we&apos;ll have your picks ready — or request a visit now and choose when you arrive.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <button

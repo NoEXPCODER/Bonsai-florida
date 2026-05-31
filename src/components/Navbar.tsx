@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { CONTACT } from '@/config/contact'
 import { useAuth, useMessages } from '@/lib/i18n'
+import { siteConfig } from '@/lib/siteConfig'
 import { MessageIcon } from '@/components/Icons'
 
 export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) {
@@ -89,8 +90,8 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
               <MessageIcon className="w-4 h-4 inline mr-1" />
               {m.nav.textUs}
             </a>
-            <a href="sms:5613011586" className="btn-primary text-sm px-6 py-3 min-h-[48px]">
-              Text to Book
+            <a href={siteConfig.textBookingUrl} className="btn-primary text-sm px-6 py-3 min-h-[48px]">
+              Text to Visit
             </a>
           </div>
 
@@ -136,11 +137,11 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
                 {m.nav.login}
               </Link>
               <a
-                href="sms:5613011586"
+                href={siteConfig.textBookingUrl}
                 className="btn-primary justify-center text-sm"
                 onClick={() => setMenuOpen(false)}
               >
-                Text to Book a Visit
+                Text to Visit
               </a>
               <a
                 href={CONTACT.phone.sms}

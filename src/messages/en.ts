@@ -108,7 +108,7 @@ export const en = {
     savedHeading: 'Saved Trees',
     savedEmpty: 'No trees saved yet. Tap ♡ on any tree.',
     savedViewAll: 'View all trees →',
-    bookText: 'Text to Book This Tree',
+    bookText: 'Text About This Tree',
     bookCalendar: 'Open Calendar',
   },
   auth: {
@@ -132,7 +132,7 @@ export const en = {
     textUs: 'Text Us',
     viewTrees: 'View Available Trees',
     bookAppointment: 'Book an Appointment',
-    bookVisit: 'Book a Garden Visit',
+    bookVisit: 'Request a Garden Visit',
     textInterest: 'Text Us Your Interest',
     alsoOn: 'Also find us on',
     localCollection: 'Local Collection',
@@ -195,8 +195,8 @@ export const en = {
     footerNote: "Don't see what you're looking for? We may have more trees available.",
     footerCta: 'Call About More Trees',
     bookBannerHeading: 'Want to see the trees in person?',
-    bookBannerDesc: 'Book a free visit to our Palm Beach garden — walk through the collection and find your perfect tree.',
-    bookBannerButton: 'Book a Garden Visit',
+    bookBannerDesc: 'Request a free visit to our Palm Beach garden — walk through the collection and find your perfect tree.',
+    bookBannerButton: 'Request a Garden Visit',
   },
   care: {
     label: 'Simple guidance',
@@ -272,7 +272,7 @@ export const en = {
     steps: [
       { title: 'View Available Trees', description: 'Browse our collection online. Each tree has photos, species info, care difficulty, and price.' },
       { title: 'Save to Visit List', description: 'Select 1–5 trees that match your style and budget. Your list is saved automatically — no account needed.' },
-      { title: 'Book a Garden Visit', description: "Choose a visit time online or text us your interest. We'll prepare trees that match your budget, style, and experience level." },
+      { title: 'Request a Garden Visit', description: "Choose a visit time online or text us your interest. We'll prepare trees that match your budget, style, and experience level, then confirm by text." },
       { title: 'Visit With Confidence', description: 'Walk through your prepared trees, ask questions, and take home the one that feels right. Care guide included.' },
     ],
   },
@@ -291,8 +291,8 @@ export const en = {
   },
   visitList: {
     drawerTitle: 'Your Visit List',
-    subtitle: 'Save up to 5 trees before booking. This helps us prepare the best options for your visit.',
-    bookVisit: 'Book Garden Visit',
+    subtitle: 'Save up to 5 trees before requesting a visit. This helps us prepare the best options for your visit.',
+    bookVisit: 'Request Garden Visit',
     textMyList: 'Text Us My List',
     helpMe: 'Help Me Choose',
     keepBrowsing: 'Keep Browsing',
@@ -313,9 +313,9 @@ export const en = {
   },
   finalCTA: {
     label: 'Ready to visit?',
-    heading: 'Book a Bonsai Garden Visit',
+    heading: 'Request a Bonsai Garden Visit',
     description: 'Select a few trees or tell us what you\'re looking for. We\'ll prepare matching bonsai before you arrive.',
-    book: 'Book Garden Visit',
+    book: 'Request Garden Visit',
     browse: 'View Available Trees',
   },
   carePreview: {

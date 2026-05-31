@@ -16,12 +16,11 @@ export default function VisitListDrawer({ open, onClose }: Props) {
   const { list, remove, count } = useVisitList()
   const { customer, setCustomer } = useAuth()
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [saved, setSaved] = useState(false)
   const [contactError, setContactError] = useState('')
 
   useEffect(() => {
-    if (open && customer) { setName(customer.name); setPhone(customer.phone) }
+    if (open && customer) { setName(customer.name) }
   }, [open, customer])
 
   if (!open) return null
@@ -31,14 +30,13 @@ export default function VisitListDrawer({ open, onClose }: Props) {
   const smsBody = encodeURIComponent(
     count > 0
       ? `Hi! My visit list:\n${list.map((t, i) => `${i + 1}. ${t.name}${t.treeCode ? ` (${t.treeCode})` : ''} — $${t.price}`).join('\n')}`
-      : 'Hi, I want to book a Bonsai Florida garden visit.'
+      : 'Hi, I want to request a Bonsai Florida garden visit. Please text me back to confirm a time.'
   )
 
   function handleSaveContact(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) { setContactError('Please enter your name.'); return }
-    if (!phone.trim()) { setContactError('Please enter your phone number.'); return }
-    const c = { name: name.trim(), phone: phone.trim() }
+    const c = { name: name.trim(), phone: '' }
     saveCustomer(c)
     setCustomer(c)
     setSaved(true)
@@ -68,7 +66,7 @@ export default function VisitListDrawer({ open, onClose }: Props) {
           </div>
 
           <p className="font-sans text-sm text-ink-light leading-relaxed mb-5">
-            Save up to {MAX_VISIT_LIST} trees before booking. This helps us prepare the best options for your visit.
+            Save up to {MAX_VISIT_LIST} trees before requesting a visit. This helps us prepare the best options for your visit.
           </p>
 
           {count === 0 && (
@@ -110,7 +108,7 @@ export default function VisitListDrawer({ open, onClose }: Props) {
           {needsContact && (
             <form onSubmit={handleSaveContact} className="bg-sage-pale rounded-2xl p-4 mb-5">
               <p className="font-sans text-xs font-semibold text-forest mb-3">
-                Your list is getting serious! Save it by text — enter your name and phone:
+                Your list is getting serious. Add your name so we can match it to your text:
               </p>
               <div className="space-y-2">
                 <input
@@ -118,13 +116,6 @@ export default function VisitListDrawer({ open, onClose }: Props) {
                   placeholder="Your name"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-forest/20 bg-white font-sans text-sm focus:outline-none focus:ring-2 focus:ring-forest/20"
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone number"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl border border-forest/20 bg-white font-sans text-sm focus:outline-none focus:ring-2 focus:ring-forest/20"
                 />
                 {contactError && (
@@ -146,11 +137,11 @@ export default function VisitListDrawer({ open, onClose }: Props) {
           <div className="space-y-2.5">
             {count > 0 && (
               <a href={siteConfig.bookingUrl} onClick={onClose} className="btn-primary w-full justify-center text-base py-4">
-                Book Visit With These Trees
+                Request Visit With These Trees
               </a>
             )}
-            <a href={`sms:5613011586?&body=${smsBody}`} onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
-              Text Us to Book
+            <a href={`${siteConfig.textBookingUrl.split('?')[0]}?&body=${smsBody}`} onClick={onClose} className={`w-full justify-center text-sm py-3 ${count > 0 ? 'btn-secondary' : 'btn-primary'}`}>
+              Text Visit Request
             </a>
             <button onClick={onClose} className="w-full text-center font-sans text-sm text-ink-light hover:text-forest transition-colors py-2">
               Keep Browsing
