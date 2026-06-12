@@ -514,7 +514,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-type SortKey = 'created_at' | 'name' | 'price' | 'level'
+type SortKey = 'created_at' | 'name' | 'price' | 'level' | 'location'
 type SortDir = 'asc' | 'desc'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
@@ -522,17 +522,27 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'name',       label: 'Name' },
   { key: 'price',      label: 'Price' },
   { key: 'level',      label: 'Level' },
+  { key: 'location',   label: 'Location' },
 ]
 
 function sortTrees(trees: DbTree[], key: SortKey, dir: SortDir): DbTree[] {
   return [...trees].sort((a, b) => {
-    let av: string = a[key] ?? ''
-    let bv: string = b[key] ?? ''
     if (key === 'price') {
-      av = String(parseFloat(av.replace(/[^0-9.]/g, '')) || 0)
-      bv = String(parseFloat(bv.replace(/[^0-9.]/g, '')) || 0)
-      return dir === 'asc' ? Number(av) - Number(bv) : Number(bv) - Number(av)
+      const av = parseFloat((a.price ?? '').replace(/[^0-9.]/g, '')) || 0
+      const bv = parseFloat((b.price ?? '').replace(/[^0-9.]/g, '')) || 0
+      return dir === 'asc' ? av - bv : bv - av
     }
+    if (key === 'location') {
+      const aRow  = (a.location_row  ?? '').padStart(4, '0')
+      const bRow  = (b.location_row  ?? '').padStart(4, '0')
+      const aTree = String(a.location_tree ?? '').padStart(6, '0')
+      const bTree = String(b.location_tree ?? '').padStart(6, '0')
+      const av = `${aRow}|${aTree}`
+      const bv = `${bRow}|${bTree}`
+      return dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
+    }
+    const av: string = (a as unknown as Record<string, string>)[key] ?? ''
+    const bv: string = (b as unknown as Record<string, string>)[key] ?? ''
     return dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av)
   })
 }
@@ -957,11 +967,13 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [filterSearch, setFilterSearch] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [filterLevel, setFilterLevel]   = useState('all')
-  const [filterType, setFilterType]     = useState('all')
-  const [filterDate, setFilterDate]     = useState('all')
+  const [filterSearch, setFilterSearch]       = useState('')
+  const [filterStatus, setFilterStatus]       = useState('all')
+  const [filterLevel, setFilterLevel]         = useState('all')
+  const [filterType, setFilterType]           = useState('all')
+  const [filterDateFrom, setFilterDateFrom]   = useState('')
+  const [filterDateTo, setFilterDateTo]       = useState('')
+  const [filterLocation, setFilterLocation]   = useState('')
 
   // Build unique tree types from name + species keywords
   const treeTypes: string[] = (() => {
@@ -987,29 +999,26 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
       .map(([w]) => w)
   })()
 
-  function dateRangeStart(range: string): Date | null {
-    const now = new Date()
-    if (range === 'today')    { const d = new Date(now); d.setHours(0,0,0,0); return d }
-    if (range === 'week')     { const d = new Date(now); d.setDate(d.getDate() - 7); d.setHours(0,0,0,0); return d }
-    if (range === 'month')    { const d = new Date(now); d.setMonth(d.getMonth() - 1); d.setHours(0,0,0,0); return d }
-    if (range === '3months')  { const d = new Date(now); d.setMonth(d.getMonth() - 3); d.setHours(0,0,0,0); return d }
-    if (range === 'year')     { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); d.setHours(0,0,0,0); return d }
-    return null
-  }
-
   const sorted = sortTrees(trees, sortKey, sortDir)
   const filtered = sorted.filter(tree => {
     if (filterStatus !== 'all' && (tree.status ?? 'active') !== filterStatus) return false
     if (filterLevel  !== 'all' && tree.level !== filterLevel) return false
-    if (filterType !== 'all') {
+    if (filterType   !== 'all') {
       const q = filterType.toLowerCase()
-      const inName    = tree.name.toLowerCase().includes(q)
-      const inSpecies = (tree.species ?? '').toLowerCase().includes(q)
-      if (!inName && !inSpecies) return false
+      if (!tree.name.toLowerCase().includes(q) && !(tree.species ?? '').toLowerCase().includes(q)) return false
     }
-    if (filterDate !== 'all') {
-      const start = dateRangeStart(filterDate)
-      if (start && new Date(tree.created_at) < start) return false
+    if (filterDateFrom) {
+      const from = new Date(filterDateFrom); from.setHours(0, 0, 0, 0)
+      if (new Date(tree.created_at) < from) return false
+    }
+    if (filterDateTo) {
+      const to = new Date(filterDateTo); to.setHours(23, 59, 59, 999)
+      if (new Date(tree.created_at) > to) return false
+    }
+    if (filterLocation) {
+      const q = filterLocation.toLowerCase()
+      const loc = `${tree.location_row ?? ''} ${tree.location_tree ?? ''}`.toLowerCase()
+      if (!loc.trim() || !loc.includes(q)) return false
     }
     if (filterSearch) {
       const q = filterSearch.toLowerCase()
@@ -1021,6 +1030,14 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
     }
     return true
   })
+
+  const anyFilter = filterSearch || filterStatus !== 'all' || filterLevel !== 'all' ||
+    filterType !== 'all' || filterDateFrom || filterDateTo || filterLocation
+
+  function clearFilters() {
+    setFilterSearch(''); setFilterStatus('all'); setFilterLevel('all')
+    setFilterType('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterLocation('')
+  }
 
   const allSelected  = filtered.length > 0 && filtered.every(t => selected.has(t.id))
   const someSelected = filtered.some(t => selected.has(t.id))
@@ -1083,7 +1100,7 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-forest/10 bg-white px-4 py-4 mb-4 space-y-3">
+      <div className="rounded-2xl border border-forest/10 bg-white px-4 py-4 mb-4 space-y-4">
 
         {/* Search */}
         <div className="relative">
@@ -1097,17 +1114,54 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
           />
         </div>
 
-        {/* Tree type dropdown */}
+        {/* Location search */}
+        <div>
+          <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">📍 Location</p>
+          <input
+            type="search"
+            placeholder="Type row or tree # — e.g. A or 7"
+            value={filterLocation}
+            onChange={e => setFilterLocation(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border border-forest/20 bg-sage-pale/40 font-sans text-sm text-ink placeholder-ink-light/40 focus:outline-none focus:ring-2 focus:ring-forest/20 transition"
+          />
+        </div>
+
+        {/* Date range: From / To */}
+        <div>
+          <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">📅 Date Added</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block font-sans text-xs text-ink-light mb-1">From</label>
+              <input
+                type="date"
+                value={filterDateFrom}
+                onChange={e => setFilterDateFrom(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-forest/20 bg-sage-pale/40 font-sans text-sm text-ink focus:outline-none focus:ring-2 focus:ring-forest/20 transition"
+              />
+            </div>
+            <div>
+              <label className="block font-sans text-xs text-ink-light mb-1">To</label>
+              <input
+                type="date"
+                value={filterDateTo}
+                onChange={e => setFilterDateTo(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-forest/20 bg-sage-pale/40 font-sans text-sm text-ink focus:outline-none focus:ring-2 focus:ring-forest/20 transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Tree type */}
         {treeTypes.length > 0 && (
           <div>
-            <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">Tree Type</p>
+            <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">🌿 Tree Type</p>
             <div className="flex flex-wrap gap-1.5">
               <button type="button" onClick={() => setFilterType('all')}
                 className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterType === 'all' ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
                 All Types
               </button>
               {treeTypes.map(type => (
-                <button key={type} type="button" onClick={() => setFilterType(type === filterType ? 'all' : type)}
+                <button key={type} type="button" onClick={() => setFilterType(filterType === type ? 'all' : type)}
                   className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterType === type ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
                   {type}
                 </button>
@@ -1115,26 +1169,6 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
             </div>
           </div>
         )}
-
-        {/* Date added */}
-        <div>
-          <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">Date Added</p>
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              { value: 'all',     label: 'All Time' },
-              { value: 'today',   label: 'Today' },
-              { value: 'week',    label: 'Last 7 days' },
-              { value: 'month',   label: 'Last 30 days' },
-              { value: '3months', label: 'Last 3 months' },
-              { value: 'year',    label: 'This year' },
-            ].map(({ value, label }) => (
-              <button key={value} type="button" onClick={() => setFilterDate(value)}
-                className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterDate === value ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Status */}
         <div>
@@ -1172,19 +1206,18 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
           </div>
         </div>
 
-        {/* Active filter summary + clear */}
-        {(filterSearch || filterStatus !== 'all' || filterLevel !== 'all' || filterType !== 'all' || filterDate !== 'all') && (
-          <div className="flex items-center justify-between pt-1 border-t border-forest/5">
-            <span className="font-sans text-xs text-ink-light">
-              Showing <strong>{filtered.length}</strong> of {trees.length} trees
-            </span>
-            <button type="button"
-              onClick={() => { setFilterSearch(''); setFilterStatus('all'); setFilterLevel('all'); setFilterType('all'); setFilterDate('all') }}
+        {/* Summary + clear */}
+        <div className="flex items-center justify-between pt-1 border-t border-forest/5">
+          <span className="font-sans text-xs text-ink-light">
+            <strong>{filtered.length}</strong> of {trees.length} trees
+          </span>
+          {anyFilter && (
+            <button type="button" onClick={clearFilters}
               className="font-sans text-xs font-bold text-bonsai-pink hover:underline">
-              Clear all filters
+              Clear all
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Sort bar */}
