@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash, timingSafeEqual } from 'crypto'
-import { AUTH } from '@/config/auth'
+import { getAdminCredentials } from '@/config/auth'
 import { createServerClient } from '@/lib/supabase-server'
 import {
   generateToken,
@@ -42,16 +42,30 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { username, password, remember = true } = await req.json()
+  let body: { username?: unknown; password?: unknown; remember?: unknown }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  let credentials
+  try {
+    credentials = getAdminCredentials()
+  } catch {
+    return NextResponse.json({ error: 'Server auth is not configured' }, { status: 500 })
+  }
+
+  const { username, password, remember = true } = body
 
   // Timing-safe comparison for both fields
   const usernameMatch = timingSafeEqual(
     createHash('sha256').update(String(username ?? '')).digest(),
-    createHash('sha256').update(AUTH.username).digest(),
+    createHash('sha256').update(credentials.username).digest(),
   )
   const passwordMatch = timingSafeEqual(
     createHash('sha256').update(String(password ?? '')).digest(),
-    createHash('sha256').update(AUTH.password).digest(),
+    createHash('sha256').update(credentials.password).digest(),
   )
 
   if (!usernameMatch || !passwordMatch) {
@@ -74,7 +88,7 @@ export async function POST(req: NextRequest) {
   const deviceName = getDeviceName(ua)
 
   const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + (remember ? REMEMBER_DAYS : 1))
+  expiresAt.setDate(expiresAt.getDate() + (remember === true ? REMEMBER_DAYS : 1))
 
   const { error } = await db.from('staff_sessions').insert({
     device_name: deviceName,
@@ -92,7 +106,7 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    ...(remember ? { maxAge: REMEMBER_DAYS * 24 * 60 * 60 } : {}),
+    ...(remember === true ? { maxAge: REMEMBER_DAYS * 24 * 60 * 60 } : {}),
   })
   return res
 }

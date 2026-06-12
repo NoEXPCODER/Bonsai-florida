@@ -9,6 +9,7 @@
  *   OWNER_PHONE          e.g. +15613011586  (dad's cell)
  */
 
+import 'server-only'
 import type { BookingEmailData } from '@/lib/email'
 
 const SID = process.env.TWILIO_ACCOUNT_SID

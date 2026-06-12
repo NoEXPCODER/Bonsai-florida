@@ -1,12 +1,23 @@
-/*
- * BONSAI FLORIDA — Staff Admin Credentials
- * -----------------------------------------
- * Username and password used by /api/admin/auth to create staff sessions.
- * Change before deploying to production.
- *
- * Staff admin PINs must stay server-only in ADMIN_PIN or STAFF_ADMIN_PIN.
- */
-export const AUTH = {
-  username: 'thanhvan',
-  password: 'bonsai2026',
-} as const
+import 'server-only'
+
+export interface AdminCredentials {
+  username: string
+  password: string
+}
+
+export function getAdminCredentials(): AdminCredentials {
+  const username = process.env.ADMIN_USERNAME ?? process.env.STAFF_ADMIN_USERNAME
+  const password =
+    process.env.ADMIN_PASSWORD ??
+    process.env.STAFF_ADMIN_PASSWORD ??
+    process.env.ADMIN_PIN ??
+    process.env.STAFF_ADMIN_PIN
+
+  if (!username || !password) {
+    throw new Error(
+      'ADMIN_USERNAME and ADMIN_PASSWORD must be set as server-only environment variables.',
+    )
+  }
+
+  return { username, password }
+}

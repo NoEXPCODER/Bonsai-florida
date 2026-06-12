@@ -1,3 +1,4 @@
+import 'server-only'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = 'https://kezvvfocbpbyykgeohsw.supabase.co'

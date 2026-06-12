@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { validateSession, COOKIE_NAME } from '@/lib/session'
+import { hasValidImageSignature, validateImageFile } from '@/lib/upload-security'
 
 /** POST /api/admin/settings/logo — upload brand logo, upsert to fixed path, save URL in site_settings */
 export async function POST(req: NextRequest) {
@@ -11,20 +12,26 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const file = formData.get('file') as File | null
   if (!file) return NextResponse.json({ error: 'Missing file' }, { status: 400 })
-  if (!file.type.startsWith('image/')) return NextResponse.json({ error: 'Not an image' }, { status: 400 })
+  const validation = validateImageFile(file)
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: validation.status })
+  }
 
-  const ext = file.name.split('.').pop() ?? 'png'
-  const path = `settings/logo.${ext}`
+  const path = `settings/logo.${validation.extension}`
 
   const db = createServerClient()
   const bytes = await file.arrayBuffer()
+  const buffer = Buffer.from(bytes)
+  if (!hasValidImageSignature(buffer, file.type)) {
+    return NextResponse.json({ error: 'Invalid image file' }, { status: 400 })
+  }
 
   // Remove any existing logo first, then upload fresh
-  await db.storage.from('bonsai-trees').remove([`settings/logo.png`, `settings/logo.jpg`, `settings/logo.jpeg`, `settings/logo.webp`, `settings/logo.svg`])
+  await db.storage.from('bonsai-trees').remove([`settings/logo.png`, `settings/logo.jpg`, `settings/logo.jpeg`, `settings/logo.webp`])
 
   const { error: upErr } = await db.storage
     .from('bonsai-trees')
-    .upload(path, Buffer.from(bytes), { contentType: file.type, upsert: true })
+    .upload(path, buffer, { contentType: file.type, upsert: true })
 
   if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
 
@@ -48,7 +55,7 @@ export async function DELETE(req: NextRequest) {
   const db = createServerClient()
   await db.storage.from('bonsai-trees').remove([
     `settings/logo.png`, `settings/logo.jpg`, `settings/logo.jpeg`,
-    `settings/logo.webp`, `settings/logo.svg`,
+    `settings/logo.webp`,
   ])
   await db.from('site_settings').upsert(
     { key: 'logo_url', value: null, updated_at: new Date().toISOString() },

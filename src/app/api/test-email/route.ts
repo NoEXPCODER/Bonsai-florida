@@ -1,8 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { sendCustomerConfirmation, sendAdminNotification } from '@/lib/email'
+import { COOKIE_NAME, validateSession } from '@/lib/session'
 
 // Temporary test endpoint — DELETE after confirming email works
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (process.env.EMAIL_TEST_ENABLED !== 'true') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  const rawToken = req.cookies.get(COOKIE_NAME)?.value
+  const session = await validateSession(rawToken)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const fake = {
     id: 'test-001',
     full_name: 'Test User',

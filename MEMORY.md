@@ -108,7 +108,7 @@ Tropical bonsai nursery website in Palm Beach, Florida. Owner is Vietnamese-Amer
 - All session tokens stored as SHA-256 hashes in DB, never raw.
 - httpOnly cookie `bf_staff` for staff auth. **Never** localStorage.
 - All mutation API routes verify the cookie server-side before acting.
-- Staff admin credentials: `thanhvan` / `bonsai2026` (in `src/config/auth.ts` — server side only via API route).
+- Staff admin credentials must come from server-only environment variables. Do not commit usernames, passwords, or PINs.
 
 ---
 
@@ -119,6 +119,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://kezvvfocbpbyykgeohsw.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key in supabase.ts>
 SUPABASE_SERVICE_ROLE_KEY=<from Supabase dashboard — server only>
 ADMIN_PIN=<staff PIN — server only>
+ADMIN_USERNAME=<staff username — server only>
+ADMIN_PASSWORD=<staff password — server only>
 ```
 
 ---
@@ -284,7 +286,7 @@ If `GlobalStickyBar` is placed outside `<Providers>` in layout.tsx, it renders `
 Original 3/hr rate limit blocked the owner after testing the booking form 3 times. Raised to 5/hr. If you need to clear test bookings: `DELETE FROM bookings WHERE email = 'nathanvan10@gmail.com';`
 
 ### config/auth.ts — do not delete
-Imported by `/api/admin/auth/route.ts` for staff login. Contains `AUTH.username` and `AUTH.password`.
+Imported by `/api/admin/auth/route.ts` for staff login. Reads staff credentials from server-only environment variables.
 
 ### ESLint: no-html-link-for-pages
 Use `<Link href="/">` from `next/link` for internal navigation, not `<a href="/">`.

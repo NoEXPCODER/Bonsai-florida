@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 import { sendCustomerConfirmation, sendAdminNotification } from '@/lib/email'
 import { notifyOwnerNewBooking, confirmCustomer } from '@/lib/sms'
+import { COOKIE_NAME } from '@/lib/session'
 import { getVisitDuration, isValidAppointmentWindow, OPEN_DAYS_LABEL, OPEN_HOURS_LABEL } from '@/lib/booking-types'
 
 function isValidEmail(e: string) {
@@ -10,7 +11,7 @@ function isValidEmail(e: string) {
 
 export async function GET(req: NextRequest) {
   // Used by admin page to list bookings
-  const rawToken = req.cookies.get('bf_staff')?.value
+  const rawToken = req.cookies.get(COOKIE_NAME)?.value
   if (!rawToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { validateSession } = await import('@/lib/session')
