@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 
-const TAGS_PER_PAGE = 50  // 10 cols × 5 rows on letter
+const TAGS_PER_PAGE = 40  // 10 cols × 4 rows on letter
 
 interface TagTree {
   id: string
@@ -17,12 +17,12 @@ interface TagTree {
 const G = '#2A4538'
 const P = '#C0426A'
 
-// ─── Single tag: 0.7in × 2in portrait ────────────────────────────────────────
+// ─── Single tag: 0.7in × 2.5in portrait ─────────────────────────────────────
 function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string | null; origin: string }) {
   if (!tree || !tree.tree_code) {
     return (
       <div style={{
-        width: '0.7in', height: '2in',
+        width: '0.7in', height: '2.5in',
         border: '0.5px dashed #CCC',
         backgroundColor: 'white',
         boxSizing: 'border-box',
@@ -32,11 +32,11 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
 
   const qrUrl = `${origin}/tree/${tree.tree_code}`
   const logoSrc = logoUrl ?? '/logo.png'
-  const nameFontSize = tree.name.length > 14 ? '5.5px' : tree.name.length > 10 ? '7px' : '8.5px'
+  const nameFontSize = tree.name.length > 14 ? '7px' : tree.name.length > 10 ? '9px' : '11px'
 
   return (
     <div style={{
-      width: '0.7in', height: '2in',
+      width: '0.7in', height: '2.5in',
       border: '0.5px dashed #999',
       backgroundColor: 'white',
       boxSizing: 'border-box',
@@ -44,34 +44,34 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '5px 3px 5px',
+      padding: '7px 3px 7px',
       overflow: 'hidden',
     }}>
 
       {/* Top: logo + ornament */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '100%' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={logoSrc}
           alt="Bonsai Florida"
           onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg' }}
-          style={{ width: '80%', height: '20px', objectFit: 'contain', display: 'block' }}
+          style={{ width: '85%', height: '28px', objectFit: 'contain', display: 'block' }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px', width: '85%' }}>
           <div style={{ flex: 1, height: '0.5px', backgroundColor: P }} />
-          <span style={{ color: P, fontSize: '7px', lineHeight: 1 }}>✿</span>
+          <span style={{ color: P, fontSize: '8px', lineHeight: 1 }}>✿</span>
           <div style={{ flex: 1, height: '0.5px', backgroundColor: P }} />
         </div>
       </div>
 
       {/* Middle: QR code */}
-      <QRCodeSVG value={qrUrl} size={58} level="M" bgColor="transparent" fgColor={G} />
+      <QRCodeSVG value={qrUrl} size={68} level="M" bgColor="transparent" fgColor={G} />
 
       {/* Bottom: tree info */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px', width: '85%' }}>
           <div style={{ flex: 1, height: '0.5px', backgroundColor: P }} />
-          <span style={{ color: P, fontSize: '7px', lineHeight: 1 }}>✿</span>
+          <span style={{ color: P, fontSize: '8px', lineHeight: 1 }}>✿</span>
           <div style={{ flex: 1, height: '0.5px', backgroundColor: P }} />
         </div>
 
@@ -93,7 +93,7 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
 
         <p style={{
           fontFamily: '"Courier New",Courier,monospace',
-          fontSize: '6px',
+          fontSize: '8px',
           fontWeight: 'bold',
           color: `${G}90`,
           letterSpacing: '0.08em',
@@ -104,7 +104,7 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
 
         <p style={{
           fontFamily: 'system-ui,sans-serif',
-          fontSize: '4.5px',
+          fontSize: '6px',
           color: `${G}55`,
           letterSpacing: '0.15em',
           margin: 0,
@@ -128,7 +128,7 @@ const PRINT_STYLES = `
     .tag-page {
       display: grid !important;
       grid-template-columns: repeat(10, 0.7in) !important;
-      grid-template-rows: repeat(5, 2in) !important;
+      grid-template-rows: repeat(4, 2.5in) !important;
       gap: 0 !important;
       width: 7in !important;
       margin: 0 !important;
@@ -146,7 +146,7 @@ const PRINT_STYLES = `
     .tag-page {
       display: grid;
       grid-template-columns: repeat(10, 0.7in);
-      grid-template-rows: repeat(5, 2in);
+      grid-template-rows: repeat(4, 2.5in);
       gap: 0;
       margin: 0 auto 40px;
       background: white;
@@ -191,7 +191,7 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
         <div>
           <p style={{ fontFamily: 'Georgia,serif', fontSize: '18px', fontWeight: 'bold', margin: 0, lineHeight: 1 }}>QR Tags</p>
           <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '3px 0 0' }}>
-            {trees.length} tag{trees.length !== 1 ? 's' : ''} · {totalSheets} sheet{totalSheets !== 1 ? 's' : ''} · 0.7″ × 2″ · 50 per sheet
+            {trees.length} tag{trees.length !== 1 ? 's' : ''} · {totalSheets} sheet{totalSheets !== 1 ? 's' : ''} · 0.7″ × 2.5″ · 40 per sheet
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -213,7 +213,7 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
       {/* Instruction banner */}
       <div className="no-print" style={{ background: '#F5F3EE', borderBottom: `1px solid ${G}18`, padding: '10px 20px', textAlign: 'center' }}>
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#666', margin: 0 }}>
-          Each tag is <strong>0.7″ × 2″</strong> — print, cut along the dashed lines, and stick onto your tree tags
+          Each tag is <strong>0.7″ × 2.5″</strong> — print, cut along the dashed lines, and stick onto your tree tags
         </p>
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#C0426A', margin: '4px 0 0', fontWeight: '600' }}>
           ⚠️ In the print dialog: uncheck <strong>"Headers and footers"</strong> to remove the URL and date from the page
