@@ -360,6 +360,154 @@ function UploadForm({ t, onSaved }: { t: ReturnType<typeof useMessages>['admin']
   )
 }
 
+// ─── Bulk Edit Modal ─────────────────────────────────────────────────────────
+
+function BulkEditModal({ trees, onClose, onSaved }: {
+  trees: DbTree[]
+  onClose: () => void
+  onSaved: (ids: string[], updates: Partial<DbTree>) => void
+}) {
+  const [applyStatus, setApplyStatus] = useState(false)
+  const [applyPrice, setApplyPrice]   = useState(false)
+  const [applyLevel, setApplyLevel]   = useState(false)
+  const [status, setStatus] = useState('active')
+  const [price, setPrice]   = useState('')
+  const [level, setLevel]   = useState('Beginner Friendly')
+  const [saving, setSaving] = useState(false)
+  const [done, setDone]     = useState(0)
+  const [error, setError]   = useState('')
+
+  const hasAny = applyStatus || applyPrice || applyLevel
+
+  async function handleSave() {
+    const updates: Partial<DbTree> = {}
+    if (applyStatus) updates.status = status
+    if (applyPrice && price.trim()) updates.price = price.trim()
+    if (applyLevel) updates.level = level
+    if (!Object.keys(updates).length) { onClose(); return }
+
+    setSaving(true); setDone(0); setError('')
+    let count = 0
+    const results = await Promise.allSettled(
+      trees.map(async (tree) => {
+        const res = await fetch(`/api/admin/trees/${tree.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        })
+        if (!res.ok) throw new Error(`Failed for ${tree.name}`)
+        setDone(++count)
+      })
+    )
+    setSaving(false)
+    const failed = results.filter(r => r.status === 'rejected').length
+    if (failed > 0) { setError(`${failed} tree${failed > 1 ? 's' : ''} failed to save.`); return }
+    onSaved(trees.map(t => t.id), updates)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-cream-light rounded-3xl shadow-card-lg overflow-hidden">
+        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
+        <div className="p-6 space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-sans text-xs text-ink-light uppercase tracking-widest mb-0.5">Bulk Edit</p>
+              <h2 className="font-serif text-xl text-forest">{trees.length} tree{trees.length !== 1 ? 's' : ''} selected</h2>
+            </div>
+            <button type="button" onClick={onClose} className="text-ink-light hover:text-ink text-xl">✕</button>
+          </div>
+
+          <p className="font-sans text-xs text-ink-light">Check a field to apply it to all selected trees.</p>
+
+          {/* Status */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <div
+              onClick={() => setApplyStatus(v => !v)}
+              className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${applyStatus ? 'bg-forest border-forest' : 'border-forest/30 bg-white'}`}
+            >
+              {applyStatus && <span className="text-white text-xs">✓</span>}
+            </div>
+            <div className="flex-1">
+              <span className="block font-sans text-sm font-semibold text-forest mb-1.5">Status</span>
+              <select
+                value={status} onChange={e => setStatus(e.target.value)}
+                disabled={!applyStatus}
+                className={inputCls + (applyStatus ? '' : ' opacity-40 pointer-events-none')}
+              >
+                <option value="active">Active — available for sale</option>
+                <option value="reserved">Reserved</option>
+                <option value="in_training">In Training</option>
+                <option value="in_work">In Work</option>
+              </select>
+            </div>
+          </label>
+
+          {/* Price */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <div
+              onClick={() => setApplyPrice(v => !v)}
+              className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${applyPrice ? 'bg-forest border-forest' : 'border-forest/30 bg-white'}`}
+            >
+              {applyPrice && <span className="text-white text-xs">✓</span>}
+            </div>
+            <div className="flex-1">
+              <span className="block font-sans text-sm font-semibold text-forest mb-1.5">Price</span>
+              <input
+                type="text" placeholder="e.g. 150 or $150"
+                value={price} onChange={e => setPrice(e.target.value)}
+                disabled={!applyPrice}
+                className={inputCls + (applyPrice ? '' : ' opacity-40 pointer-events-none')}
+              />
+            </div>
+          </label>
+
+          {/* Level */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <div
+              onClick={() => setApplyLevel(v => !v)}
+              className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${applyLevel ? 'bg-forest border-forest' : 'border-forest/30 bg-white'}`}
+            >
+              {applyLevel && <span className="text-white text-xs">✓</span>}
+            </div>
+            <div className="flex-1">
+              <span className="block font-sans text-sm font-semibold text-forest mb-1.5">Level</span>
+              <select
+                value={level} onChange={e => setLevel(e.target.value)}
+                disabled={!applyLevel}
+                className={inputCls + (applyLevel ? '' : ' opacity-40 pointer-events-none')}
+              >
+                <option value="Beginner Friendly">Beginner Friendly</option>
+                <option value="Intermediate">Intermediate</option>
+              </select>
+            </div>
+          </label>
+
+          {saving && (
+            <p className="font-sans text-sm text-forest text-center animate-pulse">
+              Saving… {done}/{trees.length}
+            </p>
+          )}
+          {error && <p className="font-sans text-sm text-bonsai-pink text-center">{error}</p>}
+
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1 justify-center py-3">Cancel</button>
+            <button
+              type="button" onClick={handleSave}
+              disabled={saving || !hasAny}
+              className="btn-primary flex-1 justify-center py-3 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : `Save ${trees.length} tree${trees.length !== 1 ? 's' : ''}`}
+            </button>
+          </div>
+        </div>
+        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-bonsai-pink to-transparent" />
+      </div>
+    </div>
+  )
+}
+
 // ─── Tree List ────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
@@ -796,13 +944,14 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
 
 // ─── Tree List ────────────────────────────────────────────────────────────────
 
-export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint }: {
+export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPrint, onBulkEdit }: {
   trees: DbTree[]
   t: ReturnType<typeof useMessages>['admin']
   onDelete: (tree: DbTree) => void
   onBulkDelete: (ids: string[], trees: DbTree[]) => void
   onEdit: (tree: DbTree) => void
   onBulkQrPrint: (trees: DbTree[]) => void
+  onBulkEdit: (trees: DbTree[]) => void
 }) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
@@ -845,6 +994,11 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
   function handleBulkQrPrint() {
     const selectedTrees = sorted.filter(t => selected.has(t.id))
     onBulkQrPrint(selectedTrees)
+  }
+
+  function handleBulkEdit() {
+    const selectedTrees = sorted.filter(t => selected.has(t.id))
+    onBulkEdit(selectedTrees)
   }
 
   if (trees.length === 0) {
@@ -898,6 +1052,13 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
             className="font-sans text-xs font-bold border border-white/40 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
             Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={handleBulkEdit}
+            className="font-sans text-xs font-bold border border-white/40 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            ✏️ Edit
           </button>
           <button
             type="button"
@@ -1319,19 +1480,25 @@ export function SoldTreeList({ trees, t }: {
   )
 }
 
-type StaffTask = 'lookup' | 'care' | 'add'
+type StaffTask = 'lookup' | 'care' | 'add' | 'manage'
 
 function StaffDashboard({
   trees,
   loadingTrees,
   t,
   onSaved,
+  onUpdated,
+  onBulkUpdated,
+  onDeleted,
   onLogout,
 }: {
   trees: DbTree[]
   loadingTrees: boolean
   t: ReturnType<typeof useMessages>['admin']
   onSaved: (tree: DbTree) => void
+  onUpdated: (id: string, updates: Partial<DbTree>) => void
+  onBulkUpdated: (ids: string[], updates: Partial<DbTree>) => void
+  onDeleted: (ids: string[]) => void
   onLogout: () => void
 }) {
   const [task, setTask] = useState<StaffTask>('lookup')
@@ -1340,6 +1507,11 @@ function StaffDashboard({
   const [species, setSpecies] = useState<DbSpecies[]>([])
   const [copied, setCopied] = useState('')
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+
+  // Manage tab modals
+  const [editingTree, setEditingTree] = useState<DbTree | null>(null)
+  const [deletingTree, setDeletingTree] = useState<DbTree | null>(null)
+  const [bulkEditTrees, setBulkEditTrees] = useState<DbTree[]>([])
 
   useEffect(() => {
     fetch('/api/admin/species')
@@ -1404,9 +1576,10 @@ function StaffDashboard({
   }
 
   const taskButtons: { key: StaffTask; label: string; helper: string }[] = [
-    { key: 'lookup', label: 'Look Up Tree', helper: 'Find code, price, location' },
-    { key: 'care', label: 'Share Care Guide', helper: 'Send a guide link' },
-    { key: 'add', label: 'Add Tree', helper: 'Photo, price, care' },
+    { key: 'lookup',  label: 'Look Up Tree',     helper: 'Find code, price, location' },
+    { key: 'care',    label: 'Share Care Guide',  helper: 'Send a guide link' },
+    { key: 'add',     label: 'Add Tree',          helper: 'Photo, price, care' },
+    { key: 'manage',  label: 'All Trees',         helper: 'Select, sort, bulk edit' },
   ]
 
   return (
@@ -1427,13 +1600,13 @@ function StaffDashboard({
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-5">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {taskButtons.map(item => (
             <button
               key={item.key}
               type="button"
               onClick={() => setTask(item.key)}
-              className={`min-h-[76px] rounded-2xl border px-2 py-3 text-center transition-colors ${
+              className={`min-h-[72px] rounded-2xl border px-3 py-3 text-center transition-colors ${
                 task === item.key
                   ? 'border-forest bg-forest text-white'
                   : 'border-forest/15 bg-white text-forest'
@@ -1556,6 +1729,75 @@ function StaffDashboard({
             <UploadForm t={t} onSaved={onSaved} />
           </section>
         )}
+
+        {task === 'manage' && (
+          <section className="mt-5">
+            {loadingTrees ? (
+              <p className="font-sans text-sm text-ink-light text-center py-10">Loading trees…</p>
+            ) : (
+              <TreeList
+                trees={activeTrees}
+                t={t}
+                onEdit={setEditingTree}
+                onDelete={setDeletingTree}
+                onBulkDelete={(ids) => {
+                  Promise.allSettled(
+                    ids.map(id => fetch(`/api/admin/trees/${id}`, {
+                      method: 'DELETE',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({}),
+                    }))
+                  ).then(() => onDeleted(ids))
+                }}
+                onBulkQrPrint={(selectedTrees) => {
+                  const ids = selectedTrees.map(tree => tree.id).join(',')
+                  window.location.href = `/admin/qr-tags?ids=${ids}`
+                }}
+                onBulkEdit={setBulkEditTrees}
+              />
+            )}
+          </section>
+        )}
+
+        {/* Single-tree edit modal */}
+        {editingTree && (
+          <EditTreeModal
+            tree={editingTree}
+            onClose={() => setEditingTree(null)}
+            onSaved={(id, updates) => { onUpdated(id, updates); setEditingTree(null) }}
+          />
+        )}
+
+        {/* Single-tree mark sold modal */}
+        {deletingTree && (
+          <MarkSoldModal
+            tree={deletingTree}
+            t={t}
+            onClose={() => setDeletingTree(null)}
+            onSold={async (tree, soldImageUrl, soldNote, buyer) => {
+              const res = await fetch(`/api/admin/trees/${tree.id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sold_image_url: soldImageUrl,
+                  sold_note: soldNote,
+                  ...buyer,
+                }),
+              })
+              if (!res.ok) throw new Error('Save failed.')
+              onDeleted([tree.id])
+            }}
+          />
+        )}
+
+        {/* Bulk edit modal */}
+        {bulkEditTrees.length > 0 && (
+          <BulkEditModal
+            trees={bulkEditTrees}
+            onClose={() => setBulkEditTrees([])}
+            onSaved={(ids, updates) => { onBulkUpdated(ids, updates); setBulkEditTrees([]) }}
+          />
+        )}
       </main>
     </div>
   )
@@ -1598,6 +1840,9 @@ export default function AdminClient({ initialAuth }: { initialAuth: boolean }) {
       loadingTrees={loadingTrees}
       t={t}
       onSaved={tree => setTrees(p => [tree, ...p])}
+      onUpdated={(id, updates) => setTrees(p => p.map(tr => tr.id === id ? { ...tr, ...updates } : tr))}
+      onBulkUpdated={(ids, updates) => setTrees(p => p.map(tr => ids.includes(tr.id) ? { ...tr, ...updates } : tr))}
+      onDeleted={ids => setTrees(p => p.filter(tr => !ids.includes(tr.id)))}
       onLogout={handleLogout}
     />
   )
