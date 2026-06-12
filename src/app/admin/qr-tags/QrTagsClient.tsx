@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
 
-const TAGS_PER_PAGE = 40  // 10 cols × 4 rows on letter
+const TAGS_PER_PAGE = 48  // 12 cols × 4 rows on letter
 
 interface TagTree {
   id: string
@@ -17,12 +17,12 @@ interface TagTree {
 const G = '#2A4538'
 const P = '#C0426A'
 
-// ─── Single tag: 0.7in × 2.5in portrait ─────────────────────────────────────
+// ─── Single tag: 0.7in × 2.75in portrait ────────────────────────────────────
 function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string | null; origin: string }) {
   if (!tree || !tree.tree_code) {
     return (
       <div style={{
-        width: '0.7in', height: '2.5in',
+        width: '0.7in', height: '2.75in',
         border: '0.5px dashed #CCC',
         backgroundColor: 'white',
         boxSizing: 'border-box',
@@ -36,7 +36,7 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
 
   return (
     <div style={{
-      width: '0.7in', height: '2.5in',
+      width: '0.7in', height: '2.75in',
       border: '0.5px dashed #999',
       backgroundColor: 'white',
       boxSizing: 'border-box',
@@ -121,16 +121,16 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
 // ─── Print CSS ────────────────────────────────────────────────────────────────
 const PRINT_STYLES = `
   @media print {
-    @page { size: letter portrait; margin: 0.5in; }
+    @page { size: letter portrait; margin: 0 0.05in; }
     body, body * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .no-print { display: none !important; }
     .preview-bg { background: white !important; padding: 0 !important; margin: 0 !important; }
     .tag-page {
       display: grid !important;
-      grid-template-columns: repeat(10, 0.7in) !important;
-      grid-template-rows: repeat(4, 2.5in) !important;
+      grid-template-columns: repeat(12, 0.7in) !important;
+      grid-template-rows: repeat(4, 2.75in) !important;
       gap: 0 !important;
-      width: 7in !important;
+      width: 8.4in !important;
       margin: 0 !important;
       padding: 0 !important;
       box-shadow: none !important;
@@ -145,8 +145,8 @@ const PRINT_STYLES = `
   @media screen {
     .tag-page {
       display: grid;
-      grid-template-columns: repeat(10, 0.7in);
-      grid-template-rows: repeat(4, 2.5in);
+      grid-template-columns: repeat(12, 0.7in);
+      grid-template-rows: repeat(4, 2.75in);
       gap: 0;
       margin: 0 auto 40px;
       background: white;
@@ -191,7 +191,7 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
         <div>
           <p style={{ fontFamily: 'Georgia,serif', fontSize: '18px', fontWeight: 'bold', margin: 0, lineHeight: 1 }}>QR Tags</p>
           <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '3px 0 0' }}>
-            {trees.length} tag{trees.length !== 1 ? 's' : ''} · {totalSheets} sheet{totalSheets !== 1 ? 's' : ''} · 0.7″ × 2.5″ · 40 per sheet
+            {trees.length} tag{trees.length !== 1 ? 's' : ''} · {totalSheets} sheet{totalSheets !== 1 ? 's' : ''} · 0.7″ × 2.75″ · 48 per sheet
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -213,7 +213,7 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
       {/* Instruction banner */}
       <div className="no-print" style={{ background: '#F5F3EE', borderBottom: `1px solid ${G}18`, padding: '10px 20px', textAlign: 'center' }}>
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#666', margin: 0 }}>
-          Each tag is <strong>0.7″ × 2.5″</strong> — print, cut along the dashed lines, and stick onto your tree tags
+          Each tag is <strong>0.7″ × 2.75″</strong> — print, cut along the dashed lines, and stick onto your tree tags
         </p>
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#C0426A', margin: '4px 0 0', fontWeight: '600' }}>
           ⚠️ In the print dialog: uncheck <strong>&ldquo;Headers and footers&rdquo;</strong> to remove the URL and date from the page
