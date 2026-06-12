@@ -960,11 +960,57 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
   const [filterSearch, setFilterSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterLevel, setFilterLevel]   = useState('all')
+  const [filterType, setFilterType]     = useState('all')
+  const [filterDate, setFilterDate]     = useState('all')
+
+  // Build unique tree types from name + species keywords
+  const treeTypes: string[] = (() => {
+    const counts = new Map<string, number>()
+    trees.forEach(t => {
+      // genus from species (e.g. "Ficus" from "Ficus microcarpa")
+      if (t.species) {
+        const genus = t.species.trim().split(' ')[0]
+        if (genus && genus.length > 2) counts.set(genus, (counts.get(genus) ?? 0) + 1)
+      }
+      // significant words from name (2+ chars, title-cased)
+      t.name.split(/\s+/).forEach(word => {
+        const w = word.replace(/[^a-zA-Z]/g, '')
+        if (w.length > 2 && /^[A-Z]/.test(w)) {
+          counts.set(w, (counts.get(w) ?? 0) + 1)
+        }
+      })
+    })
+    // only show words that appear in 2+ trees, sorted
+    return [...counts.entries()]
+      .filter(([, n]) => n >= 2)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([w]) => w)
+  })()
+
+  function dateRangeStart(range: string): Date | null {
+    const now = new Date()
+    if (range === 'today')    { const d = new Date(now); d.setHours(0,0,0,0); return d }
+    if (range === 'week')     { const d = new Date(now); d.setDate(d.getDate() - 7); d.setHours(0,0,0,0); return d }
+    if (range === 'month')    { const d = new Date(now); d.setMonth(d.getMonth() - 1); d.setHours(0,0,0,0); return d }
+    if (range === '3months')  { const d = new Date(now); d.setMonth(d.getMonth() - 3); d.setHours(0,0,0,0); return d }
+    if (range === 'year')     { const d = new Date(now); d.setFullYear(d.getFullYear() - 1); d.setHours(0,0,0,0); return d }
+    return null
+  }
 
   const sorted = sortTrees(trees, sortKey, sortDir)
   const filtered = sorted.filter(tree => {
     if (filterStatus !== 'all' && (tree.status ?? 'active') !== filterStatus) return false
     if (filterLevel  !== 'all' && tree.level !== filterLevel) return false
+    if (filterType !== 'all') {
+      const q = filterType.toLowerCase()
+      const inName    = tree.name.toLowerCase().includes(q)
+      const inSpecies = (tree.species ?? '').toLowerCase().includes(q)
+      if (!inName && !inSpecies) return false
+    }
+    if (filterDate !== 'all') {
+      const start = dateRangeStart(filterDate)
+      if (start && new Date(tree.created_at) < start) return false
+    }
     if (filterSearch) {
       const q = filterSearch.toLowerCase()
       return (
@@ -1036,56 +1082,108 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-3">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light/50 text-sm pointer-events-none">🔍</span>
-        <input
-          type="search"
-          placeholder="Search name, code, species…"
-          value={filterSearch}
-          onChange={e => setFilterSearch(e.target.value)}
-          className="w-full pl-8 pr-4 py-2.5 rounded-2xl border border-forest/20 bg-white font-sans text-sm text-ink placeholder-ink-light/40 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
-        />
-      </div>
+      {/* ── Filters ─────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-forest/10 bg-white px-4 py-4 mb-4 space-y-3">
 
-      {/* Filter: Status */}
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        {[
-          { value: 'all',         label: 'All Status' },
-          { value: 'active',      label: 'Active' },
-          { value: 'reserved',    label: 'Reserved' },
-          { value: 'in_training', label: 'In Training' },
-          { value: 'in_work',     label: 'In Work' },
-        ].map(({ value, label }) => (
-          <button key={value} type="button" onClick={() => setFilterStatus(value)}
-            className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              filterStatus === value ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'
-            }`}>
-            {label}
-          </button>
-        ))}
-      </div>
+        {/* Search */}
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light/40 text-sm pointer-events-none">🔍</span>
+          <input
+            type="search"
+            placeholder="Search name, code, species…"
+            value={filterSearch}
+            onChange={e => setFilterSearch(e.target.value)}
+            className="w-full pl-8 pr-4 py-2 rounded-xl border border-forest/20 bg-sage-pale/40 font-sans text-sm text-ink placeholder-ink-light/40 focus:outline-none focus:ring-2 focus:ring-forest/20 transition"
+          />
+        </div>
 
-      {/* Filter: Level */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {[
-          { value: 'all',               label: 'All Levels' },
-          { value: 'Beginner Friendly', label: 'Beginner' },
-          { value: 'Intermediate',      label: 'Intermediate' },
-        ].map(({ value, label }) => (
-          <button key={value} type="button" onClick={() => setFilterLevel(value)}
-            className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${
-              filterLevel === value ? 'bg-bonsai-pink text-white border-bonsai-pink' : 'text-ink-light border-forest/20 hover:bg-sage-pale'
-            }`}>
-            {label}
-          </button>
-        ))}
-        {(filterSearch || filterStatus !== 'all' || filterLevel !== 'all') && (
-          <button type="button"
-            onClick={() => { setFilterSearch(''); setFilterStatus('all'); setFilterLevel('all') }}
-            className="font-sans text-xs px-3 py-1.5 rounded-full border border-bonsai-pink/30 text-bonsai-pink hover:bg-bonsai-pink-pale transition-colors">
-            Clear filters
-          </button>
+        {/* Tree type dropdown */}
+        {treeTypes.length > 0 && (
+          <div>
+            <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">Tree Type</p>
+            <div className="flex flex-wrap gap-1.5">
+              <button type="button" onClick={() => setFilterType('all')}
+                className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterType === 'all' ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
+                All Types
+              </button>
+              {treeTypes.map(type => (
+                <button key={type} type="button" onClick={() => setFilterType(type === filterType ? 'all' : type)}
+                  className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterType === type ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Date added */}
+        <div>
+          <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">Date Added</p>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { value: 'all',     label: 'All Time' },
+              { value: 'today',   label: 'Today' },
+              { value: 'week',    label: 'Last 7 days' },
+              { value: 'month',   label: 'Last 30 days' },
+              { value: '3months', label: 'Last 3 months' },
+              { value: 'year',    label: 'This year' },
+            ].map(({ value, label }) => (
+              <button key={value} type="button" onClick={() => setFilterDate(value)}
+                className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterDate === value ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Status */}
+        <div>
+          <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">Status</p>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { value: 'all',         label: 'All' },
+              { value: 'active',      label: 'Active' },
+              { value: 'reserved',    label: 'Reserved' },
+              { value: 'in_training', label: 'In Training' },
+              { value: 'in_work',     label: 'In Work' },
+            ].map(({ value, label }) => (
+              <button key={value} type="button" onClick={() => setFilterStatus(value)}
+                className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterStatus === value ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Level */}
+        <div>
+          <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1.5">Level</p>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { value: 'all',               label: 'All' },
+              { value: 'Beginner Friendly', label: 'Beginner' },
+              { value: 'Intermediate',      label: 'Intermediate' },
+            ].map(({ value, label }) => (
+              <button key={value} type="button" onClick={() => setFilterLevel(value)}
+                className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${filterLevel === value ? 'bg-bonsai-pink text-white border-bonsai-pink' : 'text-ink-light border-forest/20 hover:bg-sage-pale'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Active filter summary + clear */}
+        {(filterSearch || filterStatus !== 'all' || filterLevel !== 'all' || filterType !== 'all' || filterDate !== 'all') && (
+          <div className="flex items-center justify-between pt-1 border-t border-forest/5">
+            <span className="font-sans text-xs text-ink-light">
+              Showing <strong>{filtered.length}</strong> of {trees.length} trees
+            </span>
+            <button type="button"
+              onClick={() => { setFilterSearch(''); setFilterStatus('all'); setFilterLevel('all'); setFilterType('all'); setFilterDate('all') }}
+              className="font-sans text-xs font-bold text-bonsai-pink hover:underline">
+              Clear all filters
+            </button>
+          </div>
         )}
       </div>
 
