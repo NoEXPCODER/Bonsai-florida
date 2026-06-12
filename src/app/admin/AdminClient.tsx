@@ -829,19 +829,32 @@ export function EditTreeModal({ tree, onClose, onSaved }: {
 
 function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
   const [copied, setCopied] = useState<'link' | 'text' | null>(null)
   const [autoposting, setAutoposting] = useState(false)
   const [autopostStatus, setAutopostStatus] = useState<'idle' | 'ok' | 'fail'>('idle')
-  const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const dropRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
     function onOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (
+        dropRef.current && !dropRef.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)
+      ) setOpen(false)
     }
     document.addEventListener('mousedown', onOutside)
     return () => document.removeEventListener('mousedown', onOutside)
   }, [open])
+
+  function handleToggle() {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right })
+    }
+    setOpen(p => !p)
+  }
 
   const treeUrl = `${baseUrl}/tree/${tree.tree_code}`
   const levelBlurb = tree.level === 'Beginner Friendly'
@@ -894,10 +907,11 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
   if (!tree.tree_code) return null
 
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen(p => !p)}
+        onClick={handleToggle}
         className={`font-sans text-xs font-bold px-3 py-2 rounded-xl border transition-colors ${
           open ? 'bg-forest text-white border-forest' : 'bg-sage-pale border-forest/20 text-forest hover:bg-sage hover:text-white'
         }`}
@@ -905,8 +919,12 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
         📤 Share
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-72 bg-white rounded-2xl border border-forest/10 shadow-card-lg z-30 overflow-hidden">
+      {open && pos && (
+        <div
+          ref={dropRef}
+          style={{ position: 'fixed', top: pos.top, right: pos.right, zIndex: 9999 }}
+          className="w-72 bg-white rounded-2xl border border-forest/10 shadow-card-lg overflow-hidden"
+        >
           <div className="px-4 pt-3 pb-1">
             <p className="font-sans text-[10px] font-bold text-forest tracking-widest uppercase">Share / Autopost</p>
           </div>
@@ -948,7 +966,7 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
