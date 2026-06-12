@@ -321,20 +321,33 @@ function LinkIcon({ className }: { className?: string }) {
 
 function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | null }) {
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
   const [copied, setCopied] = useState<'link' | 'text' | null>(null)
   const [pageUrl, setPageUrl] = useState('')
-  const panelRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const dropRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setPageUrl(window.location.href) }, [])
 
   useEffect(() => {
     if (!open) return
     function onOutsideClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false)
+      if (
+        dropRef.current && !dropRef.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)
+      ) setOpen(false)
     }
     document.addEventListener('mousedown', onOutsideClick)
     return () => document.removeEventListener('mousedown', onOutsideClick)
   }, [open])
+
+  function handleToggle() {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right })
+    }
+    setOpen(p => !p)
+  }
 
   const treeUrl = pageUrl || `https://bonsaiflorida.com/tree/${tree.tree_code}`
   const origin = pageUrl ? new URL(pageUrl).origin : 'https://bonsaiflorida.com'
@@ -375,12 +388,11 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
     } catch { /* silently fail */ }
   }
 
-  const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(treeUrl)}`
-
   return (
-    <div ref={panelRef} className="relative">
+    <>
       <button
-        onClick={() => setOpen(p => !p)}
+        ref={btnRef}
+        onClick={handleToggle}
         aria-label="Share this tree"
         className={`flex items-center gap-2 border px-4 py-3.5 rounded-2xl font-sans text-base font-semibold transition-colors ${
           open ? 'bg-forest text-white border-forest' : 'border-forest/20 text-forest hover:bg-sage-pale'
@@ -390,56 +402,108 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
         Share
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl border border-forest/10 shadow-card-lg z-20 overflow-hidden">
+      {open && pos && (
+        <div
+          ref={dropRef}
+          style={{ position: 'fixed', top: pos.top, right: pos.right, zIndex: 9999 }}
+          className="w-72 bg-white rounded-2xl border border-forest/10 shadow-card-lg overflow-hidden"
+        >
           <div className="px-4 pt-3.5 pb-1">
             <p className="font-sans text-[10px] font-bold text-forest tracking-widest uppercase">Share this tree</p>
           </div>
 
-          {/* Facebook */}
-          <a
-            href={fbShareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 hover:bg-sage-pale transition-colors border-t border-forest/5"
-            onClick={() => setOpen(false)}
-          >
-            <FacebookIcon className="w-5 h-5 text-[#1877F2] flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="font-sans text-sm font-semibold text-forest">Share on Facebook</p>
-              <p className="font-sans text-xs text-ink-light">Opens share dialog</p>
-            </div>
-            <span className="text-ink-light text-sm flex-shrink-0">↗</span>
-          </a>
-
-          {/* Post text preview */}
-          <div className="px-4 pt-3 pb-2 border-t border-forest/5">
-            <p className="font-sans text-[10px] font-bold text-forest tracking-widest uppercase mb-2">Post text</p>
-            <div className="bg-sage-pale/60 rounded-xl px-3 py-2.5 max-h-36 overflow-y-auto">
+          {/* Caption preview */}
+          <div className="px-4 pt-2 pb-2 border-t border-forest/5">
+            <div className="bg-sage-pale/60 rounded-xl px-3 py-2.5 max-h-32 overflow-y-auto mb-2">
               <div className="font-sans text-xs text-ink leading-relaxed whitespace-pre-wrap break-words">{postText}</div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => copy(postText, 'text')}
+                className="flex-1 flex items-center justify-center gap-1.5 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
+              >
+                <CopyIcon className="w-3.5 h-3.5" />
+                {copied === 'text' ? 'Copied!' : 'Copy text'}
+              </button>
+              <button
+                onClick={() => copy(treeUrl, 'link')}
+                className="flex-1 flex items-center justify-center gap-1.5 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
+              >
+                <LinkIcon className="w-3.5 h-3.5" />
+                {copied === 'link' ? 'Copied!' : 'Copy link'}
+              </button>
             </div>
           </div>
 
-          {/* Copy buttons */}
-          <div className="flex gap-2 px-4 pb-3.5">
-            <button
-              onClick={() => copy(postText, 'text')}
-              className="flex-1 flex items-center justify-center gap-1.5 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
+          {/* Platform share buttons */}
+          <div className="px-4 pb-4 pt-2 border-t border-forest/5 space-y-2">
+            <p className="font-sans text-[10px] font-bold text-forest/40 uppercase tracking-widest">Open in app</p>
+
+            {/* WhatsApp — full caption pre-fill */}
+            <a
+              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(postText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 hover:bg-[#25D366]/20 transition-colors"
             >
-              <CopyIcon className="w-3.5 h-3.5" />
-              {copied === 'text' ? 'Copied!' : 'Copy text'}
-            </button>
+              <span className="text-base leading-none">💬</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-[#128C7E]">WhatsApp</span>
+                <span className="block font-sans text-[10px] text-[#128C7E]/60">Caption pre-filled</span>
+              </div>
+            </a>
+
+            {/* Facebook — copies caption, opens sharer */}
             <button
-              onClick={() => copy(treeUrl, 'link')}
-              className="flex-1 flex items-center justify-center gap-1.5 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
+              onClick={async () => {
+                await navigator.clipboard.writeText(postText).catch(() => {})
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(treeUrl)}`, '_blank')
+                setOpen(false)
+              }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#1877F2]/10 border border-[#1877F2]/30 hover:bg-[#1877F2]/20 transition-colors"
             >
-              <LinkIcon className="w-3.5 h-3.5" />
-              {copied === 'link' ? 'Copied!' : 'Copy link'}
+              <span className="text-base leading-none">📘</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-[#1877F2]">Facebook</span>
+                <span className="block font-sans text-[10px] text-[#1877F2]/60">Caption copied — paste in post</span>
+              </div>
             </button>
+
+            {/* Instagram — copies caption, opens app */}
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(postText).catch(() => {})
+                window.open('https://www.instagram.com', '_blank')
+                setOpen(false)
+              }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#E1306C]/10 border border-[#E1306C]/30 hover:bg-[#E1306C]/20 transition-colors"
+            >
+              <span className="text-base leading-none">📸</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-[#E1306C]">Instagram</span>
+                <span className="block font-sans text-[10px] text-[#E1306C]/60">Caption copied — paste in post</span>
+              </div>
+            </button>
+
+            {/* Twitter/X — full caption pre-fill */}
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(postText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-black/5 border border-black/15 hover:bg-black/10 transition-colors"
+            >
+              <span className="text-base leading-none">𝕏</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-black">Twitter / X</span>
+                <span className="block font-sans text-[10px] text-black/40">Caption pre-filled</span>
+              </div>
+            </a>
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
