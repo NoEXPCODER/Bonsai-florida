@@ -957,10 +957,27 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [filterSearch, setFilterSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterLevel, setFilterLevel]   = useState('all')
 
   const sorted = sortTrees(trees, sortKey, sortDir)
-  const allSelected = sorted.length > 0 && selected.size === sorted.length
-  const someSelected = selected.size > 0
+  const filtered = sorted.filter(tree => {
+    if (filterStatus !== 'all' && (tree.status ?? 'active') !== filterStatus) return false
+    if (filterLevel  !== 'all' && tree.level !== filterLevel) return false
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase()
+      return (
+        tree.name.toLowerCase().includes(q) ||
+        (tree.tree_code ?? '').toLowerCase().includes(q) ||
+        (tree.species ?? '').toLowerCase().includes(q)
+      )
+    }
+    return true
+  })
+
+  const allSelected  = filtered.length > 0 && filtered.every(t => selected.has(t.id))
+  const someSelected = filtered.some(t => selected.has(t.id))
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -968,7 +985,11 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
   }
 
   function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(sorted.map(t => t.id)))
+    if (allSelected) {
+      setSelected(prev => { const next = new Set(prev); filtered.forEach(t => next.delete(t.id)); return next })
+    } else {
+      setSelected(prev => { const next = new Set(prev); filtered.forEach(t => next.add(t.id)); return next })
+    }
   }
 
   function toggleOne(id: string) {
@@ -979,27 +1000,18 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
     })
   }
 
+  const selectedInView = filtered.filter(t => selected.has(t.id))
+  const selectedCount  = selectedInView.length
+
   function handleBulkDelete() {
-    const selectedTrees = trees.filter(t => selected.has(t.id))
-    if (!window.confirm(`Mark ${selected.size} tree${selected.size > 1 ? 's' : ''} as sold?`)) return
-    onBulkDelete([...selected], selectedTrees)
+    if (!window.confirm(`Mark ${selectedCount} tree${selectedCount !== 1 ? 's' : ''} as sold?`)) return
+    onBulkDelete(selectedInView.map(t => t.id), selectedInView)
     setSelected(new Set())
   }
 
-  function handleBulkExport() {
-    const selectedTrees = sorted.filter(t => selected.has(t.id))
-    exportCSV(selectedTrees, baseUrl)
-  }
-
-  function handleBulkQrPrint() {
-    const selectedTrees = sorted.filter(t => selected.has(t.id))
-    onBulkQrPrint(selectedTrees)
-  }
-
-  function handleBulkEdit() {
-    const selectedTrees = sorted.filter(t => selected.has(t.id))
-    onBulkEdit(selectedTrees)
-  }
+  function handleBulkExport() { exportCSV(selectedInView, baseUrl) }
+  function handleBulkQrPrint() { onBulkQrPrint(selectedInView) }
+  function handleBulkEdit()    { onBulkEdit(selectedInView) }
 
   if (trees.length === 0) {
     return (
@@ -1024,6 +1036,59 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
         </button>
       </div>
 
+      {/* Search */}
+      <div className="relative mb-3">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-light/50 text-sm pointer-events-none">🔍</span>
+        <input
+          type="search"
+          placeholder="Search name, code, species…"
+          value={filterSearch}
+          onChange={e => setFilterSearch(e.target.value)}
+          className="w-full pl-8 pr-4 py-2.5 rounded-2xl border border-forest/20 bg-white font-sans text-sm text-ink placeholder-ink-light/40 focus:outline-none focus:ring-2 focus:ring-forest/30 transition"
+        />
+      </div>
+
+      {/* Filter: Status */}
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {[
+          { value: 'all',         label: 'All Status' },
+          { value: 'active',      label: 'Active' },
+          { value: 'reserved',    label: 'Reserved' },
+          { value: 'in_training', label: 'In Training' },
+          { value: 'in_work',     label: 'In Work' },
+        ].map(({ value, label }) => (
+          <button key={value} type="button" onClick={() => setFilterStatus(value)}
+            className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              filterStatus === value ? 'bg-forest text-white border-forest' : 'text-ink-light border-forest/20 hover:bg-sage-pale'
+            }`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Filter: Level */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {[
+          { value: 'all',               label: 'All Levels' },
+          { value: 'Beginner Friendly', label: 'Beginner' },
+          { value: 'Intermediate',      label: 'Intermediate' },
+        ].map(({ value, label }) => (
+          <button key={value} type="button" onClick={() => setFilterLevel(value)}
+            className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              filterLevel === value ? 'bg-bonsai-pink text-white border-bonsai-pink' : 'text-ink-light border-forest/20 hover:bg-sage-pale'
+            }`}>
+            {label}
+          </button>
+        ))}
+        {(filterSearch || filterStatus !== 'all' || filterLevel !== 'all') && (
+          <button type="button"
+            onClick={() => { setFilterSearch(''); setFilterStatus('all'); setFilterLevel('all') }}
+            className="font-sans text-xs px-3 py-1.5 rounded-full border border-bonsai-pink/30 text-bonsai-pink hover:bg-bonsai-pink-pale transition-colors">
+            Clear filters
+          </button>
+        )}
+      </div>
+
       {/* Sort bar */}
       <div className="flex flex-wrap gap-2 mb-4">
         {SORT_OPTIONS.map(({ key, label }) => (
@@ -1045,7 +1110,7 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
       {/* Bulk action bar */}
       {someSelected && (
         <div className="flex items-center gap-3 bg-forest text-white px-4 py-3 rounded-2xl mb-4">
-          <span className="font-sans text-sm font-semibold flex-1">{selected.size} selected</span>
+          <span className="font-sans text-sm font-semibold flex-1">{selectedCount} selected</span>
           <button
             type="button"
             onClick={handleBulkExport}
@@ -1096,13 +1161,20 @@ export function TreeList({ trees, t, onDelete, onBulkDelete, onEdit, onBulkQrPri
           {!allSelected && someSelected && <span className="text-forest text-xs">—</span>}
         </div>
         <span className="font-sans text-xs text-ink-light">
-          {allSelected ? 'Deselect all' : `Select all (${sorted.length})`}
+          {allSelected ? `Deselect all (${filtered.length})` : `Select all (${filtered.length})`}
+          {filtered.length !== trees.length && (
+            <span className="ml-1 text-ink-light/50">of {trees.length}</span>
+          )}
         </span>
       </label>
 
+      {filtered.length === 0 && (
+        <p className="font-sans text-sm text-ink-light text-center py-8">No trees match the current filters.</p>
+      )}
+
       {/* Tree cards */}
       <div className="space-y-3">
-        {sorted.map(tree => {
+        {filtered.map(tree => {
           const isSelected = selected.has(tree.id)
           const primaryImage = getPrimaryTreeImageUrl(tree)
           return (
