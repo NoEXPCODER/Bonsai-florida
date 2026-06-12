@@ -215,6 +215,9 @@ export default function QrTagsClient({ trees, logoUrl }: { trees: TagTree[]; log
         <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#666', margin: 0 }}>
           Each tag is <strong>0.7″ × 2″</strong> — print, cut along the dashed lines, and stick onto your tree tags
         </p>
+        <p style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#C0426A', margin: '4px 0 0', fontWeight: '600' }}>
+          ⚠️ In the print dialog: uncheck <strong>"Headers and footers"</strong> to remove the URL and date from the page
+        </p>
       </div>
 
       {/* Preview */}
