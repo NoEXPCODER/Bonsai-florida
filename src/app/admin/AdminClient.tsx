@@ -926,14 +926,15 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
           className="w-72 bg-white rounded-2xl border border-forest/10 shadow-card-lg overflow-hidden"
         >
           <div className="px-4 pt-3 pb-1">
-            <p className="font-sans text-[10px] font-bold text-forest tracking-widest uppercase">Share / Autopost</p>
+            <p className="font-sans text-[10px] font-bold text-forest tracking-widest uppercase">Share</p>
           </div>
 
+          {/* Caption preview */}
           <div className="px-4 py-2 border-t border-forest/5">
-            <div className="bg-sage-pale/60 rounded-xl px-3 py-2.5 max-h-36 overflow-y-auto mb-2">
+            <div className="bg-sage-pale/60 rounded-xl px-3 py-2.5 max-h-32 overflow-y-auto mb-2">
               <div className="font-sans text-xs text-ink leading-relaxed whitespace-pre-wrap break-words">{postText}</div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-2">
               <button
                 onClick={() => copyText(postText, 'text')}
                 className="flex-1 border border-forest/20 px-3 py-2 rounded-xl font-sans text-xs font-semibold text-forest hover:bg-sage-pale transition-colors"
@@ -949,6 +950,74 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
             </div>
           </div>
 
+          {/* Platform share buttons */}
+          <div className="px-4 pb-3 border-t border-forest/5 pt-2 space-y-2">
+            <p className="font-sans text-[10px] font-bold text-forest/40 uppercase tracking-widest">Open in app</p>
+
+            {/* WhatsApp — full caption pre-fill */}
+            <a
+              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(postText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/30 hover:bg-[#25D366]/20 transition-colors"
+            >
+              <span className="text-base leading-none">💬</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-[#128C7E]">WhatsApp</span>
+                <span className="block font-sans text-[10px] text-[#128C7E]/60">Caption pre-filled</span>
+              </div>
+            </a>
+
+            {/* Facebook — copies caption, opens sharer */}
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(postText).catch(() => {})
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(treeUrl)}`, '_blank')
+                setOpen(false)
+              }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#1877F2]/10 border border-[#1877F2]/30 hover:bg-[#1877F2]/20 transition-colors"
+            >
+              <span className="text-base leading-none">📘</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-[#1877F2]">Facebook</span>
+                <span className="block font-sans text-[10px] text-[#1877F2]/60">Caption copied — paste in post</span>
+              </div>
+            </button>
+
+            {/* Instagram — copies caption, opens app */}
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(postText).catch(() => {})
+                window.open('https://www.instagram.com', '_blank')
+                setOpen(false)
+              }}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#E1306C]/10 border border-[#E1306C]/30 hover:bg-[#E1306C]/20 transition-colors"
+            >
+              <span className="text-base leading-none">📸</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-[#E1306C]">Instagram</span>
+                <span className="block font-sans text-[10px] text-[#E1306C]/60">Caption copied — paste in post</span>
+              </div>
+            </button>
+
+            {/* Twitter/X — full caption pre-fill */}
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(postText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-black/5 border border-black/15 hover:bg-black/10 transition-colors"
+            >
+              <span className="text-base leading-none">𝕏</span>
+              <div className="flex-1 text-left">
+                <span className="font-sans text-xs font-bold text-black">Twitter / X</span>
+                <span className="block font-sans text-[10px] text-black/40">Caption pre-filled</span>
+              </div>
+            </a>
+          </div>
+
+          {/* n8n autopost */}
           <div className="px-4 pb-3.5 border-t border-forest/5 pt-2">
             <button
               onClick={handleAutopost}
