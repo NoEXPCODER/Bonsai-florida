@@ -1770,7 +1770,181 @@ export function SoldTreeList({ trees, t }: {
   )
 }
 
-type StaffTask = 'lookup' | 'care' | 'add' | 'manage'
+// ─── Schedule Panel ───────────────────────────────────────────────────────────
+
+interface ScheduleInfo {
+  todayFormat: string
+  todayFormatInfo: { emoji: string; label: string; description: string }
+  todayDay: string
+  cronTime: string
+  history: {
+    id: string
+    tree_id: string | null
+    treeName: string | null
+    format: string
+    post_text: string | null
+    posted_at: string
+    triggered_by: string
+  }[]
+  formatInfo: Record<string, { emoji: string; label: string; description: string }>
+  schedule: { day: string; format: string; emoji: string; note: string }[]
+}
+
+const FORMAT_COLORS: Record<string, string> = {
+  new_arrival:       'bg-[#d1fae5] text-[#065f46]',
+  daily_spotlight:   'bg-sage-pale text-forest',
+  weekly_collection: 'bg-[#ede9fe] text-[#5b21b6]',
+  leftover_push:     'bg-[#fef3c7] text-[#92400e]',
+}
+
+function SchedulePanel() {
+  const [info, setInfo] = useState<ScheduleInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [posting, setPosting] = useState(false)
+  const [postResult, setPostResult] = useState<'ok' | 'fail' | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/schedule')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { setInfo(data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  async function triggerNow() {
+    setPosting(true); setPostResult(null)
+    try {
+      const res = await fetch('/api/cron/autopost', {
+        headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET ?? ''}` },
+      })
+      setPostResult(res.ok ? 'ok' : 'fail')
+      if (res.ok) {
+        // Refresh history
+        const updated = await fetch('/api/admin/schedule').then(r => r.ok ? r.json() : null)
+        if (updated) setInfo(updated)
+      }
+    } catch {
+      setPostResult('fail')
+    } finally {
+      setPosting(false)
+      setTimeout(() => setPostResult(null), 5000)
+    }
+  }
+
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+  }
+
+  if (loading) {
+    return <section className="mt-5"><p className="font-sans text-sm text-ink-light text-center py-10">Loading schedule…</p></section>
+  }
+
+  return (
+    <section className="mt-5 space-y-4">
+      <div className="card p-5">
+        <p className="font-sans text-xs text-ink-light tracking-widest uppercase mb-1">Auto Posts</p>
+        <h2 className="font-serif text-2xl text-forest mb-4">Daily Schedule</h2>
+
+        {/* Weekly schedule grid */}
+        <div className="space-y-2 mb-5">
+          {info?.schedule.map(row => (
+            <div key={row.day} className="flex items-start gap-3 text-sm">
+              <span className="text-base w-6 flex-shrink-0">{row.emoji}</span>
+              <div className="flex-1">
+                <span className="font-sans font-bold text-forest text-xs">{row.day}</span>
+                <span className="font-sans text-xs text-ink-light ml-2">{row.format}</span>
+                <p className="font-sans text-[11px] text-ink-light/60">{row.note}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Today */}
+        {info && (
+          <div className="rounded-2xl bg-forest/5 border border-forest/10 px-4 py-3 mb-4">
+            <p className="font-sans text-[10px] font-bold text-forest/50 uppercase tracking-widest mb-1">Today — {info.todayDay}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{info.todayFormatInfo?.emoji}</span>
+              <div>
+                <p className="font-sans text-sm font-bold text-forest">{info.todayFormatInfo?.label}</p>
+                <p className="font-sans text-xs text-ink-light">{info.todayFormatInfo?.description}</p>
+              </div>
+            </div>
+            <p className="font-sans text-[10px] text-ink-light/50 mt-2">⏰ Sends at {info.cronTime}</p>
+          </div>
+        )}
+
+        {/* Manual trigger — only works if CRON_SECRET is public (admin use) */}
+        <button
+          type="button"
+          onClick={triggerNow}
+          disabled={posting}
+          className={`w-full py-3 rounded-2xl font-sans text-sm font-bold transition-colors disabled:opacity-60 ${
+            postResult === 'ok'   ? 'bg-sage text-white' :
+            postResult === 'fail' ? 'bg-bonsai-pink text-white' :
+            'bg-forest text-white hover:bg-forest/90'
+          }`}
+        >
+          {posting ? 'Sending…' : postResult === 'ok' ? '✓ Sent to n8n!' : postResult === 'fail' ? '✕ Failed — check n8n' : '🚀 Send Today\'s Post Now'}
+        </button>
+        <p className="font-sans text-[10px] text-ink-light/50 text-center mt-2">Requires N8N_CRON_WEBHOOK_URL to be configured</p>
+      </div>
+
+      {/* Post history */}
+      {info && info.history.length > 0 && (
+        <div className="card p-5">
+          <h3 className="font-serif text-lg text-forest mb-3">Post History</h3>
+          <div className="space-y-2">
+            {info.history.map(entry => {
+              const fi = info.formatInfo[entry.format]
+              const isOpen = expanded === entry.id
+              return (
+                <div key={entry.id} className="rounded-2xl border border-forest/8 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(isOpen ? null : entry.id)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-sage-pale/30 transition-colors"
+                  >
+                    <span className="text-base flex-shrink-0">{fi?.emoji ?? '📤'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`font-sans text-[10px] font-bold px-2 py-0.5 rounded-full ${FORMAT_COLORS[entry.format] ?? 'bg-sage-pale text-forest'}`}>
+                          {fi?.label ?? entry.format}
+                        </span>
+                        {entry.triggered_by === 'manual' && (
+                          <span className="font-sans text-[10px] text-ink-light/50">manual</span>
+                        )}
+                      </div>
+                      <p className="font-sans text-xs text-ink-light mt-0.5 truncate">
+                        {entry.treeName ?? 'Collection'} · {fmtDate(entry.posted_at)}
+                      </p>
+                    </div>
+                    <span className="text-ink-light/40 text-xs flex-shrink-0">{isOpen ? '▴' : '▾'}</span>
+                  </button>
+                  {isOpen && entry.post_text && (
+                    <div className="px-4 pb-4 border-t border-forest/5 pt-3">
+                      <div className="bg-sage-pale/60 rounded-xl px-3 py-2.5 font-sans text-xs text-ink leading-relaxed whitespace-pre-wrap break-words max-h-48 overflow-y-auto">
+                        {entry.post_text}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {info && info.history.length === 0 && (
+        <div className="card p-6 text-center">
+          <p className="font-sans text-sm text-ink-light">No posts yet. The first one goes out at noon today.</p>
+        </div>
+      )}
+    </section>
+  )
+}
+
+type StaffTask = 'lookup' | 'care' | 'add' | 'manage' | 'schedule'
 
 function StaffDashboard({
   trees,
@@ -1866,10 +2040,11 @@ function StaffDashboard({
   }
 
   const taskButtons: { key: StaffTask; label: string; helper: string }[] = [
-    { key: 'lookup',  label: 'Look Up Tree',     helper: 'Find code, price, location' },
-    { key: 'care',    label: 'Share Care Guide',  helper: 'Send a guide link' },
-    { key: 'add',     label: 'Add Tree',          helper: 'Photo, price, care' },
-    { key: 'manage',  label: 'All Trees',         helper: 'Select, sort, bulk edit' },
+    { key: 'lookup',   label: 'Look Up Tree',     helper: 'Find code, price, location' },
+    { key: 'care',     label: 'Share Care Guide',  helper: 'Send a guide link' },
+    { key: 'add',      label: 'Add Tree',          helper: 'Photo, price, care' },
+    { key: 'manage',   label: 'All Trees',         helper: 'Select, sort, bulk edit' },
+    { key: 'schedule', label: 'Auto Posts',        helper: 'Daily schedule & history' },
   ]
 
   return (
@@ -1890,7 +2065,7 @@ function StaffDashboard({
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-5">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {taskButtons.map(item => (
             <button
               key={item.key}
@@ -2048,6 +2223,8 @@ function StaffDashboard({
             )}
           </section>
         )}
+
+        {task === 'schedule' && <SchedulePanel />}
 
         {/* Single-tree edit modal */}
         {editingTree && (
