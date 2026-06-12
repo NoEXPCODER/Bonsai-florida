@@ -65,7 +65,7 @@ function Tag({ tree, logoUrl, origin }: { tree: TagTree | null; logoUrl: string 
       </div>
 
       {/* Middle: QR code */}
-      <QRCodeSVG value={qrUrl} size={68} level="M" bgColor="transparent" fgColor={G} />
+      <QRCodeSVG value={qrUrl} size={52} level="M" bgColor="transparent" fgColor={G} />
 
       {/* Bottom: tree info */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', width: '100%' }}>
