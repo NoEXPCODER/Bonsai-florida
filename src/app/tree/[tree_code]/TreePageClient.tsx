@@ -362,7 +362,7 @@ function SharePanel({ tree, species }: { tree: DbTree; species?: DbSpecies | nul
     : 'A beautiful piece for the experienced collector.'
 
   const postText = [
-    `🌿 ${tree.name} — $${tree.price}`,
+    `🌿 ${tree.name} — ${displayPrice(tree.price)}`,
     ...(tree.species ? [tree.species] : []),
     '',
     `🌱 ${tree.level}`,

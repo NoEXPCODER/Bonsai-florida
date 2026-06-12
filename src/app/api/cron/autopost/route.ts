@@ -6,6 +6,11 @@ const PHONE = '561-312-9576'
 
 type PostFormat = 'new_arrival' | 'daily_spotlight' | 'weekly_collection' | 'leftover_push'
 
+function fmt(price: string | null): string {
+  const p = (price ?? '').trim()
+  return p.startsWith('$') ? p : `$${p}`
+}
+
 // ─── Post text builders ───────────────────────────────────────────────────────
 
 function speciesTag(tree: Record<string, string | null>): string {
@@ -26,7 +31,7 @@ function buildNewArrival(tree: Record<string, string | null>): string {
   return [
     `🆕 Just added — ${tree.name}!`,
     ``,
-    `$${tree.price}${tree.species ? ` · ${tree.species}` : ''}`,
+    `${fmt(tree.price)}${tree.species ? ` · ${tree.species}` : ''}`,
     `🌱 ${tree.level}`,
     `☀️ ${tree.sun}`,
     `💧 ${tree.water}`,
@@ -47,7 +52,7 @@ function buildDailySpotlight(tree: Record<string, string | null>): string {
     ? 'A perfect starter bonsai — low-maintenance and thrives in South Florida.'
     : 'A beautiful piece for the experienced collector.'
   return [
-    `🌿 ${tree.name} — $${tree.price}`,
+    `🌿 ${tree.name} — ${fmt(tree.price)}`,
     ...(tree.species ? [tree.species] : []),
     ``,
     `🌱 ${tree.level}`,
@@ -66,7 +71,7 @@ function buildDailySpotlight(tree: Record<string, string | null>): string {
 }
 
 function buildWeeklyCollection(trees: Record<string, string | null>[]): string {
-  const lines = trees.map(t => `🌿 ${t.name} — $${t.price}`)
+  const lines = trees.map(t => `🌿 ${t.name} — ${fmt(t.price)}`)
   return [
     `🌳 This week at Bonsai Florida`,
     ``,
@@ -92,7 +97,7 @@ function buildLeftoverPush(tree: Record<string, string | null>): string {
   return [
     `⏳ Still available — ${tree.name}`,
     ``,
-    `$${tree.price}${tree.species ? ` · ${tree.species}` : ''}`,
+    `${fmt(tree.price)}${tree.species ? ` · ${tree.species}` : ''}`,
     `In our collection for ${timeLabel}.`,
     ``,
     levelBlurb,

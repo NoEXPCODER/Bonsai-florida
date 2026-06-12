@@ -864,8 +864,9 @@ function AdminShareRow({ tree, baseUrl }: { tree: DbTree; baseUrl: string }) {
     ? '#' + (tree.species as string).split(' ')[0].replace(/[^a-zA-Z]/g, '') + 'Bonsai'
     : ''
 
+  const fmtPrice = (p: string) => { const t = p.trim(); return t.startsWith('$') ? t : `$${t}` }
   const postText = [
-    `🌿 ${tree.name} — $${tree.price}`,
+    `🌿 ${tree.name} — ${fmtPrice(tree.price)}`,
     ...(tree.species ? [tree.species] : []),
     '',
     `🌱 ${tree.level}`,

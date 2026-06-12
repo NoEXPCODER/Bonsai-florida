@@ -23,7 +23,8 @@ export async function generateMetadata({
   if (!tree) return {}
 
   const title = `${tree.name} — Bonsai Florida`
-  const description = [tree.species, `$${tree.price}`, tree.level, 'Palm Beach, FL']
+  const priceDisplay = tree.price.trim().startsWith('$') ? tree.price.trim() : `$${tree.price.trim()}`
+  const description = [tree.species, priceDisplay, tree.level, 'Palm Beach, FL']
     .filter(Boolean)
     .join(' · ')
 

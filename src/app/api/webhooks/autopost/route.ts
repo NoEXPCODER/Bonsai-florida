@@ -4,6 +4,11 @@ import { makeSpeciesSlug } from '@/lib/species'
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bonsaiflorida.com'
 
+function fmt(price: string | null): string {
+  const p = (price ?? '').trim()
+  return p.startsWith('$') ? p : `$${p}`
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.N8N_WEBHOOK_SECRET
   if (!secret) return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 })
@@ -42,7 +47,7 @@ export async function POST(req: NextRequest) {
     : 'A beautiful piece for the experienced collector.'
 
   const text = [
-    `🌿 ${tree.name} — $${tree.price}`,
+    `🌿 ${tree.name} — ${fmt(tree.price)}`,
     ...(tree.species ? [tree.species] : []),
     '',
     `🌱 ${tree.level}`,
