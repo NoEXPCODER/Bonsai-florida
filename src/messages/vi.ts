@@ -89,6 +89,7 @@ export const vi: Messages = {
   nav: {
     collection: 'Bộ Sưu Tập',
     care: 'Hướng Dẫn Chăm Sóc',
+    beginnerGuide: 'Hướng Dẫn Người Mới',
     visit: 'Tham Quan',
     connect: 'Liên Hệ',
     callNow: 'Gọi Ngay',

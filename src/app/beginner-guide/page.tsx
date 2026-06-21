@@ -175,13 +175,36 @@ const mistakes = [
   },
 ]
 
+const whyFlorida = [
+  {
+    icon: '🌴',
+    title: 'Year-round growing season',
+    body: 'No frost, no dormancy forced by cold. Your bonsai grows and thrives every single month of the year.',
+  },
+  {
+    icon: '🌧️',
+    title: 'Humidity helps',
+    body: "Florida's natural humidity reduces watering stress and supports the lush, healthy leaf growth bonsai need.",
+  },
+  {
+    icon: '☀️',
+    title: 'Tropical species available',
+    body: "Florida has access to tropical bonsai species — Ficus, Buttonwood, Bougainvillea — that simply don't survive northern winters.",
+  },
+]
+
+const jumpLinks = [
+  { href: '#starter-trees', label: 'Best Starter Trees' },
+  { href: '#getting-started', label: 'Getting Started' },
+  { href: '#florida-care', label: 'Florida Care Tips' },
+  { href: '#mistakes', label: 'Common Mistakes' },
+]
+
 export default function BeginnerGuidePage() {
   return (
     <>
       <Navbar />
       <main className="bg-cream">
-
-        {/* ── Hero ─────────────────────────────────────────── */}
         <section className="bg-forest text-white pt-16 pb-20 sm:pt-20 sm:pb-28 relative overflow-hidden">
           <div className="absolute inset-0 opacity-5 pointer-events-none select-none"
             aria-hidden
@@ -200,12 +223,7 @@ export default function BeginnerGuidePage() {
               </p>
               {/* Jump links */}
               <nav aria-label="Guide sections" className="flex flex-wrap gap-3">
-                {[
-                  { href: '#starter-trees', label: 'Best Starter Trees' },
-                  { href: '#getting-started', label: 'Getting Started' },
-                  { href: '#florida-care', label: 'Florida Care Tips' },
-                  { href: '#mistakes', label: 'Common Mistakes' },
-                ].map(({ href, label }) => (
+                {jumpLinks.map(({ href, label }) => (
                   <a
                     key={href}
                     href={href}
@@ -218,8 +236,6 @@ export default function BeginnerGuidePage() {
             </div>
           </div>
         </section>
-
-        {/* ── What Is Bonsai ───────────────────────────────── */}
         <section className="section-wrap py-16 sm:py-20">
           <div className="max-w-3xl mx-auto text-center">
             <p className="section-label mb-4">The Simple Truth</p>
@@ -241,9 +257,7 @@ export default function BeginnerGuidePage() {
             </p>
           </div>
         </section>
-
-        {/* ── Why Florida ──────────────────────────────────── */}
-        <section className="bg-sage-pale py-14 sm:py-18">
+        <section className="bg-sage-pale py-14 sm:py-20">
           <div className="section-wrap">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-10">
@@ -252,23 +266,7 @@ export default function BeginnerGuidePage() {
                 <div className="pink-divider" />
               </div>
               <div className="grid sm:grid-cols-3 gap-6">
-                {[
-                  {
-                    icon: '🌴',
-                    title: 'Year-round growing season',
-                    body: 'No frost, no dormancy forced by cold. Your bonsai grows and thrives every single month of the year.',
-                  },
-                  {
-                    icon: '🌧️',
-                    title: 'Humidity helps',
-                    body: 'Florida\'s natural humidity reduces watering stress and supports the lush, healthy leaf growth bonsai need.',
-                  },
-                  {
-                    icon: '☀️',
-                    title: 'Tropical species available',
-                    body: 'Florida has access to tropical bonsai species — Ficus, Buttonwood, Bougainvillea — that simply don\'t survive northern winters.',
-                  },
-                ].map(({ icon, title, body }) => (
+                {whyFlorida.map(({ icon, title, body }) => (
                   <div key={title} className="card p-6 text-center">
                     <div className="text-4xl mb-4">{icon}</div>
                     <h3 className="font-serif text-xl text-forest font-bold mb-3">{title}</h3>
@@ -279,8 +277,6 @@ export default function BeginnerGuidePage() {
             </div>
           </div>
         </section>
-
-        {/* ── Starter Trees ────────────────────────────────── */}
         <section id="starter-trees" className="section-wrap py-16 sm:py-24">
           <div className="text-center mb-12">
             <p className="section-label mb-4">Our Recommendation</p>
@@ -354,8 +350,6 @@ export default function BeginnerGuidePage() {
             </Link>
           </div>
         </section>
-
-        {/* ── Getting Started Steps ────────────────────────── */}
         <section id="getting-started" className="bg-cream-warm py-16 sm:py-24">
           <div className="section-wrap">
             <div className="text-center mb-12">
@@ -385,8 +379,6 @@ export default function BeginnerGuidePage() {
             </div>
           </div>
         </section>
-
-        {/* ── Florida Care Tips ────────────────────────────── */}
         <section id="florida-care" className="section-wrap py-16 sm:py-24">
           <div className="text-center mb-12">
             <p className="section-label mb-4">Local Knowledge</p>
@@ -408,8 +400,6 @@ export default function BeginnerGuidePage() {
             ))}
           </div>
         </section>
-
-        {/* ── Common Mistakes ──────────────────────────────── */}
         <section id="mistakes" className="bg-sage-pale py-16 sm:py-20">
           <div className="section-wrap">
             <div className="text-center mb-12">
@@ -438,8 +428,6 @@ export default function BeginnerGuidePage() {
             </div>
           </div>
         </section>
-
-        {/* ── Final CTA ────────────────────────────────────── */}
         <section className="section-wrap py-16 sm:py-24">
           <div className="max-w-2xl mx-auto text-center">
             <p className="section-label mb-4">Ready to Begin?</p>
@@ -452,7 +440,7 @@ export default function BeginnerGuidePage() {
               schedules, placement advice, and support whenever you have questions. You will
               never feel alone in this.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <Link href="/trees" className="btn-primary">
                 See Trees for Sale
               </Link>
@@ -462,11 +450,17 @@ export default function BeginnerGuidePage() {
               <a href={CONTACT.phone.sms} className="btn-secondary">
                 Text Us
               </a>
+              <a
+                href={CONTACT.social.facebook.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+              >
+                Facebook
+              </a>
             </div>
           </div>
         </section>
-
-        {/* ── Helpful Links ────────────────────────────────── */}
         <section className="bg-forest text-white py-12">
           <div className="section-wrap">
             <div className="max-w-3xl mx-auto text-center">
@@ -474,24 +468,19 @@ export default function BeginnerGuidePage() {
                 Keep Learning
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
-                <Link
-                  href="/care-guides"
-                  className="font-sans text-sm font-semibold px-5 py-3 rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors"
-                >
-                  Species Care Guides →
-                </Link>
-                <Link
-                  href="/trees"
-                  className="font-sans text-sm font-semibold px-5 py-3 rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors"
-                >
-                  Browse Our Trees →
-                </Link>
-                <Link
-                  href="/#visit"
-                  className="font-sans text-sm font-semibold px-5 py-3 rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors"
-                >
-                  Book a Garden Visit →
-                </Link>
+                {[
+                  { href: '/care-guides', label: 'Species Care Guides →' },
+                  { href: '/trees', label: 'Browse Our Trees →' },
+                  { href: '/#visit', label: 'Book a Garden Visit →' },
+                ].map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="font-sans text-sm font-semibold px-5 py-3 rounded-full border border-white/30 text-white/80 hover:border-white hover:text-white transition-colors"
+                  >
+                    {label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

@@ -87,6 +87,7 @@ export const en = {
   nav: {
     collection: 'Collection',
     care: 'Care Guide',
+    beginnerGuide: 'Beginner Guide',
     visit: 'Visit',
     connect: 'Connect',
     callNow: 'Call Now',
