@@ -16,6 +16,7 @@ export default function Navbar({ logoUrl = null }: { logoUrl?: string | null }) 
   const navLinks = [
     { href: '/#connect', label: m.nav.connect },
     { href: '/trees', label: m.nav.collection },
+    { href: '/beginner-guide', label: 'Beginner Guide' },
     { href: '/care-guides', label: m.nav.care },
     { href: '/#visit', label: m.nav.visit },
   ]

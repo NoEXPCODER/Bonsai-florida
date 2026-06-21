@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   // Get tree names for history entries that have a tree_id
   const treeIds = [...new Set((history ?? []).map(h => h.tree_id).filter(Boolean))] as string[]
-  let treeNames: Record<string, string> = {}
+  const treeNames: Record<string, string> = {}
   if (treeIds.length) {
     const { data: treeRows } = await db
       .from('bonsai_trees')
