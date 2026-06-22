@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { CONTACT } from '@/config/contact'
+import ClubFinder from '@/components/bonsai/ClubFinder'
 
 export const metadata: Metadata = {
   title: 'Beginner Bonsai Guide | Bonsai Florida — Start Here',
@@ -198,6 +199,7 @@ const jumpLinks = [
   { href: '#getting-started', label: 'Getting Started' },
   { href: '#florida-care', label: 'Florida Care Tips' },
   { href: '#mistakes', label: 'Common Mistakes' },
+  { href: '#find-a-club', label: 'Find a Club' },
 ]
 
 export default function BeginnerGuidePage() {
@@ -428,6 +430,22 @@ export default function BeginnerGuidePage() {
             </div>
           </div>
         </section>
+        <section id="find-a-club" className="bg-cream-warm py-16 sm:py-24">
+          <div className="section-wrap">
+            <div className="text-center mb-10">
+              <p className="section-label mb-4">Florida Bonsai Community</p>
+              <h2 className="section-heading mb-4">Find a bonsai club near you</h2>
+              <div className="pink-divider mb-6" />
+              <p className="font-sans text-lg text-ink-light max-w-2xl mx-auto">
+                Every great bonsai grower started by joining a local club. Florida has active
+                communities across the state — monthly meetings, workshops, and growers who
+                love helping beginners.
+              </p>
+            </div>
+            <ClubFinder />
+          </div>
+        </section>
+
         <section className="section-wrap py-16 sm:py-24">
           <div className="max-w-2xl mx-auto text-center">
             <p className="section-label mb-4">Ready to Begin?</p>
