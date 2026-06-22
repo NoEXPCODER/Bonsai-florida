@@ -9,6 +9,8 @@ interface Club {
   lat: number
   lng: number
   website?: string
+  facebook?: string
+  instagram?: string
   meeting: string
 }
 
@@ -19,6 +21,7 @@ const CLUBS: Club[] = [
     region: 'Northeast Florida',
     lat: 30.332,
     lng: -81.655,
+    facebook: 'https://www.facebook.com/groups/jacksonvillebonsai',
     meeting: 'Meets monthly',
   },
   {
@@ -27,6 +30,7 @@ const CLUBS: Club[] = [
     region: 'North Central Florida',
     lat: 29.651,
     lng: -82.325,
+    facebook: 'https://www.facebook.com/search/top?q=Gainesville%20Bonsai%20Club',
     meeting: 'Meets monthly',
   },
   {
@@ -35,6 +39,7 @@ const CLUBS: Club[] = [
     region: 'Northwest Florida',
     lat: 30.438,
     lng: -84.281,
+    facebook: 'https://www.facebook.com/search/top?q=Tallahassee%20Bonsai%20Society',
     meeting: 'Meets monthly',
   },
   {
@@ -43,8 +48,9 @@ const CLUBS: Club[] = [
     region: 'Central Florida',
     lat: 28.538,
     lng: -81.379,
-    meeting: 'Meets monthly',
     website: 'https://www.cfbonsai.com',
+    facebook: 'https://www.facebook.com/centralfloridabonsaiclub',
+    meeting: 'Meets monthly',
   },
   {
     name: 'Bonsai Society of Brevard',
@@ -52,6 +58,7 @@ const CLUBS: Club[] = [
     region: 'Space Coast',
     lat: 28.083,
     lng: -80.608,
+    facebook: 'https://www.facebook.com/search/top?q=Bonsai%20Society%20of%20Brevard',
     meeting: 'Meets monthly',
   },
   {
@@ -60,6 +67,7 @@ const CLUBS: Club[] = [
     region: 'Northeast Florida',
     lat: 29.211,
     lng: -81.023,
+    facebook: 'https://www.facebook.com/search/top?q=Volusia%20Bonsai%20Society',
     meeting: 'Meets monthly',
   },
   {
@@ -68,8 +76,9 @@ const CLUBS: Club[] = [
     region: 'Tampa Bay',
     lat: 27.947,
     lng: -82.458,
-    meeting: 'Meets monthly',
     website: 'https://www.tampabonsai.org',
+    facebook: 'https://www.facebook.com/TampaBayBonsaiSociety',
+    meeting: 'Meets monthly',
   },
   {
     name: 'Pinellas Bonsai Society',
@@ -77,6 +86,7 @@ const CLUBS: Club[] = [
     region: 'Tampa Bay',
     lat: 27.773,
     lng: -82.639,
+    facebook: 'https://www.facebook.com/groups/pinellasbonsai',
     meeting: 'Meets monthly',
   },
   {
@@ -85,6 +95,7 @@ const CLUBS: Club[] = [
     region: 'Southwest Florida',
     lat: 27.336,
     lng: -82.530,
+    facebook: 'https://www.facebook.com/search/top?q=Suncoast%20Bonsai%20Society',
     meeting: 'Meets monthly',
   },
   {
@@ -93,6 +104,7 @@ const CLUBS: Club[] = [
     region: 'Southwest Florida',
     lat: 26.640,
     lng: -81.872,
+    facebook: 'https://www.facebook.com/search/top?q=Caloosahatchee%20Bonsai%20Society',
     meeting: 'Meets monthly',
   },
   {
@@ -101,6 +113,7 @@ const CLUBS: Club[] = [
     region: 'Palm Beach',
     lat: 26.715,
     lng: -80.053,
+    facebook: 'https://www.facebook.com/search/top?q=Palm%20Beach%20Bonsai%20Club',
     meeting: 'Meets monthly',
   },
   {
@@ -109,6 +122,7 @@ const CLUBS: Club[] = [
     region: 'South Florida',
     lat: 26.122,
     lng: -80.143,
+    facebook: 'https://www.facebook.com/groups/goldcoastbonsai',
     meeting: 'Meets monthly',
   },
   {
@@ -117,6 +131,7 @@ const CLUBS: Club[] = [
     region: 'South Florida',
     lat: 25.775,
     lng: -80.208,
+    facebook: 'https://www.facebook.com/search/top?q=Bonsai%20Society%20Greater%20Miami',
     meeting: 'Meets monthly',
   },
 ]
@@ -200,12 +215,8 @@ export default function ClubFinder() {
     setStatus('done')
   }
 
-  const mapsUrl = (club: Club) =>
-    `https://www.google.com/maps/search/${encodeURIComponent(club.name + ' ' + club.city + ' FL')}`
-
   return (
     <div>
-      {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-8">
         <button
           onClick={requestGeolocation}
@@ -240,14 +251,12 @@ export default function ClubFinder() {
         </select>
       </div>
 
-      {/* Error */}
       {status === 'error' && (
         <p className="text-center font-sans text-sm text-bonsai-pink mb-6" role="alert">
           {errorMsg}
         </p>
       )}
 
-      {/* Results */}
       {status === 'done' && results.length > 0 && (
         <div>
           <p className="text-center font-sans text-sm text-ink-light mb-6">
@@ -257,7 +266,6 @@ export default function ClubFinder() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {results.slice(0, 6).map((club) => (
               <div key={club.name} className="card p-6 flex flex-col gap-3">
-                {/* Distance badge */}
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-sans text-xs font-bold tracking-widest uppercase text-bonsai-pink">
                     {club.region}
@@ -274,24 +282,43 @@ export default function ClubFinder() {
                 <p className="font-sans text-xs text-ink-light">{club.meeting}</p>
 
                 <div className="flex gap-2 mt-auto pt-2 flex-wrap">
-                  <a
-                    href={mapsUrl(club)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-sans text-xs font-semibold px-4 py-2 rounded-full bg-forest text-white hover:bg-forest-light transition-colors min-h-[36px] flex items-center"
-                    aria-label={`Get directions to ${club.name}`}
-                  >
-                    Get Directions →
-                  </a>
                   {club.website && (
                     <a
                       href={club.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-sans text-xs font-semibold px-4 py-2 rounded-full border border-forest/20 text-forest hover:border-forest transition-colors min-h-[36px] flex items-center"
+                      className="font-sans text-xs font-semibold px-4 py-2 rounded-full bg-forest text-white hover:bg-forest-light transition-colors min-h-[36px] flex items-center"
                       aria-label={`Visit ${club.name} website`}
                     >
                       Website
+                    </a>
+                  )}
+                  {club.facebook && (
+                    <a
+                      href={club.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-sans text-xs font-semibold px-4 py-2 rounded-full border border-forest/20 text-forest hover:bg-forest hover:text-white transition-colors min-h-[36px] flex items-center gap-1.5"
+                      aria-label={`Find ${club.name} on Facebook`}
+                    >
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                      Facebook
+                    </a>
+                  )}
+                  {club.instagram && (
+                    <a
+                      href={club.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-sans text-xs font-semibold px-4 py-2 rounded-full border border-forest/20 text-forest hover:bg-forest hover:text-white transition-colors min-h-[36px] flex items-center gap-1.5"
+                      aria-label={`Find ${club.name} on Instagram`}
+                    >
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                      </svg>
+                      Instagram
                     </a>
                   )}
                 </div>
@@ -300,7 +327,7 @@ export default function ClubFinder() {
           </div>
 
           <p className="text-center font-sans text-xs text-ink-light mt-8">
-            Meeting schedules vary — search the club name for the latest dates and locations.
+            Meeting schedules vary — check each club&apos;s page for the latest dates and locations.
           </p>
         </div>
       )}
